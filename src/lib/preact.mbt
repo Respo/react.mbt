@@ -11,8 +11,28 @@ pub extern "js" fn preact_h(
   #| (tag, props, children) => window.Preact.h(tag, props, children)
 
 ///|
+pub extern "js" fn preact_fragment() -> String =
+  #| () => window.Preact.Fragment
+
+// pub fn fragment(children : Array[Element]) -> Element {
+//   preact_h(preact_fragment(), ElementAttrs::new(), ElementEvents::new(), ElementStyle::new(), children)
+// }
+
+///|
 pub fn render(el : Element, parent : @dom.Node) -> Unit {
   preact_render(el.to_js_value(), parent)
+}
+
+///|
+extern "js" fn preact_use_state(
+  initial : JsValue
+) -> (JsValue, (JsValue) -> Unit) =
+  #| (initial) => window.PreactHooks.useState(initial)
+
+///|
+pub fn use_state[T : JsValueTrait](initial : T) -> (T, (T) -> Unit) {
+  let (state, set_state) = preact_use_state(initial.to_value())
+  (T::from_value(state), fn(value) { set_state(value.to_value()) })
 }
 
 ///|
@@ -114,3 +134,7 @@ pub fn create_element(
 ) -> Element {
   Element::{ name, attrs, event, style, children }
 }
+
+///| text is a special node that can bse used in Element
+pub extern "js" fn text(t : String) -> Element =
+  #| (t) => t
