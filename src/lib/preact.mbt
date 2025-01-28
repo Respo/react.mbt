@@ -93,12 +93,39 @@ pub fn ElementStyle::set(
 }
 
 ///|
-struct Element {
+pub enum Node {
+  Element(Element)
+  Fragment(Array[Node])
+  Text(String)
+}
+
+///|
+pub fn Node::text(t : String) -> Node {
+  Text(t)
+}
+
+///|
+fn Node::to_js_value(self : Node) -> JsValue {
+  match self {
+    Element(el) => el.to_js_value()
+    Fragment(children) => {
+      let v = JsArray::new()
+      for child in children {
+        v.push(child.to_js_value())
+      }
+      preact_h(preact_fragment(), JsObject::new().to_value(), v.to_value())
+    }
+    Text(t) => JsValue::from_string(t)
+  }
+}
+
+///|
+pub struct Element {
   name : String
   attrs : ElementAttrs
   event : ElementEvents
   style : ElementStyle
-  children : Array[Element]
+  children : Array[Node]
 }
 
 ///|
@@ -130,11 +157,7 @@ pub fn create_element(
   attrs : ElementAttrs,
   event : ElementEvents,
   style : ElementStyle,
-  children : Array[Element]
+  children : Array[Node]
 ) -> Element {
   Element::{ name, attrs, event, style, children }
 }
-
-///| text is a special node that can bse used in Element
-pub extern "js" fn text(t : String) -> Element =
-  #| (t) => t
