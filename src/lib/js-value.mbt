@@ -76,8 +76,29 @@ extern "js" fn JsObject::as_value(self : JsObject) -> JsValue =
 type JsArray
 
 ///|
+extern "js" fn JsArray::to_string(self : JsArray) -> String =
+  #| (self) => `${self}`
+
+///|
+impl Show for JsArray with output(self, logger) -> Unit {
+  logger.write_string(self.to_string())
+}
+
+///|
 extern "js" fn JsArray::new() -> JsArray =
   #| () => []
+
+///|
+extern "js" fn JsArray::op_get(self : JsArray, index : Int) -> JsValue =
+  #| (self, index) => self[index]
+
+///|
+extern "js" fn JsArray::op_set(
+  self : JsArray,
+  index : Int,
+  value : JsValue
+) -> Unit =
+  #| (self, index, value) => self[index] = value
 
 ///|
 extern "js" fn JsArray::push(self : JsArray, value : JsValue) -> Unit =
