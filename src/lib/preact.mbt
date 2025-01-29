@@ -1,5 +1,5 @@
 ///|
-pub extern "js" fn preact_render(vdom : JsValue, parent : @dom.Node) -> Unit =
+pub extern "js" fn render(vdom : JsValue, parent : @dom.Node) -> Unit =
   #| (vdom, parent) => window.Preact.render(vdom, parent)
 
 ///|
@@ -17,11 +17,6 @@ pub extern "js" fn preact_fragment() -> String =
 // pub fn fragment(children : Array[Element]) -> Element {
 //   preact_h(preact_fragment(), ElementAttrs::new(), ElementEvents::new(), ElementStyle::new(), children)
 // }
-
-///|
-pub fn render(el : Node, parent : @dom.Node) -> Unit {
-  preact_render(el.to_js_value(), parent)
-}
 
 ///|
 extern "js" fn preact_use_state(initial : JsValue) -> JsValue =
@@ -147,7 +142,7 @@ pub fn Node::text(t : String) -> Node {
 }
 
 ///|
-fn Node::to_js_value(self : Node) -> JsValue {
+pub fn Node::to_js_value(self : Node) -> JsValue {
   match self {
     Element(el) => el.to_js_value()
     Fragment(children) => {
@@ -211,8 +206,8 @@ pub fn create_element(
 
 ///|
 pub extern "js" fn create_factory(
-  f : (JsValue) -> Node,
+  f : (JsValue) -> JsValue,
   props : JsValue,
   children : JsArray
-) -> Node =
+) -> JsValue =
   #| (f, props, children) => {console.log("f", f); return window.Preact.h(f, props, ...children)}

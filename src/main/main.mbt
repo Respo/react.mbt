@@ -1,5 +1,5 @@
 ///|
-fn comp_container(v : @preact.JsValue) -> @preact.Node {
+fn comp_container(v : @preact.JsValue) -> @preact.JsValue {
   // let (counter, set_counter) = @preact.use_state(0.0.to_float())
   // println("counter: \{counter}")
   let attrs = @preact.ElementAttrs::new().set("id", "container")
@@ -7,7 +7,9 @@ fn comp_container(v : @preact.JsValue) -> @preact.Node {
   let style = @preact.ElementStyle::new()
   let children : Array[@preact.Node] = []
   children.push(@preact.Node::text("Counter 1"))
-  @preact.create_element("div", attrs, event, style, children).to_node()
+  @preact.create_element("div", attrs, event, style, children)
+  .to_node()
+  .to_js_value()
 }
 
 ///|
