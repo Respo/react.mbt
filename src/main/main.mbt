@@ -1,6 +1,6 @@
 ///|
 fn comp_container(v : @preact.JsValue) -> @preact.JsValue {
-  // let (counter, set_counter) = @preact.use_state(0.0.to_float())
+  let (counter, set_counter) = @preact.use_state(0.0.to_float())
   // println("counter: \{counter}")
   let attrs = @preact.ElementAttrs::new().set("id", "container")
   let event = @preact.ElementEvents::new()
