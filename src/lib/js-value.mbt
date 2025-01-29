@@ -26,7 +26,7 @@ extern "js" fn JsValue::to_bool(self : JsValue) -> Bool =
   #| (self) => self
 
 ///|
-extern "js" fn JsValue::from_object(value : JsObject) -> JsValue =
+pub extern "js" fn JsValue::from_object(value : JsObject) -> JsValue =
   #| (value) => value
 
 ///| unsafe
@@ -53,7 +53,7 @@ extern "js" fn JsValue::to_fn(self : JsValue) -> () -> JsValue =
 type JsObject
 
 ///|
-extern "js" fn JsObject::new() -> JsObject =
+pub extern "js" fn JsObject::new() -> JsObject =
   #| () => ({})
 
 ///|
@@ -73,10 +73,10 @@ extern "js" fn JsObject::as_value(self : JsObject) -> JsValue =
   #| (self) => self
 
 ///|
-type JsArray
+pub type JsArray
 
 ///|
-extern "js" fn JsArray::to_string(self : JsArray) -> String =
+pub extern "js" fn JsArray::to_string(self : JsArray) -> String =
   #| (self) => `${self}`
 
 ///|
@@ -85,11 +85,11 @@ impl Show for JsArray with output(self, logger) -> Unit {
 }
 
 ///|
-extern "js" fn JsArray::new() -> JsArray =
+pub extern "js" fn JsArray::new() -> JsArray =
   #| () => []
 
 ///|
-extern "js" fn JsArray::op_get(self : JsArray, index : Int) -> JsValue =
+pub extern "js" fn JsArray::op_get(self : JsArray, index : Int) -> JsValue =
   #| (self, index) => self[index]
 
 ///|

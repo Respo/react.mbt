@@ -8,7 +8,7 @@ pub extern "js" fn preact_h(
   props : JsValue,
   children : JsValue
 ) -> JsValue =
-  #| (tag, props, children) => window.Preact.h(tag, props, children)
+  #| (tag, props, children) => window.Preact.h(tag, props, ...children)
 
 ///|
 pub extern "js" fn preact_fragment() -> String =
@@ -208,3 +208,11 @@ pub fn create_element(
 ) -> Element {
   Element::{ name, attrs, event, style, children }
 }
+
+///|
+pub extern "js" fn create_factory(
+  f : (JsValue) -> Node,
+  props : JsValue,
+  children : JsArray
+) -> Node =
+  #| (f, props, children) => {console.log("f", f); return window.Preact.h(f, props, ...children)}

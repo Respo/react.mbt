@@ -1,6 +1,7 @@
 ///|
-fn comp_container() -> @preact.Node {
+fn comp_container(v : @preact.JsValue) -> @preact.Node {
   // let (counter, set_counter) = @preact.use_state(0.0.to_float())
+  // println("counter: \{counter}")
   let attrs = @preact.ElementAttrs::new().set("id", "container")
   let event = @preact.ElementEvents::new()
   let style = @preact.ElementStyle::new()
@@ -14,5 +15,11 @@ fn main {
   let window = @dom.window()
   let doc = window.document()
   let body = doc.body()
-  @preact.render(comp_container(), body.reinterpret_as_node())
+  let props = @preact.JsValue::from_object(@preact.JsObject::new())
+  @preact.render(
+    @preact.create_factory(comp_container, props, @preact.JsArray::new()),
+    // comp_container(@preact.JsObject::new().to_value()),
+    body.reinterpret_as_node(),
+  )
+  println("loaded")
 }
