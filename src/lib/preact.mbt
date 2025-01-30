@@ -64,9 +64,7 @@ extern "js" fn state_updater_from_value(v : JsValue) -> (JsValue) -> Unit =
 
 ///|
 pub fn use_state[T : StateValue + Show](initial : T) -> (T, (T) -> Unit) {
-  println("initial: \{initial}")
   let pair = preact_use_state(initial.to_value()).to_array()
-  println("pair: \{pair}")
   let s0 = pair[0]
   let s1 = state_updater_from_value(pair[1])
   (T::from_value(s0), fn(value) { s1(value.to_value()) })
@@ -94,12 +92,19 @@ pub fn ElementAttrs::set(
 type DOMEvent
 
 ///|
-type ElementEvents Map[String, (DOMEvent) -> Unit]
+type DOMEventHandler (DOMEvent) -> Unit
+
+///|
+type ElementEvents Map[String, DOMEventHandler]
 
 ///|
 pub fn ElementEvents::new() -> ElementEvents {
   {}
 }
+
+///|
+extern "js" fn DOMEventHandler::to_js_func(self : DOMEventHandler) -> JsValue =
+  #| (f) => { return f }
 
 ///|
 pub fn ElementEvents::set(
@@ -109,6 +114,15 @@ pub fn ElementEvents::set(
 ) -> ElementEvents {
   self._.set(key, value)
   self
+}
+
+///|
+pub fn ElementEvents::to_js_value(self : ElementEvents) -> JsValue {
+  let obj = JsObject::new()
+  for key, value in self._ {
+    obj.set(key, value.to_js_func())
+  }
+  JsValue::from_object(obj)
 }
 
 ///|
@@ -186,6 +200,10 @@ fn Element::to_js_value(self : Element) -> JsValue {
   for child in self.children {
     children.push(child.to_js_value())
   }
+  for key, value in self.event._ {
+    let event_name = "on\{first_letter_to_uppercase(key)}"
+    props.set(event_name, value.to_js_func())
+  }
   preact_h(
     self.name,
     JsValue::from_object(props),
@@ -210,4 +228,9 @@ pub extern "js" fn create_factory(
   props : JsValue,
   children : JsArray
 ) -> JsValue =
-  #| (f, props, children) => {console.log("f", f); return window.Preact.h(f, props, ...children)}
+  #| (f, props, children) => { return window.Preact.h(f, props, ...children) }
+
+///|
+fn first_letter_to_uppercase(s : String) -> String {
+  s[0].to_string().to_upper() + s.substring(start=1)
+}
