@@ -11,12 +11,14 @@ pub extern "js" fn preact_h(
   #| (tag, props, children) => window.Preact.h(tag, props, ...children)
 
 ///|
-pub extern "js" fn preact_fragment() -> String =
-  #| () => window.Preact.Fragment
+type PreactFragment
 
-// pub fn fragment(children : Array[Element]) -> Element {
-//   preact_h(preact_fragment(), ElementAttrs::new(), ElementEvents::new(), ElementStyle::new(), children)
-// }
+///|
+pub extern "js" fn preact_fragment(
+  props : JsValue,
+  children : JsValue
+) -> JsValue =
+  #| (props, children) => window.Preact.h(window.Preact.Fragment, props, ...children)
 
 ///|
 extern "js" fn preact_use_state(initial : JsValue) -> JsValue =
@@ -156,6 +158,11 @@ pub fn Node::text(t : String) -> Node {
 }
 
 ///|
+pub fn Node::fragment(children : Array[Node]) -> Node {
+  Fragment(children)
+}
+
+///|
 pub fn Node::to_js_value(self : Node) -> JsValue {
   match self {
     Element(el) => el.to_js_value()
@@ -164,7 +171,7 @@ pub fn Node::to_js_value(self : Node) -> JsValue {
       for child in children {
         v.push(child.to_js_value())
       }
-      preact_h(preact_fragment(), JsObject::new().to_value(), v.to_value())
+      preact_fragment(JsObject::new().to_value(), v.to_value())
     }
     Text(t) => JsValue::from_string(t)
   }

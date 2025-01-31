@@ -8,7 +8,12 @@ fn comp_container(v : @preact.JsValue) -> @preact.JsValue {
     set_counter(counter + 1.0)
   })
   let style = @preact.ElementStyle::new()
-  let children : Array[@preact.Node] = []
+    .set("color", "blue")
+    .set("font-family", "Arial")
+    .set("padding", "10px")
+  let children : Array[@preact.Node] = [
+    @preact.Node::fragment([@preact.Node::text("Demo: ")]),
+  ]
   children.push(@preact.Node::text("Counter \{counter}"))
   @preact.create_element("div", attrs, event, style, children)
   .to_node()
