@@ -5,7 +5,8 @@ type JsValue
 extern "js" fn JsValue::from_string(value : String) -> JsValue =
   #| (value) => value
 
-///| unsafe
+///|
+/// unsafe
 extern "js" fn JsValue::to_string(self : JsValue) -> String =
   #| (self) => self
 
@@ -13,7 +14,8 @@ extern "js" fn JsValue::to_string(self : JsValue) -> String =
 extern "js" fn JsValue::from_number(value : Float) -> JsValue =
   #| (value) => value
 
-///| unsafe
+///|
+/// unsafe
 extern "js" fn JsValue::to_number(self : JsValue) -> Float =
   #| (self) => self
 
@@ -21,7 +23,8 @@ extern "js" fn JsValue::to_number(self : JsValue) -> Float =
 extern "js" fn JsValue::from_bool(value : Bool) -> JsValue =
   #| (value) => value
 
-///| unsafe
+///|
+/// unsafe
 extern "js" fn JsValue::to_bool(self : JsValue) -> Bool =
   #| (self) => self
 
@@ -29,7 +32,8 @@ extern "js" fn JsValue::to_bool(self : JsValue) -> Bool =
 pub extern "js" fn JsValue::from_object(value : JsObject) -> JsValue =
   #| (value) => value
 
-///| unsafe
+///|
+/// unsafe
 extern "js" fn JsValue::to_object(self : JsValue) -> JsObject =
   #| (self) => self
 
@@ -37,7 +41,8 @@ extern "js" fn JsValue::to_object(self : JsValue) -> JsObject =
 extern "js" fn JsValue::from_array(value : JsArray) -> JsValue =
   #| (value) => value
 
-///| unsafe
+///|
+/// unsafe
 extern "js" fn JsValue::to_array(self : JsValue) -> JsArray =
   #| (self) => self
 
@@ -45,7 +50,8 @@ extern "js" fn JsValue::to_array(self : JsValue) -> JsArray =
 extern "js" fn JsValue::from_fn(value : () -> JsValue) -> JsValue =
   #| (value) => value
 
-///| unsafe
+///|
+/// unsafe
 extern "js" fn JsValue::to_fn(self : JsValue) -> () -> JsValue =
   #| (self) => self
 
@@ -60,7 +66,7 @@ pub extern "js" fn JsObject::new() -> JsObject =
 extern "js" fn JsObject::set(
   self : JsObject,
   key : String,
-  value : JsValue
+  value : JsValue,
 ) -> Unit =
   #| (self, key, value) => self[key] = value
 
@@ -96,7 +102,7 @@ pub extern "js" fn JsArray::op_get(self : JsArray, index : Int) -> JsValue =
 extern "js" fn JsArray::op_set(
   self : JsArray,
   index : Int,
-  value : JsValue
+  value : JsValue,
 ) -> Unit =
   #| (self, index, value) => self[index] = value
 

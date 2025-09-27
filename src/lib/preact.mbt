@@ -6,7 +6,7 @@ pub extern "js" fn render(vdom : JsValue, parent : @dom.Node) -> Unit =
 pub extern "js" fn preact_h(
   tag : String,
   props : JsValue,
-  children : JsValue
+  children : JsValue,
 ) -> JsValue =
   #| (tag, props, children) => window.Preact.h(tag, props, ...children)
 
@@ -16,7 +16,7 @@ type PreactFragment
 ///|
 pub extern "js" fn preact_fragment(
   props : JsValue,
-  children : JsValue
+  children : JsValue,
 ) -> JsValue =
   #| (props, children) => window.Preact.h(window.Preact.Fragment, props, ...children)
 
@@ -65,7 +65,7 @@ extern "js" fn state_updater_from_value(v : JsValue) -> (JsValue) -> Unit =
   #| (v) => v
 
 ///|
-pub fn use_state[T : StateValue + Show](initial : T) -> (T, (T) -> Unit) {
+pub fn[T : StateValue + Show] use_state(initial : T) -> (T, (T) -> Unit) {
   let pair = preact_use_state(initial.to_value()).to_array()
   let s0 = pair[0]
   let s1 = state_updater_from_value(pair[1])
@@ -73,7 +73,7 @@ pub fn use_state[T : StateValue + Show](initial : T) -> (T, (T) -> Unit) {
 }
 
 ///|
-pub type ElementAttrs Map[String, String]
+pub struct ElementAttrs(Map[String, String])
 
 ///|
 pub fn ElementAttrs::new() -> ElementAttrs {
@@ -84,9 +84,9 @@ pub fn ElementAttrs::new() -> ElementAttrs {
 pub fn ElementAttrs::set(
   self : ElementAttrs,
   key : String,
-  value : String
+  value : String,
 ) -> ElementAttrs {
-  self._.set(key, value)
+  self.inner().set(key, value)
   self
 }
 
@@ -94,10 +94,10 @@ pub fn ElementAttrs::set(
 type DOMEvent
 
 ///|
-type DOMEventHandler (DOMEvent) -> Unit
+priv struct DOMEventHandler((DOMEvent) -> Unit)
 
 ///|
-type ElementEvents Map[String, DOMEventHandler]
+struct ElementEvents(Map[String, DOMEventHandler])
 
 ///|
 pub fn ElementEvents::new() -> ElementEvents {
@@ -112,23 +112,23 @@ extern "js" fn DOMEventHandler::to_js_func(self : DOMEventHandler) -> JsValue =
 pub fn ElementEvents::set(
   self : ElementEvents,
   key : String,
-  value : (DOMEvent) -> Unit
+  value : (DOMEvent) -> Unit,
 ) -> ElementEvents {
-  self._.set(key, value)
+  self.inner().set(key, value)
   self
 }
 
 ///|
 pub fn ElementEvents::to_js_value(self : ElementEvents) -> JsValue {
   let obj = JsObject::new()
-  for key, value in self._ {
+  for key, value in self.inner() {
     obj.set(key, value.to_js_func())
   }
   JsValue::from_object(obj)
 }
 
 ///|
-type ElementStyle Map[String, String]
+struct ElementStyle(Map[String, String])
 
 ///|
 pub fn ElementStyle::new() -> ElementStyle {
@@ -139,9 +139,9 @@ pub fn ElementStyle::new() -> ElementStyle {
 pub fn ElementStyle::set(
   self : ElementStyle,
   key : String,
-  value : String
+  value : String,
 ) -> ElementStyle {
-  self._.set(key, value)
+  self.inner().set(key, value)
   self
 }
 
@@ -194,11 +194,11 @@ pub fn Element::to_node(self : Element) -> Node {
 ///|
 fn Element::to_js_value(self : Element) -> JsValue {
   let props = JsObject::new()
-  for key, value in self.attrs._ {
+  for key, value in self.attrs.inner() {
     props.set(key, JsValue::from_string(value))
   }
   let style = JsObject::new()
-  for key, value in self.style._ {
+  for key, value in self.style.inner() {
     style.set(key, JsValue::from_string(value))
   }
   // TODO events
@@ -207,7 +207,7 @@ fn Element::to_js_value(self : Element) -> JsValue {
   for child in self.children {
     children.push(child.to_js_value())
   }
-  for key, value in self.event._ {
+  for key, value in self.event.inner() {
     let event_name = "on\{first_letter_to_uppercase(key)}"
     props.set(event_name, value.to_js_func())
   }
@@ -224,7 +224,7 @@ pub fn create_element(
   attrs : ElementAttrs,
   event : ElementEvents,
   style : ElementStyle,
-  children : Array[Node]
+  children : Array[Node],
 ) -> Element {
   Element::{ name, attrs, event, style, children }
 }
@@ -233,7 +233,7 @@ pub fn create_element(
 pub extern "js" fn create_factory(
   f : (JsValue) -> JsValue,
   props : JsValue,
-  children : JsArray
+  children : JsArray,
 ) -> JsValue =
   #| (f, props, children) => { return window.Preact.h(f, props, ...children) }
 

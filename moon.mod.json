@@ -2,15 +2,13 @@
   "name": "tiye/preact",
   "version": "0.0.1",
   "deps": {
-    "tiye/dom-ffi": "0.0.8"
+    "tiye/dom-ffi": "0.0.9"
   },
   "readme": "README.md",
   "repository": "https://github.com/Respo/respo.mbt",
   "license": "Apache-2.0",
-  "keywords": [
-    "preact",
-    "binding"
-  ],
+  "keywords": ["preact", "binding"],
   "description": "Bindings for Preact",
+  "preferred-target": "js",
   "source": "src"
 }
