@@ -1,6 +1,8 @@
 ///|
 pub extern "js" fn render(vdom : JsValue, parent : @dom.Node) -> Unit =
-  #| (vdom, parent) => window.Preact.render(vdom, parent)
+  #| (vdom, parent) => {
+  #|  return window.Preact.render(vdom, parent)
+  #| }
 
 ///|
 pub extern "js" fn preact_h(
@@ -91,7 +93,14 @@ pub fn ElementAttrs::set(
 }
 
 ///|
-type DOMEvent
+pub type DOMEvent
+
+///|
+pub fn DOMEvent::to_js_any_value(self : DOMEvent) -> JsValue = "%identity"
+
+///|
+pub extern "js" fn console_log2(msg : String, v : JsValue) -> Unit =
+  #| (msg, v) => { console.log(msg, v) }
 
 ///|
 priv struct DOMEventHandler((DOMEvent) -> Unit)
@@ -146,25 +155,27 @@ pub fn ElementStyle::set(
 }
 
 ///|
-pub enum Node {
-  Element(Element)
-  Fragment(Array[Node])
+pub enum VirtualNode {
+  Element(VirtualElement)
+  Fragment(Array[VirtualNode])
   Text(String)
+  /// already converted to JsValue, hard to convert back
+  JsNode(JsValue) // for advanced usage, e.g. connect
 }
 
 ///|
-pub fn Node::text(t : String) -> Node {
+pub fn VirtualNode::text(t : String) -> VirtualNode {
   Text(t)
 }
 
 ///|
-pub fn Node::fragment(children : Array[Node]) -> Node {
+pub fn VirtualNode::fragment(children : Array[VirtualNode]) -> VirtualNode {
   Fragment(children)
 }
 
 ///|
-pub fn Node::to_js_value(self : Node) -> JsValue {
-  match self {
+pub fn VirtualNode::to_js_value(self : VirtualNode) -> JsValue {
+  let ret = match self {
     Element(el) => el.to_js_value()
     Fragment(children) => {
       let v = JsArray::new()
@@ -174,25 +185,28 @@ pub fn Node::to_js_value(self : Node) -> JsValue {
       preact_fragment(JsObject::new().to_value(), v.to_value())
     }
     Text(t) => JsValue::from_string(t)
+    JsNode(v) => v
   }
+  ret
 }
 
 ///|
-pub struct Element {
+pub struct VirtualElement {
   name : String
   attrs : ElementAttrs
   event : ElementEvents
   style : ElementStyle
-  children : Array[Node]
+  children : Array[VirtualNode]
+  on_click : ((DOMEvent) -> Unit)?
 }
 
 ///|
-pub fn Element::to_node(self : Element) -> Node {
+pub fn VirtualElement::to_node(self : VirtualElement) -> VirtualNode {
   Element(self)
 }
 
 ///|
-fn Element::to_js_value(self : Element) -> JsValue {
+fn VirtualElement::to_js_value(self : VirtualElement) -> JsValue {
   let props = JsObject::new()
   for key, value in self.attrs.inner() {
     props.set(key, JsValue::from_string(value))
@@ -211,6 +225,9 @@ fn Element::to_js_value(self : Element) -> JsValue {
     let event_name = "on\{first_letter_to_uppercase(key)}"
     props.set(event_name, value.to_js_func())
   }
+  if self.on_click is Some(f) {
+    props.set("onClick", DOMEventHandler(f).to_js_func())
+  }
   preact_h(
     self.name,
     JsValue::from_object(props),
@@ -224,20 +241,43 @@ pub fn create_element(
   attrs : ElementAttrs,
   event : ElementEvents,
   style : ElementStyle,
-  children : Array[Node],
-) -> Element {
-  Element::{ name, attrs, event, style, children }
+  on_click? : (DOMEvent) -> Unit,
+  children : Array[VirtualNode],
+) -> VirtualElement {
+  VirtualElement::{ name, attrs, event, style, children, on_click }
 }
 
 ///|
-pub extern "js" fn create_factory(
+extern "js" fn create_factory(
   f : (JsValue) -> JsValue,
   props : JsValue,
   children : JsArray,
 ) -> JsValue =
-  #| (f, props, children) => { return window.Preact.h(f, props, ...children) }
+  #| (f, props, children) => {
+  #|   let h0 = window.Preact.h(f, props, ...children);
+  #|   return h0;
+  #| }
+
+///|
+/// a trick for `createElement`
+pub fn[T : JsValueTrait] connect(
+  f : (T) -> VirtualNode,
+  props : T,
+  children : Array[VirtualNode],
+) -> VirtualNode {
+  let children_js = JsArray::new()
+  for child in children {
+    children_js.push(child.to_js_value())
+  }
+  let r = create_factory(
+    fn(p) { f(T::from_value(p)).to_js_value() },
+    props.to_value(),
+    children_js,
+  )
+  JsNode(r)
+}
 
 ///|
 fn first_letter_to_uppercase(s : String) -> String {
-  s[0].to_string().to_upper() + s.substring(start=1)
+  s[0].to_char().unwrap().to_string().to_upper() + s.substring(start=1)
 }

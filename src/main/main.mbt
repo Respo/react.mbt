@@ -1,5 +1,26 @@
 ///|
-fn comp_container(v : @preact.JsValue) -> @preact.JsValue {
+fnalias @preact.connect
+
+///|
+typealias @preact.VirtualNode
+
+///|
+struct ContainerProps {} derive(Default)
+
+///|
+impl @preact.JsValueTrait for ContainerProps with to_value(self) -> @preact.JsValue {
+  @preact.JsObject::new().to_value()
+}
+
+///|
+impl @preact.JsValueTrait for ContainerProps with from_value(
+  value : @preact.JsValue,
+) -> ContainerProps {
+  ContainerProps::default()
+}
+
+///|
+fn comp_container(v : ContainerProps) -> VirtualNode {
   let (counter, set_counter) = @preact.use_state(0.0.to_float())
   // println("counter: \{counter}")
   let attrs = @preact.ElementAttrs::new().set("id", "container")
@@ -11,13 +32,10 @@ fn comp_container(v : @preact.JsValue) -> @preact.JsValue {
     .set("color", "blue")
     .set("font-family", "Arial")
     .set("padding", "10px")
-  let children : Array[@preact.Node] = [
-    @preact.Node::fragment([@preact.Node::text("Demo: ")]),
-  ]
-  children.push(@preact.Node::text("Counter \{counter}"))
-  @preact.create_element("div", attrs, event, style, children)
-  .to_node()
-  .to_js_value()
+  @preact.create_element("div", attrs, event, style, [
+    VirtualNode::fragment([VirtualNode::text("Demo: ")]),
+    VirtualNode::text("Counter \{counter}"),
+  ]).to_node()
 }
 
 ///|
@@ -25,9 +43,9 @@ fn main {
   let window = @dom.window()
   let doc = window.document()
   let body = doc.body()
-  let props = @preact.JsValue::from_object(@preact.JsObject::new())
+  let props = ContainerProps::default()
   @preact.render(
-    @preact.create_factory(comp_container, props, @preact.JsArray::new()),
+    connect(comp_container, props, []).to_js_value(),
     // comp_container(@preact.JsObject::new().to_value()),
     body.reinterpret_as_node(),
   )
