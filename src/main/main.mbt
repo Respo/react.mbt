@@ -8,19 +8,19 @@ typealias @preact.VirtualNode
 struct ContainerProps {} derive(Default)
 
 ///|
-impl @preact.JsValueTrait for ContainerProps with to_value(self) -> @preact.JsValue {
+impl @preact.JsValueTrait for ContainerProps with to_value(_self) -> @preact.JsValue {
   @preact.JsObject::new().to_value()
 }
 
 ///|
 impl @preact.JsValueTrait for ContainerProps with from_value(
-  value : @preact.JsValue,
+  _value : @preact.JsValue,
 ) -> ContainerProps {
   ContainerProps::default()
 }
 
 ///|
-fn comp_container(v : ContainerProps) -> VirtualNode {
+fn comp_container(_v : ContainerProps) -> VirtualNode {
   let (counter, set_counter) = @preact.use_state(0.0.to_float())
   // println("counter: \{counter}")
   let attrs = @preact.ElementAttrs::new().set("id", "container")

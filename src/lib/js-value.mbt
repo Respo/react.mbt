@@ -71,11 +71,26 @@ extern "js" fn JsObject::set(
   #| (self, key, value) => self[key] = value
 
 ///|
-extern "js" fn JsObject::get(self : JsObject, key : String) -> JsValue =
+pub extern "js" fn JsObject::get(self : JsObject, key : String) -> JsValue =
   #| (self, key) => self[key]
 
 ///|
-extern "js" fn JsObject::as_value(self : JsObject) -> JsValue =
+/// Converts a JavaScript object to a JavaScript value.
+///
+/// Parameters:
+///
+/// * `self` : The JavaScript object to convert.
+///
+/// Returns a `JsValue` representing the same object.
+///
+/// Example:
+///
+/// ```moonbit
+/// let obj = @tiye/preact/lib.JsObject::new()
+/// let value = obj.as_value()
+/// ```
+///
+pub extern "js" fn JsObject::as_value(self : JsObject) -> JsValue =
   #| (self) => self
 
 ///|
@@ -86,11 +101,6 @@ pub extern "js" fn JsArray::to_string(self : JsArray) -> String =
   #| (self) => `${self}`
 
 ///|
-impl Show for JsArray with output(self, logger) -> Unit {
-  logger.write_string(self.to_string())
-}
-
-///|
 pub extern "js" fn JsArray::new() -> JsArray =
   #| () => []
 
@@ -99,7 +109,7 @@ pub extern "js" fn JsArray::op_get(self : JsArray, index : Int) -> JsValue =
   #| (self, index) => self[index]
 
 ///|
-extern "js" fn JsArray::op_set(
+pub extern "js" fn JsArray::op_set(
   self : JsArray,
   index : Int,
   value : JsValue,
@@ -111,5 +121,5 @@ extern "js" fn JsArray::push(self : JsArray, value : JsValue) -> Unit =
   #| (self, value) => self.push(value)
 
 ///|
-extern "js" fn JsArray::as_value(self : JsArray) -> JsValue =
+pub extern "js" fn JsArray::as_value(self : JsArray) -> JsValue =
   #| (self) => self

@@ -279,5 +279,5 @@ pub fn[T : JsValueTrait] connect(
 
 ///|
 fn first_letter_to_uppercase(s : String) -> String {
-  s[0].to_char().unwrap().to_string().to_upper() + s.substring(start=1)
+  s[0].to_char().unwrap().to_string().to_upper() + (try! s[1:]).to_string()
 }
