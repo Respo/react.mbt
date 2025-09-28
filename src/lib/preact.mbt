@@ -1,3 +1,7 @@
+fnalias @css.respo_style
+
+typealias @css.RespoStyle
+
 ///|
 pub extern "js" fn render(vdom : JsValue, parent : @dom.Node) -> Unit =
   #| (vdom, parent) => {
@@ -137,22 +141,13 @@ pub fn ElementEvents::to_js_value(self : ElementEvents) -> JsValue {
 }
 
 ///|
-struct ElementStyle(Map[String, String])
+pub(all) struct ElementStyle(RespoStyle)
 
 ///|
 pub fn ElementStyle::new() -> ElementStyle {
-  {}
+  ElementStyle(RespoStyle::default())
 }
 
-///|
-pub fn ElementStyle::set(
-  self : ElementStyle,
-  key : String,
-  value : String,
-) -> ElementStyle {
-  self.inner().set(key, value)
-  self
-}
 
 ///|
 pub enum VirtualNode {
@@ -212,7 +207,8 @@ fn VirtualElement::to_js_value(self : VirtualElement) -> JsValue {
     props.set(key, JsValue::from_string(value))
   }
   let style = JsObject::new()
-  for key, value in self.style.inner() {
+  for _idx, pair in self.style.0.0 {
+    let (key, value) = pair
     style.set(key, JsValue::from_string(value))
   }
   // TODO events

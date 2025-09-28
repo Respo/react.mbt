@@ -1,6 +1,8 @@
 ///|
 fnalias @preact.connect
 
+fnalias @css.respo_style
+
 ///|
 typealias @preact.VirtualNode
 
@@ -28,10 +30,14 @@ fn comp_container(_v : ContainerProps) -> VirtualNode {
     println("clicked \{counter}")
     set_counter(counter + 1.0)
   })
-  let style = @preact.ElementStyle::new()
-    .set("color", "blue")
-    .set("font-family", "Arial")
-    .set("padding", "10px")
+  let style = @preact.ElementStyle(
+    respo_style(
+      color = Blue,
+      font_family = "Arial",
+      padding = @css.CssSize::Px(10.0),
+    )
+  )
+
   @preact.create_element("div", attrs, event, style, [
     VirtualNode::fragment([VirtualNode::text("Demo: ")]),
     VirtualNode::text("Counter \{counter}"),
