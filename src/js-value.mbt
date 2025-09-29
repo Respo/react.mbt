@@ -86,8 +86,8 @@ pub extern "js" fn JsObject::get(self : JsObject, key : String) -> JsValue =
 /// Example:
 ///
 /// ```moonbit
-/// let obj = @tiye/preact/lib.JsObject::new()
-/// let value = obj.as_value()
+/// let obj = @tiye/preact.JsObject::new()
+/// let _value = obj.as_value()
 /// ```
 ///
 pub extern "js" fn JsObject::as_value(self : JsObject) -> JsValue =

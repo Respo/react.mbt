@@ -2,7 +2,7 @@
   "is-main": true,
   "import": [
     {
-      "path": "tiye/preact/lib",
+      "path": "tiye/preact",
       "alias": "preact"
     },
     {
