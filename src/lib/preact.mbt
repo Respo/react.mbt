@@ -81,7 +81,7 @@ pub fn[T : StateValue + Show] use_state(initial : T) -> (T, (T) -> Unit) {
 }
 
 ///|
-pub struct ElementAttrs(Map[String, String])
+pub struct ElementAttrs(Map[String, String]) derive(Default)
 
 ///|
 pub fn ElementAttrs::new() -> ElementAttrs {
@@ -121,7 +121,7 @@ pub extern "js" fn console_log2(msg : String, v : JsValue) -> Unit =
 priv struct DOMEventHandler((DOMEvent) -> Unit)
 
 ///|
-struct ElementEvents(Map[String, DOMEventHandler])
+struct ElementEvents(Map[String, DOMEventHandler]) derive(Default)
 
 ///|
 pub fn ElementEvents::new() -> ElementEvents {
