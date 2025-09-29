@@ -4,6 +4,12 @@ pub(open) trait JsValueTrait {
   from_value(JsValue) -> Self
 }
 
+pub(open) trait CastJsValueTrait {
+  to_js_value(Self) -> JsValue = _
+}
+
+impl CastJsValueTrait with to_js_value(self) -> JsValue  = "%identity"
+
 ///|
 pub impl JsValueTrait for String with to_value(self) -> JsValue {
   JsValue::from_string(self)

@@ -1,5 +1,5 @@
 ///|
-fnalias @preact.connect
+fnalias @preact.component
 
 ///|
 fnalias @css.respo_style
@@ -44,9 +44,8 @@ fn main {
   let body = doc.body()
   let props = ContainerProps::default()
   @preact.render(
-    connect(comp_container, props, []).to_js_value(),
-    // comp_container(@preact.JsObject::new().to_value()),
-    body.reinterpret_as_node(),
+    component(comp_container, props, []),
+    body,
   )
   println("loaded")
 }

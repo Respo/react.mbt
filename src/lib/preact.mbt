@@ -5,24 +5,49 @@ fnalias @css.respo_style
 typealias @css.RespoStyle
 
 ///|
-pub extern "js" fn render(vdom : JsValue, parent : @dom.Node) -> Unit =
+extern "js" fn preact_render(vdom : JsValue, parent : @dom.Node) -> Unit =
   #| (vdom, parent) => {
   #|  return window.Preact.render(vdom, parent)
   #| }
 
 ///|
-pub extern "js" fn preact_h(
+/// Renders a virtual DOM node to the specified parent element.
+///
+/// This function takes a virtual DOM node and a parent DOM element, then uses
+/// the Preact rendering engine to render the virtual node as a real DOM element
+/// within the parent.
+///
+/// # Parameters
+/// - `vdom`: The virtual DOM node to render.
+/// - `parent`: The parent DOM element where the rendered node will be appended.
+///
+/// # Example
+/// ```moonbit_no_check
+/// // Render a virtual element to the document body
+/// let custom_elem = create_element(
+///   "my-custom-element",
+///   ElementAttrs::new(),
+///   ElementEvents::new(),
+///   style=@css.respo_style(),
+///   [Text("Custom content")]
+/// )
+/// render(custom_elem.to_node(), document.body)
+/// ```
+pub fn render(vdom: VirtualNode, parent: @dom.Element) -> Unit {
+  preact_render(vdom.to_js_value(), parent.reinterpret_as_node())
+}
+
+///|
+extern "js" fn preact_h(
   tag : String,
   props : JsValue,
   children : JsValue,
 ) -> JsValue =
   #| (tag, props, children) => window.Preact.h(tag, props, ...children)
 
-///|
-type PreactFragment
 
 ///|
-pub extern "js" fn preact_fragment(
+extern "js" fn preact_fragment(
   props : JsValue,
   children : JsValue,
 ) -> JsValue =
@@ -73,7 +98,7 @@ extern "js" fn state_updater_from_value(v : JsValue) -> (JsValue) -> Unit =
   #| (v) => v
 
 ///|
-pub fn[T : StateValue + Show] use_state(initial : T) -> (T, (T) -> Unit) {
+pub fn[T : StateValue] use_state(initial : T) -> (T, (T) -> Unit) {
   let pair = preact_use_state(initial.to_value()).to_array()
   let s0 = pair[0]
   let s1 = state_updater_from_value(pair[1])
@@ -160,19 +185,20 @@ pub fn ElementEvents::to_js_value(self : ElementEvents) -> JsValue {
   JsValue::from_object(obj)
 }
 
-///|
-pub(all) struct ElementStyle(RespoStyle)
 
 ///|
-pub fn ElementStyle::new() -> ElementStyle {
-  ElementStyle(RespoStyle::default())
-}
-
-///|
+/// Represents a virtual DOM node in the Preact rendering system.
+///
+/// This is the core type for building virtual DOM trees. Each variant represents
+/// a different kind of node that can be rendered to the actual DOM.
 pub(all) enum VirtualNode {
+  /// A standard HTML element with attributes, events, and children
   Element(VirtualElement)
+  /// A container for multiple child nodes without creating a wrapper element
   Fragment(Array[VirtualNode])
+  /// A text node containing plain string content
   Text(String)
+  /// A pre-converted JavaScript value for advanced usage (e.g., from `component` function)
   /// already converted to JsValue, hard to convert back
   JsNode(JsValue) // for advanced usage, e.g. connect
 }
@@ -195,11 +221,22 @@ pub fn VirtualNode::to_js_value(self : VirtualNode) -> JsValue {
 }
 
 ///|
+/// Represents a virtual DOM element with all its properties and children.
+///
+/// This structure encapsulates all the information needed to create and manage
+/// a DOM element in the virtual DOM tree, including its tag name, attributes,
+/// event handlers, styles, and child nodes.
+///
 pub struct VirtualElement {
+  /// The HTML tag name of the element (e.g., "div", "span", "button").
   name : String
+  /// HTML attributes for the element (e.g., id, class, data-* attributes).
   attrs : ElementAttrs
+  /// Event handlers attached to the element (e.g., click, input, focus).
   event : ElementEvents
-  style : ElementStyle
+  /// CSS styles applied to the element.
+  style : RespoStyle
+  /// Child virtual nodes contained within this element.
   children : Array[VirtualNode]
 }
 
@@ -215,7 +252,7 @@ fn VirtualElement::to_js_value(self : VirtualElement) -> JsValue {
     props.set(key, JsValue::from_string(value))
   }
   let style = JsObject::new()
-  for _idx, pair in self.style.0.0 {
+  for _idx, pair in self.style.0 {
     let (key, value) = pair
     style.set(key, JsValue::from_string(value))
   }
@@ -236,7 +273,29 @@ fn VirtualElement::to_js_value(self : VirtualElement) -> JsValue {
   )
 }
 
-///|
+///|/// Creates a virtual DOM element with the specified properties.
+///
+/// This is the internal implementation used by built-in element functions like `div`, `span`, etc.
+/// It can also be used to create custom HTML elements that are not provided by the library.
+///
+/// # Parameters
+/// - `name`: HTML tag name (e.g., "div", "span", "custom-element")
+/// - `attrs`: Element attributes
+/// - `event`: Event handlers
+/// - `style`: CSS styles
+/// - `children`: Child virtual nodes
+///
+/// # Example
+/// ```moonbit
+/// // Create a custom element
+/// let _custom_elem = create_element(
+///   "my-custom-element",
+///   ElementAttrs::new(),
+///   ElementEvents::new(),
+///   style=@css.respo_style(),
+///   [Text("Custom content")]
+/// )
+/// ```
 pub fn create_element(
   name : String,
   attrs : ElementAttrs,
@@ -257,12 +316,31 @@ extern "js" fn create_factory(
   #|   let h0 = window.Preact.h(f, props, ...children);
   #|   return h0;
   #| }
-
 ///|
-/// a trick for `createElement`
-pub fn[T : JsValueTrait] connect(
+/// Creates a component virtual node from a function, props, and children.
+///
+/// This bridges MoonBit component functions with Preact's rendering system,
+/// enabling type-safe component creation with strongly-typed props.
+///
+/// # Example
+/// ```moonbit_nocheck
+/// struct ButtonProps {
+///   text : String
+///   disabled : Bool
+/// } derive(Default)
+///
+/// fn my_button(props : ButtonProps) -> VirtualNode {
+///   button(disabled=props.disabled, [Text(props.text)])
+/// }
+///
+/// let node = component(my_button, ButtonProps { text: "Click me", disabled: false }, [])
+/// ```
+pub fn[T : JsValueTrait] component(
+  /// Component function that transforms props into a virtual node
   f : (T) -> VirtualNode,
+  /// Props to pass to the component function
   props : T,
+  /// Child nodes to render inside the component
   children : Array[VirtualNode],
 ) -> VirtualNode {
   let children_js = JsArray::new()
@@ -271,6 +349,8 @@ pub fn[T : JsValueTrait] connect(
   }
   let r = create_factory(
     fn(p) { f(T::from_value(p)).to_js_value() },
+    // TODO maybe better to use { value: PROPS} instead of props.to_value()
+    // need future refactor to explore it
     props.to_value(),
     children_js,
   )

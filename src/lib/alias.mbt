@@ -1,14 +1,36 @@
 ///|
-///|
+/// Creates a `span` element with the specified attributes, event handlers, and
+/// children.
+///
+/// Returns a virtual DOM node representing a `span` element.
+///
+/// Example:
+///
+/// ```moonbit
+/// let _ = span(
+///   class_name="text-bold",
+///   on_click=fn(_e) { println("Clicked!") }, []
+/// )
+/// ```
+///
 pub fn span(
+  /// HTML element ID.
   id? : String,
+  /// Base CSS class name.
   class_name? : String,
+  /// Additional CSS class names to be appended to the base class.
   class_list? : Array[String] = [],
+  /// Additional HTML attributes.
   attrs? : ElementAttrs,
+  /// Event handlers map.
   event? : ElementEvents,
+  /// CSS styles.
   style? : RespoStyle = respo_style(),
+  /// Child nodes of the span element.
   children : Array[VirtualNode],
+  /// Raw HTML content to be inserted inside the element.
   innerHTML? : String,
+  /// Click event handler.
   on_click? : (DOMEvent) -> Unit,
 ) -> VirtualNode {
   let attrs = attrs.unwrap_or_default()
@@ -29,15 +51,29 @@ pub fn span(
 }
 
 ///|
+/// Creates a `p` element with the specified attributes, event handlers, and
+/// children.
+///
+/// Returns a virtual DOM node representing a `p` element.
+///
 pub fn p(
+  /// HTML element ID.
   id? : String,
+  /// Base CSS class name.
   class_name? : String,
+  /// Additional CSS class names to be appended to the base class.
   class_list? : Array[String] = [],
+  /// Additional HTML attributes.
   attrs? : ElementAttrs,
+  /// Event handlers map.
   event? : ElementEvents,
+  /// CSS styles.
   style? : RespoStyle = respo_style(),
+  /// Child nodes of the p element.
   children : Array[VirtualNode],
+  /// Raw HTML content to be inserted inside the element.
   innerHTML? : String,
+  /// Click event handler.
   on_click? : (DOMEvent) -> Unit,
 ) -> VirtualNode {
   let attrs = attrs.unwrap_or_default()
@@ -58,15 +94,29 @@ pub fn p(
 }
 
 ///|
+/// Creates an `h1` element with the specified attributes, event handlers, and
+/// children.
+///
+/// Returns a virtual DOM node representing an `h1` element.
+///
 pub fn h1(
+  /// HTML element ID.
   id? : String,
+  /// Base CSS class name.
   class_name? : String,
+  /// Additional CSS class names to be appended to the base class.
   class_list? : Array[String] = [],
+  /// Additional HTML attributes.
   attrs? : ElementAttrs,
+  /// Event handlers map.
   event? : ElementEvents,
+  /// CSS styles.
   style? : RespoStyle = respo_style(),
+  /// Child nodes of the h1 element.
   children : Array[VirtualNode],
+  /// Raw HTML content to be inserted inside the element.
   innerHTML? : String,
+  /// Click event handler.
   on_click? : (DOMEvent) -> Unit,
 ) -> VirtualNode {
   let attrs = attrs.unwrap_or_default()
@@ -87,15 +137,29 @@ pub fn h1(
 }
 
 ///|
+/// Creates an `h2` element with the specified attributes, event handlers, and
+/// children.
+///
+/// Returns a virtual DOM node representing an `h2` element.
+///
 pub fn h2(
+  /// HTML element ID.
   id? : String,
+  /// Base CSS class name.
   class_name? : String,
+  /// Additional CSS class names to be appended to the base class.
   class_list? : Array[String] = [],
+  /// Additional HTML attributes.
   attrs? : ElementAttrs,
+  /// Event handlers map.
   event? : ElementEvents,
+  /// CSS styles.
   style? : RespoStyle = respo_style(),
+  /// Child nodes of the h2 element.
   children : Array[VirtualNode],
+  /// Raw HTML content to be inserted inside the element.
   innerHTML? : String,
+  /// Click event handler.
   on_click? : (DOMEvent) -> Unit,
 ) -> VirtualNode {
   let attrs = attrs.unwrap_or_default()
@@ -116,15 +180,29 @@ pub fn h2(
 }
 
 ///|
+/// Creates an `h3` element with the specified attributes, event handlers, and
+/// children.
+///
+/// Returns a virtual DOM node representing an `h3` element.
+///
 pub fn h3(
+  /// HTML element ID.
   id? : String,
+  /// Base CSS class name.
   class_name? : String,
+  /// Additional CSS class names to be appended to the base class.
   class_list? : Array[String] = [],
+  /// Additional HTML attributes.
   attrs? : ElementAttrs,
+  /// Event handlers map.
   event? : ElementEvents,
+  /// CSS styles.
   style? : RespoStyle = respo_style(),
+  /// Child nodes of the h3 element.
   children : Array[VirtualNode],
+  /// Raw HTML content to be inserted inside the element.
   innerHTML? : String,
+  /// Click event handler.
   on_click? : (DOMEvent) -> Unit,
 ) -> VirtualNode {
   let attrs = attrs.unwrap_or_default()
@@ -145,15 +223,29 @@ pub fn h3(
 }
 
 ///|
+/// Creates an `h4` element with the specified attributes, event handlers, and
+/// children.
+///
+/// Returns a virtual DOM node representing an `h4` element.
+///
 pub fn h4(
+  /// HTML element ID.
   id? : String,
+  /// Base CSS class name.
   class_name? : String,
+  /// Additional CSS class names to be appended to the base class.
   class_list? : Array[String] = [],
+  /// Additional HTML attributes.
   attrs? : ElementAttrs,
+  /// Event handlers map.
   event? : ElementEvents,
+  /// CSS styles.
   style? : RespoStyle = respo_style(),
+  /// Child nodes of the h4 element.
   children : Array[VirtualNode],
+  /// Raw HTML content to be inserted inside the element.
   innerHTML? : String,
+  /// Click event handler.
   on_click? : (DOMEvent) -> Unit,
 ) -> VirtualNode {
   let attrs = attrs.unwrap_or_default()
@@ -174,15 +266,29 @@ pub fn h4(
 }
 
 ///|
+/// Creates an `h5` element with the specified attributes, event handlers, and
+/// children.
+///
+/// Returns a virtual DOM node representing an `h5` element.
+///
 pub fn h5(
+  /// HTML element ID.
   id? : String,
+  /// Base CSS class name.
   class_name? : String,
+  /// Additional CSS class names to be appended to the base class.
   class_list? : Array[String] = [],
+  /// Additional HTML attributes.
   attrs? : ElementAttrs,
+  /// Event handlers map.
   event? : ElementEvents,
+  /// CSS styles.
   style? : RespoStyle = respo_style(),
+  /// Child nodes of the h5 element.
   children : Array[VirtualNode],
+  /// Raw HTML content to be inserted inside the element.
   innerHTML? : String,
+  /// Click event handler.
   on_click? : (DOMEvent) -> Unit,
 ) -> VirtualNode {
   let attrs = attrs.unwrap_or_default()
@@ -203,15 +309,29 @@ pub fn h5(
 }
 
 ///|
+/// Creates an `h6` element with the specified attributes, event handlers, and
+/// children.
+///
+/// Returns a virtual DOM node representing an `h6` element.
+///
 pub fn h6(
+  /// HTML element ID.
   id? : String,
+  /// Base CSS class name.
   class_name? : String,
+  /// Additional CSS class names to be appended to the base class.
   class_list? : Array[String] = [],
+  /// Additional HTML attributes.
   attrs? : ElementAttrs,
+  /// Event handlers map.
   event? : ElementEvents,
+  /// CSS styles.
   style? : RespoStyle = respo_style(),
+  /// Child nodes of the h6 element.
   children : Array[VirtualNode],
+  /// Raw HTML content to be inserted inside the element.
   innerHTML? : String,
+  /// Click event handler.
   on_click? : (DOMEvent) -> Unit,
 ) -> VirtualNode {
   let attrs = attrs.unwrap_or_default()
@@ -232,17 +352,33 @@ pub fn h6(
 }
 
 ///|
+/// Creates an `a` element with the specified attributes, event handlers, and
+/// children.
+///
+/// Returns a virtual DOM node representing an `a` element.
+///
 pub fn a(
+  /// HTML element ID.
   id? : String,
+  /// Base CSS class name.
   class_name? : String,
+  /// Additional CSS class names to be appended to the base class.
   class_list? : Array[String] = [],
+  /// Additional HTML attributes.
   attrs? : ElementAttrs,
+  /// Event handlers map.
   event? : ElementEvents,
+  /// CSS styles.
   style? : RespoStyle = respo_style(),
+  /// Child nodes of the a element.
   children : Array[VirtualNode],
+  /// Raw HTML content to be inserted inside the element.
   innerHTML? : String,
+  /// The URL that the hyperlink points to.
   href? : String,
+  /// Where to display the linked URL (e.g., "_blank", "_self").
   target? : String,
+  /// Click event handler.
   on_click? : (DOMEvent) -> Unit,
 ) -> VirtualNode {
   let attrs = attrs.unwrap_or_default()
@@ -319,19 +455,37 @@ fn combile_classes(class_name : String?, class_list : Array[String]) -> String? 
 }
 
 ///|
+/// Creates an `input` element with the specified attributes, event handlers, and
+/// properties.
+///
+/// Returns a virtual DOM node representing an `input` element.
+///
 pub fn input(
+  /// HTML element ID.
   id? : String,
+  /// Base CSS class name.
   class_name? : String,
+  /// Additional CSS class names to be appended to the base class.
   class_list? : Array[String] = [],
+  /// Additional HTML attributes.
   attrs? : ElementAttrs,
+  /// Event handlers map.
   event? : ElementEvents,
+  /// CSS styles.
   style? : RespoStyle = respo_style(),
+  /// The type of input (e.g., "text", "password", "email").
   input_type? : String,
+  /// The current value of the input.
   value? : String,
+  /// Placeholder text displayed when input is empty.
   placeholder? : String,
+  /// Whether the input is disabled.
   disabled? : Bool,
+  /// Click event handler.
   on_click? : (DOMEvent) -> Unit,
+  /// Change event handler (fired when value changes and input loses focus).
   on_change? : (DOMEvent) -> Unit,
+  /// Input event handler (fired on every keystroke).
   on_input? : (DOMEvent) -> Unit,
 ) -> VirtualNode {
   let attrs = attrs.unwrap_or_default()
@@ -367,17 +521,33 @@ pub fn input(
 }
 
 ///|
+/// Creates a `button` element with the specified attributes, event handlers, and
+/// children.
+///
+/// Returns a virtual DOM node representing a `button` element.
+///
 pub fn button(
+  /// HTML element ID.
   id? : String,
+  /// Base CSS class name.
   class_name? : String,
+  /// Additional CSS class names to be appended to the base class.
   class_list? : Array[String] = [],
+  /// Additional HTML attributes.
   attrs? : ElementAttrs,
+  /// Event handlers map.
   event? : ElementEvents,
+  /// CSS styles.
   style? : RespoStyle = respo_style(),
+  /// Child nodes of the button element.
   children : Array[VirtualNode],
+  /// Raw HTML content to be inserted inside the element.
   innerHTML? : String,
+  /// The type of button (e.g., "button", "submit", "reset").
   button_type? : String,
+  /// Whether the button is disabled.
   disabled? : Bool,
+  /// Click event handler.
   on_click? : (DOMEvent) -> Unit,
 ) -> VirtualNode {
   let attrs = attrs.unwrap_or_default()
@@ -404,19 +574,37 @@ pub fn button(
 }
 
 ///|
+/// Creates a `textarea` element with the specified attributes, event handlers, and
+/// properties.
+///
+/// Returns a virtual DOM node representing a `textarea` element.
+///
 pub fn textarea(
+  /// HTML element ID.
   id? : String,
+  /// Base CSS class name.
   class_name? : String,
+  /// Additional CSS class names to be appended to the base class.
   class_list? : Array[String] = [],
+  /// Additional HTML attributes.
   attrs? : ElementAttrs,
+  /// Event handlers map.
   event? : ElementEvents,
+  /// CSS styles.
   style? : RespoStyle = respo_style(),
+  /// The current value of the textarea.
   value? : String,
+  /// Placeholder text displayed when textarea is empty.
   placeholder? : String,
+  /// Number of visible text lines.
   rows? : Int,
+  /// Number of visible character columns.
   cols? : Int,
+  /// Whether the textarea is disabled.
   disabled? : Bool,
+  /// Change event handler (fired when value changes and textarea loses focus).
   on_change? : (DOMEvent) -> Unit,
+  /// Input event handler (fired on every keystroke).
   on_input? : (DOMEvent) -> Unit,
 ) -> VirtualNode {
   let attrs = attrs.unwrap_or_default()
@@ -452,17 +640,33 @@ pub fn textarea(
 }
 
 ///|
+/// Creates a `select` element with the specified attributes, event handlers, and
+/// children.
+///
+/// Returns a virtual DOM node representing a `select` element.
+///
 pub fn select(
+  /// HTML element ID.
   id? : String,
+  /// Base CSS class name.
   class_name? : String,
+  /// Additional CSS class names to be appended to the base class.
   class_list? : Array[String] = [],
+  /// Additional HTML attributes.
   attrs? : ElementAttrs,
+  /// Event handlers map.
   event? : ElementEvents,
+  /// CSS styles.
   style? : RespoStyle = respo_style(),
+  /// Child nodes (option elements) of the select element.
   children : Array[VirtualNode],
+  /// The currently selected value.
   value? : String,
+  /// Whether the select is disabled.
   disabled? : Bool,
+  /// Whether multiple options can be selected.
   multiple? : Bool,
+  /// Change event handler (fired when selection changes).
   on_change? : (DOMEvent) -> Unit,
 ) -> VirtualNode {
   let attrs = attrs.unwrap_or_default()
@@ -489,17 +693,32 @@ pub fn select(
 }
 
 ///|
+/// Creates an `option` element with the specified attributes and properties.
+///
+/// Returns a virtual DOM node representing an `option` element.
+///
 pub fn option(
+  /// HTML element ID.
   id? : String,
+  /// Base CSS class name.
   class_name? : String,
+  /// Additional CSS class names to be appended to the base class.
   class_list? : Array[String] = [],
+  /// Additional HTML attributes.
   attrs? : ElementAttrs,
+  /// Event handlers map.
   event? : ElementEvents,
+  /// CSS styles.
   style? : RespoStyle = respo_style(),
+  /// Child nodes of the option element.
   children : Array[VirtualNode],
+  /// Raw HTML content to be inserted inside the element.
   innerHTML? : String,
+  /// The value of the option when selected.
   value? : String,
+  /// Whether the option is selected by default.
   selected? : Bool,
+  /// Whether the option is disabled.
   disabled? : Bool,
 ) -> VirtualNode {
   let attrs = attrs.unwrap_or_default()
@@ -526,15 +745,29 @@ pub fn option(
 }
 
 ///|
+/// Creates a `section` element with the specified attributes, event handlers, and
+/// children.
+///
+/// Returns a virtual DOM node representing a `section` element.
+///
 pub fn section(
+  /// HTML element ID.
   id? : String,
+  /// Base CSS class name.
   class_name? : String,
+  /// Additional CSS class names to be appended to the base class.
   class_list? : Array[String] = [],
+  /// Additional HTML attributes.
   attrs? : ElementAttrs,
+  /// Event handlers map.
   event? : ElementEvents,
+  /// CSS styles.
   style? : RespoStyle = respo_style(),
+  /// Child nodes of the section element.
   children : Array[VirtualNode],
+  /// Raw HTML content to be inserted inside the element.
   innerHTML? : String,
+  /// Click event handler.
   on_click? : (DOMEvent) -> Unit,
 ) -> VirtualNode {
   let attrs = attrs.unwrap_or_default()
@@ -555,15 +788,29 @@ pub fn section(
 }
 
 ///|
+/// Creates an `article` element with the specified attributes, event handlers, and
+/// children.
+///
+/// Returns a virtual DOM node representing an `article` element.
+///
 pub fn article(
+  /// HTML element ID.
   id? : String,
+  /// Base CSS class name.
   class_name? : String,
+  /// Additional CSS class names to be appended to the base class.
   class_list? : Array[String] = [],
+  /// Additional HTML attributes.
   attrs? : ElementAttrs,
+  /// Event handlers map.
   event? : ElementEvents,
+  /// CSS styles.
   style? : RespoStyle = respo_style(),
+  /// Child nodes of the article element.
   children : Array[VirtualNode],
+  /// Raw HTML content to be inserted inside the element.
   innerHTML? : String,
+  /// Click event handler.
   on_click? : (DOMEvent) -> Unit,
 ) -> VirtualNode {
   let attrs = attrs.unwrap_or_default()
@@ -584,15 +831,29 @@ pub fn article(
 }
 
 ///|
+/// Creates a `header` element with the specified attributes, event handlers, and
+/// children.
+///
+/// Returns a virtual DOM node representing a `header` element.
+///
 pub fn header(
+  /// HTML element ID.
   id? : String,
+  /// Base CSS class name.
   class_name? : String,
+  /// Additional CSS class names to be appended to the base class.
   class_list? : Array[String] = [],
+  /// Additional HTML attributes.
   attrs? : ElementAttrs,
+  /// Event handlers map.
   event? : ElementEvents,
+  /// CSS styles.
   style? : RespoStyle = respo_style(),
+  /// Child nodes of the header element.
   children : Array[VirtualNode],
+  /// Raw HTML content to be inserted inside the element.
   innerHTML? : String,
+  /// Click event handler.
   on_click? : (DOMEvent) -> Unit,
 ) -> VirtualNode {
   let attrs = attrs.unwrap_or_default()
@@ -613,15 +874,29 @@ pub fn header(
 }
 
 ///|
+/// Creates a `footer` element with the specified attributes, event handlers, and
+/// children.
+///
+/// Returns a virtual DOM node representing a `footer` element.
+///
 pub fn footer(
+  /// HTML element ID.
   id? : String,
+  /// Base CSS class name.
   class_name? : String,
+  /// Additional CSS class names to be appended to the base class.
   class_list? : Array[String] = [],
+  /// Additional HTML attributes.
   attrs? : ElementAttrs,
+  /// Event handlers map.
   event? : ElementEvents,
+  /// CSS styles.
   style? : RespoStyle = respo_style(),
+  /// Child nodes of the footer element.
   children : Array[VirtualNode],
+  /// Raw HTML content to be inserted inside the element.
   innerHTML? : String,
+  /// Click event handler.
   on_click? : (DOMEvent) -> Unit,
 ) -> VirtualNode {
   let attrs = attrs.unwrap_or_default()
@@ -642,15 +917,29 @@ pub fn footer(
 }
 
 ///|
+/// Creates a `nav` element with the specified attributes, event handlers, and
+/// children.
+///
+/// Returns a virtual DOM node representing a `nav` element.
+///
 pub fn nav(
+  /// HTML element ID.
   id? : String,
+  /// Base CSS class name.
   class_name? : String,
+  /// Additional CSS class names to be appended to the base class.
   class_list? : Array[String] = [],
+  /// Additional HTML attributes.
   attrs? : ElementAttrs,
+  /// Event handlers map.
   event? : ElementEvents,
+  /// CSS styles.
   style? : RespoStyle = respo_style(),
+  /// Child nodes of the nav element.
   children : Array[VirtualNode],
+  /// Raw HTML content to be inserted inside the element.
   innerHTML? : String,
+  /// Click event handler.
   on_click? : (DOMEvent) -> Unit,
 ) -> VirtualNode {
   let attrs = attrs.unwrap_or_default()
@@ -671,15 +960,29 @@ pub fn nav(
 }
 
 ///|
+/// Creates an `aside` element with the specified attributes, event handlers, and
+/// children.
+///
+/// Returns a virtual DOM node representing an `aside` element.
+///
 pub fn aside(
+  /// HTML element ID.
   id? : String,
+  /// Base CSS class name.
   class_name? : String,
+  /// Additional CSS class names to be appended to the base class.
   class_list? : Array[String] = [],
+  /// Additional HTML attributes.
   attrs? : ElementAttrs,
+  /// Event handlers map.
   event? : ElementEvents,
+  /// CSS styles.
   style? : RespoStyle = respo_style(),
+  /// Child nodes of the aside element.
   children : Array[VirtualNode],
+  /// Raw HTML content to be inserted inside the element.
   innerHTML? : String,
+  /// Click event handler.
   on_click? : (DOMEvent) -> Unit,
 ) -> VirtualNode {
   let attrs = attrs.unwrap_or_default()
@@ -700,15 +1003,29 @@ pub fn aside(
 }
 
 ///|
+/// Creates a `ul` (unordered list) element with the specified attributes, event handlers, and
+/// children.
+///
+/// Returns a virtual DOM node representing a `ul` element.
+///
 pub fn ul(
+  /// HTML element ID.
   id? : String,
+  /// Base CSS class name.
   class_name? : String,
+  /// Additional CSS class names to be appended to the base class.
   class_list? : Array[String] = [],
+  /// Additional HTML attributes.
   attrs? : ElementAttrs,
+  /// Event handlers map.
   event? : ElementEvents,
+  /// CSS styles.
   style? : RespoStyle = respo_style(),
+  /// Child nodes of the ul element (typically li elements).
   children : Array[VirtualNode],
+  /// Raw HTML content to be inserted inside the element.
   innerHTML? : String,
+  /// Click event handler.
   on_click? : (DOMEvent) -> Unit,
 ) -> VirtualNode {
   let attrs = attrs.unwrap_or_default()
@@ -729,15 +1046,29 @@ pub fn ul(
 }
 
 ///|
+/// Creates an `ol` (ordered list) element with the specified attributes, event handlers, and
+/// children.
+///
+/// Returns a virtual DOM node representing an `ol` element.
+///
 pub fn ol(
+  /// HTML element ID.
   id? : String,
+  /// Base CSS class name.
   class_name? : String,
+  /// Additional CSS class names to be appended to the base class.
   class_list? : Array[String] = [],
+  /// Additional HTML attributes.
   attrs? : ElementAttrs,
+  /// Event handlers map.
   event? : ElementEvents,
+  /// CSS styles.
   style? : RespoStyle = respo_style(),
+  /// Child nodes of the ol element (typically li elements).
   children : Array[VirtualNode],
+  /// Raw HTML content to be inserted inside the element.
   innerHTML? : String,
+  /// Click event handler.
   on_click? : (DOMEvent) -> Unit,
 ) -> VirtualNode {
   let attrs = attrs.unwrap_or_default()
@@ -758,15 +1089,29 @@ pub fn ol(
 }
 
 ///|
+/// Creates a `li` (list item) element with the specified attributes, event handlers, and
+/// children.
+///
+/// Returns a virtual DOM node representing a `li` element.
+///
 pub fn li(
+  /// HTML element ID.
   id? : String,
+  /// Base CSS class name.
   class_name? : String,
+  /// Additional CSS class names to be appended to the base class.
   class_list? : Array[String] = [],
+  /// Additional HTML attributes.
   attrs? : ElementAttrs,
+  /// Event handlers map.
   event? : ElementEvents,
+  /// CSS styles.
   style? : RespoStyle = respo_style(),
+  /// Child nodes of the li element.
   children : Array[VirtualNode],
+  /// Raw HTML content to be inserted inside the element.
   innerHTML? : String,
+  /// Click event handler.
   on_click? : (DOMEvent) -> Unit,
 ) -> VirtualNode {
   let attrs = attrs.unwrap_or_default()
@@ -787,19 +1132,37 @@ pub fn li(
 }
 
 ///|
+/// Creates an `img` element with the specified attributes, event handlers, and
+/// image properties.
+///
+/// Returns a virtual DOM node representing an `img` element.
+///
 pub fn img(
+  /// HTML element ID.
   id? : String,
+  /// Base CSS class name.
   class_name? : String,
+  /// Additional CSS class names to be appended to the base class.
   class_list? : Array[String] = [],
+  /// Additional HTML attributes.
   attrs? : ElementAttrs,
+  /// Event handlers map.
   event? : ElementEvents,
+  /// CSS styles.
   style? : RespoStyle = respo_style(),
+  /// Image source URL.
   src? : String,
+  /// Alternative text for the image.
   alt? : String,
+  /// Image width.
   width? : String,
+  /// Image height.
   height? : String,
+  /// Click event handler.
   on_click? : (DOMEvent) -> Unit,
+  /// Load event handler (fired when image loads successfully).
   on_load? : (DOMEvent) -> Unit,
+  /// Error event handler (fired when image fails to load).
   on_error? : (DOMEvent) -> Unit,
 ) -> VirtualNode {
   let attrs = attrs.unwrap_or_default()
@@ -835,23 +1198,45 @@ pub fn img(
 }
 
 ///|
+/// Creates a `video` element with the specified attributes, event handlers, and
+/// video properties.
+///
+/// Returns a virtual DOM node representing a `video` element.
+///
 pub fn video(
+  /// HTML element ID.
   id? : String,
+  /// Base CSS class name.
   class_name? : String,
+  /// Additional CSS class names to be appended to the base class.
   class_list? : Array[String] = [],
+  /// Additional HTML attributes.
   attrs? : ElementAttrs,
+  /// Event handlers map.
   event? : ElementEvents,
+  /// CSS styles.
   style? : RespoStyle = respo_style(),
+  /// Child nodes of the video element (e.g., source elements).
   children : Array[VirtualNode],
+  /// Video source URL.
   src? : String,
+  /// Whether to show video controls.
   controls? : Bool,
+  /// Whether to autoplay the video.
   autoplay? : Bool,
+  /// Whether to loop the video.
   loop_enabled? : Bool,
+  /// Whether the video is muted.
   muted? : Bool,
+  /// Video width.
   width? : String,
+  /// Video height.
   height? : String,
+  /// Click event handler.
   on_click? : (DOMEvent) -> Unit,
+  /// Play event handler (fired when video starts playing).
   on_play? : (DOMEvent) -> Unit,
+  /// Pause event handler (fired when video is paused).
   on_pause? : (DOMEvent) -> Unit,
 ) -> VirtualNode {
   let attrs = attrs.unwrap_or_default()
@@ -896,20 +1281,39 @@ pub fn video(
 }
 
 ///|
+/// Creates an `audio` element with the specified attributes, event handlers, and
+/// audio properties.
+///
+/// Returns a virtual DOM node representing an `audio` element.
+///
 pub fn audio(
+  /// HTML element ID.
   id? : String,
+  /// Base CSS class name.
   class_name? : String,
+  /// Additional CSS class names to be appended to the base class.
   class_list? : Array[String] = [],
+  /// Additional HTML attributes.
   attrs? : ElementAttrs,
+  /// Event handlers map.
   event? : ElementEvents,
+  /// CSS styles.
   style? : RespoStyle = respo_style(),
+  /// Child nodes of the audio element (e.g., source elements).
   children : Array[VirtualNode],
+  /// Audio source URL.
   src? : String,
+  /// Whether to show audio controls.
   controls? : Bool,
+  /// Whether to autoplay the audio.
   autoplay? : Bool,
+  /// Whether to loop the audio.
   loop_enabled? : Bool,
+  /// Whether the audio is muted.
   muted? : Bool,
+  /// Play event handler (fired when audio starts playing).
   on_play? : (DOMEvent) -> Unit,
+  /// Pause event handler (fired when audio is paused).
   on_pause? : (DOMEvent) -> Unit,
 ) -> VirtualNode {
   let attrs = attrs.unwrap_or_default()
