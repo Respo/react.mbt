@@ -1,5 +1,7 @@
+///|
 fnalias @css.respo_style
 
+///|
 typealias @css.RespoStyle
 
 ///|
@@ -87,13 +89,22 @@ pub fn ElementAttrs::new() -> ElementAttrs {
 }
 
 ///|
-pub fn ElementAttrs::set(
+pub fn ElementAttrs::add(
   self : ElementAttrs,
   key : String,
   value : String,
 ) -> ElementAttrs {
   self.inner().set(key, value)
   self
+}
+
+///|
+pub fn ElementAttrs::set(
+  self : ElementAttrs,
+  key : String,
+  value : String,
+) -> Unit {
+  self.inner().set(key, value)
 }
 
 ///|
@@ -122,13 +133,22 @@ extern "js" fn DOMEventHandler::to_js_func(self : DOMEventHandler) -> JsValue =
   #| (f) => { return f }
 
 ///|
-pub fn ElementEvents::set(
+pub fn ElementEvents::add(
   self : ElementEvents,
   key : String,
   value : (DOMEvent) -> Unit,
 ) -> ElementEvents {
   self.inner().set(key, value)
   self
+}
+
+///|
+pub fn ElementEvents::set(
+  self : ElementEvents,
+  key : String,
+  value : (DOMEvent) -> Unit,
+) -> Unit {
+  self.inner().set(key, value)
 }
 
 ///|
@@ -148,24 +168,13 @@ pub fn ElementStyle::new() -> ElementStyle {
   ElementStyle(RespoStyle::default())
 }
 
-
 ///|
-pub enum VirtualNode {
+pub(all) enum VirtualNode {
   Element(VirtualElement)
   Fragment(Array[VirtualNode])
   Text(String)
   /// already converted to JsValue, hard to convert back
   JsNode(JsValue) // for advanced usage, e.g. connect
-}
-
-///|
-pub fn VirtualNode::text(t : String) -> VirtualNode {
-  Text(t)
-}
-
-///|
-pub fn VirtualNode::fragment(children : Array[VirtualNode]) -> VirtualNode {
-  Fragment(children)
 }
 
 ///|
@@ -192,7 +201,6 @@ pub struct VirtualElement {
   event : ElementEvents
   style : ElementStyle
   children : Array[VirtualNode]
-  on_click : ((DOMEvent) -> Unit)?
 }
 
 ///|
@@ -221,9 +229,6 @@ fn VirtualElement::to_js_value(self : VirtualElement) -> JsValue {
     let event_name = "on\{first_letter_to_uppercase(key)}"
     props.set(event_name, value.to_js_func())
   }
-  if self.on_click is Some(f) {
-    props.set("onClick", DOMEventHandler(f).to_js_func())
-  }
   preact_h(
     self.name,
     JsValue::from_object(props),
@@ -236,11 +241,10 @@ pub fn create_element(
   name : String,
   attrs : ElementAttrs,
   event : ElementEvents,
-  style : ElementStyle,
-  on_click? : (DOMEvent) -> Unit,
+  style~ : RespoStyle,
   children : Array[VirtualNode],
 ) -> VirtualElement {
-  VirtualElement::{ name, attrs, event, style, children, on_click }
+  VirtualElement::{ name, attrs, event, style, children }
 }
 
 ///|

@@ -1,6 +1,7 @@
 ///|
 fnalias @preact.connect
 
+///|
 fnalias @css.respo_style
 
 ///|
@@ -25,23 +26,15 @@ impl @preact.JsValueTrait for ContainerProps with from_value(
 fn comp_container(_v : ContainerProps) -> VirtualNode {
   let (counter, set_counter) = @preact.use_state(0.0.to_float())
   // println("counter: \{counter}")
-  let attrs = @preact.ElementAttrs::new().set("id", "container")
-  let event = @preact.ElementEvents::new().set("click", fn(_) {
-    println("clicked \{counter}")
-    set_counter(counter + 1.0)
-  })
-  let style = @preact.ElementStyle(
-    respo_style(
-      color = Blue,
-      font_family = "Arial",
-      padding = @css.CssSize::Px(10.0),
-    )
+  @preact.div(
+    id="container",
+    style=respo_style(color=Blue, font_family="Arial", padding=10.0 |> Px),
+    on_click=fn(_) {
+      println("clicked \{counter}")
+      set_counter(counter + 1.0)
+    },
+    [Fragment([Text("Demo: ")]), Text("Counter \{counter}")],
   )
-
-  @preact.create_element("div", attrs, event, style, [
-    VirtualNode::fragment([VirtualNode::text("Demo: ")]),
-    VirtualNode::text("Counter \{counter}"),
-  ]).to_node()
 }
 
 ///|
