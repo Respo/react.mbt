@@ -167,7 +167,144 @@ pub extern "js" fn console_log2(msg : String, v : JsValue) -> Unit =
 priv struct DOMEventHandler((DOMEvent) -> Unit)
 
 ///|
-struct ElementEvents(Map[String, DOMEventHandler]) derive(Default)
+/// DOM 事件类型枚举
+pub(all) enum DOMEventType {
+  // 鼠标事件
+  Click
+  DoubleClick
+  MouseDown
+  MouseUp
+  MouseMove
+  MouseEnter
+  MouseLeave
+  MouseOver
+  MouseOut
+  ContextMenu
+
+  // 键盘事件
+  KeyDown
+  KeyUp
+  KeyPress
+
+  // 表单事件
+  Input
+  Change
+  Submit
+  Reset
+  Focus
+  Blur
+  Select
+
+  // 窗口事件
+  Load
+  Unload
+  Resize
+  Scroll
+
+  // 拖拽事件
+  Drag
+  DragStart
+  DragEnd
+  DragEnter
+  DragLeave
+  DragOver
+  Drop
+
+  // 触摸事件
+  TouchStart
+  TouchMove
+  TouchEnd
+  TouchCancel
+
+  // 其他常用事件
+  Error
+  Abort
+  CanPlay
+  CanPlayThrough
+  DurationChange
+  Ended
+  LoadedData
+  LoadedMetadata
+  LoadStart
+  Pause
+  Play
+  Playing
+  Progress
+  RateChange
+  Seeked
+  Seeking
+  Stalled
+  Suspend
+  TimeUpdate
+  VolumeChange
+  Waiting
+} derive(Eq, Compare, Show, Hash)
+
+///|
+/// 将 DOMEventType 转换为字符串
+pub fn DOMEventType::to_string(self : DOMEventType) -> String {
+  match self {
+    Click => "click"
+    DoubleClick => "dblclick"
+    MouseDown => "mousedown"
+    MouseUp => "mouseup"
+    MouseMove => "mousemove"
+    MouseEnter => "mouseenter"
+    MouseLeave => "mouseleave"
+    MouseOver => "mouseover"
+    MouseOut => "mouseout"
+    ContextMenu => "contextmenu"
+    KeyDown => "keydown"
+    KeyUp => "keyup"
+    KeyPress => "keypress"
+    Input => "input"
+    Change => "change"
+    Submit => "submit"
+    Reset => "reset"
+    Focus => "focus"
+    Blur => "blur"
+    Select => "select"
+    Load => "load"
+    Unload => "unload"
+    Resize => "resize"
+    Scroll => "scroll"
+    Drag => "drag"
+    DragStart => "dragstart"
+    DragEnd => "dragend"
+    DragEnter => "dragenter"
+    DragLeave => "dragleave"
+    DragOver => "dragover"
+    Drop => "drop"
+    TouchStart => "touchstart"
+    TouchMove => "touchmove"
+    TouchEnd => "touchend"
+    TouchCancel => "touchcancel"
+    Error => "error"
+    Abort => "abort"
+    CanPlay => "canplay"
+    CanPlayThrough => "canplaythrough"
+    DurationChange => "durationchange"
+    Ended => "ended"
+    LoadedData => "loadeddata"
+    LoadedMetadata => "loadedmetadata"
+    LoadStart => "loadstart"
+    Pause => "pause"
+    Play => "play"
+    Playing => "playing"
+    Progress => "progress"
+    RateChange => "ratechange"
+    Seeked => "seeked"
+    Seeking => "seeking"
+    Stalled => "stalled"
+    Suspend => "suspend"
+    TimeUpdate => "timeupdate"
+    VolumeChange => "volumechange"
+    Waiting => "waiting"
+  }
+}
+
+///|
+struct ElementEvents(Map[DOMEventType, DOMEventHandler]) derive(Default)
 
 ///|
 pub fn ElementEvents::new() -> ElementEvents {
@@ -179,29 +316,33 @@ extern "js" fn DOMEventHandler::to_js_func(self : DOMEventHandler) -> JsValue =
   #| (f) => { return f }
 
 ///|
+/// 使用 DOMEventType 添加事件处理器
 pub fn ElementEvents::add(
   self : ElementEvents,
-  key : String,
+  event_type : DOMEventType,
   value : (DOMEvent) -> Unit,
 ) -> ElementEvents {
-  self.inner().set(key, value)
+  self.set(event_type, value)
   self
 }
 
 ///|
+
+///|
+/// 使用 DOMEventType 设置事件处理器
 pub fn ElementEvents::set(
   self : ElementEvents,
-  key : String,
+  event_type : DOMEventType,
   value : (DOMEvent) -> Unit,
 ) -> Unit {
-  self.inner().set(key, value)
+  self.inner().set(event_type, value)
 }
 
 ///|
 pub fn ElementEvents::to_js_value(self : ElementEvents) -> JsValue {
   let obj = JsObject::new()
-  for key, value in self.inner() {
-    obj.set(key, value.to_js_func())
+  for event_type, value in self.inner() {
+    obj.set(event_type.to_string(), value.to_js_func())
   }
   JsValue::from_object(obj)
 }
@@ -282,8 +423,8 @@ fn VirtualElement::to_js_value(self : VirtualElement) -> JsValue {
   for child in self.children {
     children.push(child.to_js_value())
   }
-  for key, value in self.event.inner() {
-    let event_name = "on\{first_letter_to_uppercase(key)}"
+  for event_type, value in self.event.inner() {
+    let event_name = "on\{first_letter_to_uppercase(event_type.to_string())}"
     props.set(event_name, value.to_js_func())
   }
   preact_h(

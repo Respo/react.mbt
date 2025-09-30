@@ -102,7 +102,7 @@ pub fn span(
     attrs.set("innerHTML", innerHTML)
   }
   if on_click is Some(on_click) {
-    event.set("click", on_click)
+    event.set(Click, on_click)
   }
   Element({ name: "span", attrs, event, style, children })
 }
@@ -145,7 +145,7 @@ pub fn p(
     attrs.set("innerHTML", innerHTML)
   }
   if on_click is Some(on_click) {
-    event.set("click", on_click)
+    event.set(Click, on_click)
   }
   Element({ name: "p", attrs, event, style, children })
 }
@@ -190,7 +190,7 @@ pub fn label(
     attrs.set("innerHTML", innerHTML)
   }
   if on_click is Some(on_click) {
-    event.set("click", on_click)
+    event.set(Click, on_click)
   }
   if for_ is Some(for_value) {
     attrs.set("for", for_value)
@@ -236,7 +236,7 @@ pub fn h1(
     attrs.set("innerHTML", innerHTML)
   }
   if on_click is Some(on_click) {
-    event.set("click", on_click)
+    event.set(Click, on_click)
   }
   Element({ name: "h1", attrs, event, style, children })
 }
@@ -279,7 +279,7 @@ pub fn h2(
     attrs.set("innerHTML", innerHTML)
   }
   if on_click is Some(on_click) {
-    event.set("click", on_click)
+    event.set(Click, on_click)
   }
   Element({ name: "h2", attrs, event, style, children })
 }
@@ -322,7 +322,7 @@ pub fn h3(
     attrs.set("innerHTML", innerHTML)
   }
   if on_click is Some(on_click) {
-    event.set("click", on_click)
+    event.set(Click, on_click)
   }
   Element({ name: "h3", attrs, event, style, children })
 }
@@ -365,7 +365,7 @@ pub fn h4(
     attrs.set("innerHTML", innerHTML)
   }
   if on_click is Some(on_click) {
-    event.set("click", on_click)
+    event.set(Click, on_click)
   }
   Element({ name: "h4", attrs, event, style, children })
 }
@@ -408,7 +408,7 @@ pub fn h5(
     attrs.set("innerHTML", innerHTML)
   }
   if on_click is Some(on_click) {
-    event.set("click", on_click)
+    event.set(Click, on_click)
   }
   Element({ name: "h5", attrs, event, style, children })
 }
@@ -451,7 +451,7 @@ pub fn h6(
     attrs.set("innerHTML", innerHTML)
   }
   if on_click is Some(on_click) {
-    event.set("click", on_click)
+    event.set(Click, on_click)
   }
   Element({ name: "h6", attrs, event, style, children })
 }
@@ -504,7 +504,7 @@ pub fn a(
     attrs.set("target", target)
   }
   if on_click is Some(on_click) {
-    event.set("click", on_click)
+    event.set(Click, on_click)
   }
   Element({ name: "a", attrs, event, style, children })
 }
@@ -533,7 +533,7 @@ pub fn div(
     attrs.set("innerHTML", innerHTML)
   }
   if on_click is Some(on_click) {
-    event.set("click", on_click)
+    event.set(Click, on_click)
   }
   Element({ name: "div", attrs, event, style, children })
 }
@@ -615,13 +615,13 @@ pub fn input(
     attrs.set("disabled", "true")
   }
   if on_click is Some(on_click) {
-    event.set("click", on_click)
+    event.set(Click, on_click)
   }
   if on_change is Some(on_change) {
-    event.set("change", on_change)
+    event.set(Change, on_change)
   }
   if on_input is Some(on_input) {
-    event.set("input", on_input)
+    event.set(Input, on_input)
   }
   Element({ name: "input", attrs, event, style, children: [] })
 }
@@ -674,7 +674,7 @@ pub fn button(
     attrs.set("disabled", "true")
   }
   if on_click is Some(on_click) {
-    event.set("click", on_click)
+    event.set(Click, on_click)
   }
   Element({ name: "button", attrs, event, style, children })
 }
@@ -737,10 +737,10 @@ pub fn textarea(
     attrs.set("disabled", "true")
   }
   if on_change is Some(on_change) {
-    event.set("change", on_change)
+    event.set(Change, on_change)
   }
   if on_input is Some(on_input) {
-    event.set("input", on_input)
+    event.set(Input, on_input)
   }
   Element({ name: "textarea", attrs, event, style, children: [] })
 }
@@ -793,7 +793,7 @@ pub fn select(
     attrs.set("multiple", "true")
   }
   if on_change is Some(on_change) {
-    event.set("change", on_change)
+    event.set(Change, on_change)
   }
   Element({ name: "select", attrs, event, style, children })
 }
@@ -888,7 +888,7 @@ pub fn section(
     attrs.set("innerHTML", innerHTML)
   }
   if on_click is Some(on_click) {
-    event.set("click", on_click)
+    event.set(Click, on_click)
   }
   Element({ name: "section", attrs, event, style, children })
 }
@@ -931,7 +931,7 @@ pub fn article(
     attrs.set("innerHTML", innerHTML)
   }
   if on_click is Some(on_click) {
-    event.set("click", on_click)
+    event.set(Click, on_click)
   }
   Element({ name: "article", attrs, event, style, children })
 }
@@ -974,7 +974,7 @@ pub fn header(
     attrs.set("innerHTML", innerHTML)
   }
   if on_click is Some(on_click) {
-    event.set("click", on_click)
+    event.set(Click, on_click)
   }
   Element({ name: "header", attrs, event, style, children })
 }
@@ -1017,7 +1017,7 @@ pub fn footer(
     attrs.set("innerHTML", innerHTML)
   }
   if on_click is Some(on_click) {
-    event.set("click", on_click)
+    event.set(Click, on_click)
   }
   Element({ name: "footer", attrs, event, style, children })
 }
@@ -1060,7 +1060,7 @@ pub fn nav(
     attrs.set("innerHTML", innerHTML)
   }
   if on_click is Some(on_click) {
-    event.set("click", on_click)
+    event.set(Click, on_click)
   }
   Element({ name: "nav", attrs, event, style, children })
 }
@@ -1103,7 +1103,7 @@ pub fn aside(
     attrs.set("innerHTML", innerHTML)
   }
   if on_click is Some(on_click) {
-    event.set("click", on_click)
+    event.set(Click, on_click)
   }
   Element({ name: "aside", attrs, event, style, children })
 }
@@ -1146,7 +1146,7 @@ pub fn ul(
     attrs.set("innerHTML", innerHTML)
   }
   if on_click is Some(on_click) {
-    event.set("click", on_click)
+    event.set(Click, on_click)
   }
   Element({ name: "ul", attrs, event, style, children })
 }
@@ -1189,7 +1189,7 @@ pub fn ol(
     attrs.set("innerHTML", innerHTML)
   }
   if on_click is Some(on_click) {
-    event.set("click", on_click)
+    event.set(Click, on_click)
   }
   Element({ name: "ol", attrs, event, style, children })
 }
@@ -1232,7 +1232,7 @@ pub fn li(
     attrs.set("innerHTML", innerHTML)
   }
   if on_click is Some(on_click) {
-    event.set("click", on_click)
+    event.set(Click, on_click)
   }
   Element({ name: "li", attrs, event, style, children })
 }
@@ -1292,13 +1292,13 @@ pub fn img(
     attrs.set("height", height)
   }
   if on_click is Some(on_click) {
-    event.set("click", on_click)
+    event.set(Click, on_click)
   }
   if on_load is Some(on_load) {
-    event.set("load", on_load)
+    event.set(Load, on_load)
   }
   if on_error is Some(on_error) {
-    event.set("error", on_error)
+    event.set(Error, on_error)
   }
   Element({ name: "img", attrs, event, style, children: [] })
 }
@@ -1375,13 +1375,13 @@ pub fn video(
     attrs.set("height", height)
   }
   if on_click is Some(on_click) {
-    event.set("click", on_click)
+    event.set(Click, on_click)
   }
   if on_play is Some(on_play) {
-    event.set("play", on_play)
+    event.set(Play, on_play)
   }
   if on_pause is Some(on_pause) {
-    event.set("pause", on_pause)
+    event.set(Pause, on_pause)
   }
   Element({ name: "video", attrs, event, style, children })
 }
@@ -1446,10 +1446,10 @@ pub fn audio(
     attrs.set("muted", "true")
   }
   if on_play is Some(on_play) {
-    event.set("play", on_play)
+    event.set(Play, on_play)
   }
   if on_pause is Some(on_pause) {
-    event.set("pause", on_pause)
+    event.set(Pause, on_pause)
   }
   Element({ name: "audio", attrs, event, style, children })
 }

@@ -158,7 +158,7 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
         },
         event={
           let events = @preact.ElementEvents::new()
-          events.set("keydown", fn(event) {
+          events.set(@preact.DOMEventType::KeyDown, fn(event) {
             // 检查是否按下了回车键
             if event.key() == "Enter" {
               add_new_todo()
