@@ -29,6 +29,16 @@ extern "js" fn JsValue::to_bool(self : JsValue) -> Bool =
   #| (self) => self
 
 ///|
+/// 获取 DOM 事件的目标元素的值
+pub extern "js" fn get_event_target_value(event : JsValue) -> String =
+  #| (event) => event.target ? event.target.value || "" : ""
+
+///|
+/// 获取键盘事件的键值
+pub extern "js" fn get_event_key(event : JsValue) -> String =
+  #| (event) => event.key || ""
+
+///|
 pub extern "js" fn JsValue::from_object(value : JsObject) -> JsValue =
   #| (value) => value
 

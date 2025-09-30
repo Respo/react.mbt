@@ -1,13 +1,4 @@
 ///|
-fnalias @preact.component
-
-///|
-fnalias @css.respo_style
-
-///|
-typealias @preact.VirtualNode
-
-///|
 struct ContainerProps {} derive(Default)
 
 ///|
@@ -29,11 +20,20 @@ fn comp_container(_v : ContainerProps) -> VirtualNode {
   @preact.div(
     id="container",
     style=respo_style(color=Blue, font_family="Arial", padding=10.0 |> Px),
-    on_click=fn(_) {
-      println("clicked \{counter}")
-      set_counter(counter + 1.0)
-    },
-    [Fragment([Text("Demo: ")]), Text("Counter \{counter}")],
+    [
+      // 原有的 counter 演示
+      @preact.div(
+        on_click=fn(_) {
+          println("clicked \{counter}")
+          set_counter(counter + 1.0)
+        },
+        class_list=[style_counter],
+        [Fragment([Text("Demo: ")]), Text("Counter \{counter}")],
+      ),
+
+      // 添加 Todolist 组件
+      component(comp_todolist, TodoListProps::default(), []),
+    ],
   )
 }
 
@@ -43,9 +43,11 @@ fn main {
   let doc = window.document()
   let body = doc.body()
   let props = ContainerProps::default()
-  @preact.render(
-    component(comp_container, props, []),
-    body,
-  )
+  @preact.render(component(comp_container, props, []), body)
   println("loaded")
 }
+
+///|
+let style_counter : String = @preact.static_style([
+  ("&", respo_style(margin_bottom=20.0 |> Px, padding=10.0 |> Px)),
+])

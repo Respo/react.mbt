@@ -33,7 +33,7 @@ extern "js" fn preact_render(vdom : JsValue, parent : @dom.Node) -> Unit =
 /// )
 /// render(custom_elem.to_node(), document.body)
 /// ```
-pub fn render(vdom: VirtualNode, parent: @dom.Element) -> Unit {
+pub fn render(vdom : VirtualNode, parent : @dom.Element) -> Unit {
   preact_render(vdom.to_js_value(), parent.reinterpret_as_node())
 }
 
@@ -45,12 +45,8 @@ extern "js" fn preact_h(
 ) -> JsValue =
   #| (tag, props, children) => window.Preact.h(tag, props, ...children)
 
-
 ///|
-extern "js" fn preact_fragment(
-  props : JsValue,
-  children : JsValue,
-) -> JsValue =
+extern "js" fn preact_fragment(props : JsValue, children : JsValue) -> JsValue =
   #| (props, children) => window.Preact.h(window.Preact.Fragment, props, ...children)
 
 ///|
@@ -58,51 +54,21 @@ extern "js" fn preact_use_state(initial : JsValue) -> JsValue =
   #| (initial) => { return window.PreactHooks.useState(initial)}
 
 ///|
-pub trait StateValue {
-  to_value(Self) -> JsValue
-  from_value(JsValue) -> Self
-}
-
-///|
-pub impl StateValue for Float with to_value(self) -> JsValue {
-  JsValue::from_number(self)
-}
-
-///|
-pub impl StateValue for Float with from_value(value : JsValue) -> Float {
-  value.to_number()
-}
-
-///|
-pub impl StateValue for Int with to_value(self) -> JsValue {
-  JsValue::from_number(self.reinterpret_as_float())
-}
-
-///|
-pub impl StateValue for Int with from_value(value : JsValue) -> Int {
-  value.to_number().reinterpret_as_int()
-}
-
-///|
-pub impl StateValue for String with to_value(self) -> JsValue {
-  JsValue::from_string(self)
-}
-
-///|
-pub impl StateValue for String with from_value(value : JsValue) -> String {
-  value.to_string()
-}
-
-///|
 extern "js" fn state_updater_from_value(v : JsValue) -> (JsValue) -> Unit =
   #| (v) => v
 
 ///|
-pub fn[T : StateValue] use_state(initial : T) -> (T, (T) -> Unit) {
-  let pair = preact_use_state(initial.to_value()).to_array()
+fn[T] any_to_js_value(v : T) -> JsValue = "%identity"
+
+///|
+fn[T] any_from_js_value(v : JsValue) -> T = "%identity"
+
+///|
+pub fn[T] use_state(initial : T) -> (T, (T) -> Unit) {
+  let pair = preact_use_state(any_to_js_value(initial)).to_array()
   let s0 = pair[0]
   let s1 = state_updater_from_value(pair[1])
-  (T::from_value(s0), fn(value) { s1(value.to_value()) })
+  (any_from_js_value(s0), fn(value : T) { s1(any_to_js_value(value)) })
 }
 
 ///|
@@ -184,7 +150,6 @@ pub fn ElementEvents::to_js_value(self : ElementEvents) -> JsValue {
   }
   JsValue::from_object(obj)
 }
-
 
 ///|
 /// Represents a virtual DOM node in the Preact rendering system.
@@ -273,7 +238,8 @@ fn VirtualElement::to_js_value(self : VirtualElement) -> JsValue {
   )
 }
 
-///|/// Creates a virtual DOM element with the specified properties.
+///|
+/// Creates a virtual DOM element with the specified properties.
 ///
 /// This is the internal implementation used by built-in element functions like `div`, `span`, etc.
 /// It can also be used to create custom HTML elements that are not provided by the library.
@@ -316,6 +282,7 @@ extern "js" fn create_factory(
   #|   let h0 = window.Preact.h(f, props, ...children);
   #|   return h0;
   #| }
+
 ///|
 /// Creates a component virtual node from a function, props, and children.
 ///

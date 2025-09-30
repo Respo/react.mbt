@@ -21,6 +21,45 @@ This is a [MoonBit](https://docs.moonbitlang.com) project.
 - Try to keep deprecated blocks in file called `deprecated.mbt` in each
   directory.
 
+## Preact Component Usage
+
+When using Preact components in this project, there are specific patterns that must be followed:
+
+### Component Function Wrapping
+
+**Important**: All component functions must be wrapped with the `component` function when used in the virtual DOM tree.
+
+**Correct usage:**
+```moonbit
+// When using a component function, wrap it with component()
+component(comp_todolist, TodoListProps::default(), [])
+```
+
+**Incorrect usage:**
+```moonbit
+// DON'T call component functions directly
+comp_todolist(TodoListProps::default())
+```
+
+### Component Function Definition
+
+Component functions should follow this pattern:
+```moonbit
+fn comp_component_name(props : ComponentProps) -> VirtualNode {
+  // Component implementation
+  @preact.div([...])
+}
+```
+
+### Example from main.mbt
+
+See `/Users/chenyong/repo/respo/preact.mbt/src/main/main.mbt#L37-38` for a correct example:
+```moonbit
+component(comp_todolist, TodoListProps::default(), [])
+```
+
+This pattern ensures proper component lifecycle management and integration with the Preact rendering system.
+
 ## Tooling
 
 - `moon fmt` is used to format your code properly.

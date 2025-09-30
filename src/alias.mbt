@@ -1,4 +1,61 @@
 ///|
+/// HTML input element type enumeration based on MDN specification
+/// https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input
+pub(all) enum InputType {
+  Button
+  Checkbox
+  Color
+  Date
+  DatetimeLocal
+  Email
+  File
+  Hidden
+  Image
+  Month
+  Number
+  Password
+  Radio
+  Range
+  Reset
+  Search
+  Submit
+  Tel
+  Text
+  Time
+  Url
+  Week
+} derive(Eq)
+
+///|
+/// Converts InputType enum to its corresponding HTML string value
+pub fn InputType::to_string(self : InputType) -> String {
+  match self {
+    Button => "button"
+    Checkbox => "checkbox"
+    Color => "color"
+    Date => "date"
+    DatetimeLocal => "datetime-local"
+    Email => "email"
+    File => "file"
+    Hidden => "hidden"
+    Image => "image"
+    Month => "month"
+    Number => "number"
+    Password => "password"
+    Radio => "radio"
+    Range => "range"
+    Reset => "reset"
+    Search => "search"
+    Submit => "submit"
+    Tel => "tel"
+    Text => "text"
+    Time => "time"
+    Url => "url"
+    Week => "week"
+  }
+}
+
+///|
 /// Creates a `span` element with the specified attributes, event handlers, and
 /// children.
 ///
@@ -91,6 +148,54 @@ pub fn p(
     event.set("click", on_click)
   }
   Element({ name: "p", attrs, event, style, children })
+}
+
+///|
+/// Creates a `label` element with the specified attributes, event handlers, and
+/// children.
+///
+/// Returns a virtual DOM node representing a `label` element.
+///
+pub fn label(
+  /// HTML element ID.
+  id? : String,
+  /// Base CSS class name.
+  class_name? : String,
+  /// Additional CSS class names to be appended to the base class.
+  class_list? : Array[String] = [],
+  /// Additional HTML attributes.
+  attrs? : ElementAttrs,
+  /// Event handlers map.
+  event? : ElementEvents,
+  /// CSS styles.
+  style? : RespoStyle = respo_style(),
+  /// Child nodes of the label element.
+  children : Array[VirtualNode],
+  /// Raw HTML content to be inserted inside the element.
+  innerHTML? : String,
+  /// Click event handler.
+  on_click? : (DOMEvent) -> Unit,
+  /// The "for" attribute to associate the label with a form control.
+  for_? : String,
+) -> VirtualNode {
+  let attrs = attrs.unwrap_or_default()
+  let event = event.unwrap_or_default()
+  if id is Some(id) {
+    attrs.set("id", id)
+  }
+  if combile_classes(class_name, class_list) is Some(class_name) {
+    attrs.set("class", class_name)
+  }
+  if innerHTML is Some(innerHTML) {
+    attrs.set("innerHTML", innerHTML)
+  }
+  if on_click is Some(on_click) {
+    event.set("click", on_click)
+  }
+  if for_ is Some(for_value) {
+    attrs.set("for", for_value)
+  }
+  Element({ name: "label", attrs, event, style, children })
 }
 
 ///|
@@ -404,6 +509,7 @@ pub fn a(
   Element({ name: "a", attrs, event, style, children })
 }
 
+///|
 pub fn div(
   id? : String,
   class_name? : String,
@@ -473,8 +579,8 @@ pub fn input(
   event? : ElementEvents,
   /// CSS styles.
   style? : RespoStyle = respo_style(),
-  /// The type of input (e.g., "text", "password", "email").
-  input_type? : String,
+  /// The type of input (e.g., Text, Password, Email).
+  type_? : InputType,
   /// The current value of the input.
   value? : String,
   /// Placeholder text displayed when input is empty.
@@ -496,8 +602,8 @@ pub fn input(
   if combile_classes(class_name, class_list) is Some(class_name) {
     attrs.set("class", class_name)
   }
-  if input_type is Some(input_type) {
-    attrs.set("type", input_type)
+  if type_ is Some(input_type) {
+    attrs.set("type", input_type.to_string())
   }
   if value is Some(value) {
     attrs.set("value", value)

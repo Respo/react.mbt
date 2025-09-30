@@ -1,25 +1,25 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Preact Moonbit</title>
-    <style>
-      body {
-        margin: 0;
-      }
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TodoMVC - MoonBit + Preact</title>
+    <link rel="stylesheet" href="./styles/todomvc.css">
+</head>
+<body>
+    <div id="root"></div>
 
-      body * {
-        box-sizing: border-box;
-      }
-    </style>
-  </head>
-  <body>
-    <!-- <script src="./main.mjs" type="module"></script> -->
-    <div class="app"></div>
     <script type="module" src="./src/preact.mjs"></script>
-    <script
-      src="./target/js/debug/build/main/main.js"
-      type="module"
-      defer
-    ></script>
-  </body>
+    <!-- 生成的 MoonBit 代码 -->
+    <script type="module">
+        // 导入生成的 JS 文件
+        import('./target/js/debug/build/main/main.js').then(module => {
+            // 调用 todolist 的 main 函数
+            console.log('Loading TodoMVC application...');
+
+        }).catch(err => {
+            console.error('Failed to load module:', err);
+        });
+    </script>
+</body>
 </html>
