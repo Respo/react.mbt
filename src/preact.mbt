@@ -105,6 +105,61 @@ pub type DOMEvent
 pub fn DOMEvent::to_js_any_value(self : DOMEvent) -> JsValue = "%identity"
 
 ///|
+/// 获取事件目标元素的值（通常用于 input、textarea 等表单元素）
+pub extern "js" fn DOMEvent::target_value(self : DOMEvent) -> String =
+  #| (event) => event.target ? event.target.value || "" : ""
+
+///|
+/// 获取键盘事件的键值
+pub extern "js" fn DOMEvent::key(self : DOMEvent) -> String =
+  #| (event) => event.key || ""
+
+///|
+/// 获取键盘事件的键码
+pub extern "js" fn DOMEvent::key_code(self : DOMEvent) -> Int =
+  #| (event) => event.keyCode || 0
+
+///|
+/// 阻止事件的默认行为
+pub extern "js" fn DOMEvent::prevent_default(self : DOMEvent) -> Unit =
+  #| (event) => event.preventDefault()
+
+///|
+/// 阻止事件冒泡
+pub extern "js" fn DOMEvent::stop_propagation(self : DOMEvent) -> Unit =
+  #| (event) => event.stopPropagation()
+
+///|
+/// 获取鼠标事件的 X 坐标
+pub extern "js" fn DOMEvent::client_x(self : DOMEvent) -> Int =
+  #| (event) => event.clientX || 0
+
+///|
+/// 获取鼠标事件的 Y 坐标
+pub extern "js" fn DOMEvent::client_y(self : DOMEvent) -> Int =
+  #| (event) => event.clientY || 0
+
+///|
+/// 检查是否按下了 Ctrl 键
+pub extern "js" fn DOMEvent::ctrl_key(self : DOMEvent) -> Bool =
+  #| (event) => event.ctrlKey || false
+
+///|
+/// 检查是否按下了 Shift 键
+pub extern "js" fn DOMEvent::shift_key(self : DOMEvent) -> Bool =
+  #| (event) => event.shiftKey || false
+
+///|
+/// 检查是否按下了 Alt 键
+pub extern "js" fn DOMEvent::alt_key(self : DOMEvent) -> Bool =
+  #| (event) => event.altKey || false
+
+///|
+/// 检查是否按下了 Meta 键（Mac 上的 Cmd 键）
+pub extern "js" fn DOMEvent::meta_key(self : DOMEvent) -> Bool =
+  #| (event) => event.metaKey || false
+
+///|
 pub extern "js" fn console_log2(msg : String, v : JsValue) -> Unit =
   #| (msg, v) => { console.log(msg, v) }
 

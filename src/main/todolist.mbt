@@ -11,12 +11,6 @@ typealias @preact.VirtualNode
 typealias @preact.InputType
 
 ///|
-fnalias @preact.get_event_target_value
-
-///|
-fnalias @preact.get_event_key
-
-///|
 // Todo 项的数据结构
 struct Todo {
   id : Int
@@ -155,20 +149,18 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
         placeholder="What needs to be done?",
         value=new_todo_text,
         on_input=fn(event) {
-          let value = get_event_target_value(event.to_js_any_value())
+          let value = event.target_value()
           set_new_todo_text(value)
         },
         on_change=fn(event) {
-          let value = get_event_target_value(event.to_js_any_value())
+          let value = event.target_value()
           set_new_todo_text(value)
         },
         event={
           let events = @preact.ElementEvents::new()
           events.set("keydown", fn(event) {
             // 检查是否按下了回车键
-            let event_js = event.to_js_any_value()
-            let key = get_event_key(event_js)
-            if key == "Enter" {
+            if event.key() == "Enter" {
               add_new_todo()
             }
           })
