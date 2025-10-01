@@ -96,7 +96,7 @@ pub fn span(
     attrs.set("id", id)
   }
   if combile_classes(class_name, class_list) is Some(class_name) {
-    attrs.set("class", class_name)
+    attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
     attrs.set("innerHTML", innerHTML)
@@ -139,7 +139,7 @@ pub fn p(
     attrs.set("id", id)
   }
   if combile_classes(class_name, class_list) is Some(class_name) {
-    attrs.set("class", class_name)
+    attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
     attrs.set("innerHTML", innerHTML)
@@ -184,7 +184,7 @@ pub fn label(
     attrs.set("id", id)
   }
   if combile_classes(class_name, class_list) is Some(class_name) {
-    attrs.set("class", class_name)
+    attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
     attrs.set("innerHTML", innerHTML)
@@ -193,7 +193,7 @@ pub fn label(
     event.set(Click, on_click)
   }
   if for_ is Some(for_value) {
-    attrs.set("for", for_value)
+    attrs.set("htmlFor", for_value)
   }
   Element({ name: "label", attrs, event, style, children })
 }
@@ -230,7 +230,7 @@ pub fn h1(
     attrs.set("id", id)
   }
   if combile_classes(class_name, class_list) is Some(class_name) {
-    attrs.set("class", class_name)
+    attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
     attrs.set("innerHTML", innerHTML)
@@ -273,7 +273,7 @@ pub fn h2(
     attrs.set("id", id)
   }
   if combile_classes(class_name, class_list) is Some(class_name) {
-    attrs.set("class", class_name)
+    attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
     attrs.set("innerHTML", innerHTML)
@@ -316,7 +316,7 @@ pub fn h3(
     attrs.set("id", id)
   }
   if combile_classes(class_name, class_list) is Some(class_name) {
-    attrs.set("class", class_name)
+    attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
     attrs.set("innerHTML", innerHTML)
@@ -359,7 +359,7 @@ pub fn h4(
     attrs.set("id", id)
   }
   if combile_classes(class_name, class_list) is Some(class_name) {
-    attrs.set("class", class_name)
+    attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
     attrs.set("innerHTML", innerHTML)
@@ -402,7 +402,7 @@ pub fn h5(
     attrs.set("id", id)
   }
   if combile_classes(class_name, class_list) is Some(class_name) {
-    attrs.set("class", class_name)
+    attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
     attrs.set("innerHTML", innerHTML)
@@ -445,7 +445,7 @@ pub fn h6(
     attrs.set("id", id)
   }
   if combile_classes(class_name, class_list) is Some(class_name) {
-    attrs.set("class", class_name)
+    attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
     attrs.set("innerHTML", innerHTML)
@@ -492,7 +492,7 @@ pub fn a(
     attrs.set("id", id)
   }
   if combile_classes(class_name, class_list) is Some(class_name) {
-    attrs.set("class", class_name)
+    attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
     attrs.set("innerHTML", innerHTML)
@@ -527,7 +527,7 @@ pub fn div(
     attrs.set("id", id)
   }
   if combile_classes(class_name, class_list) is Some(class_name) {
-    attrs.set("class", class_name)
+    attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
     attrs.set("innerHTML", innerHTML)
@@ -600,7 +600,7 @@ pub fn input(
     attrs.set("id", id)
   }
   if combile_classes(class_name, class_list) is Some(class_name) {
-    attrs.set("class", class_name)
+    attrs.set("className", class_name)
   }
   if type_ is Some(input_type) {
     attrs.set("type", input_type.to_string())
@@ -662,7 +662,7 @@ pub fn button(
     attrs.set("id", id)
   }
   if combile_classes(class_name, class_list) is Some(class_name) {
-    attrs.set("class", class_name)
+    attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
     attrs.set("innerHTML", innerHTML)
@@ -719,7 +719,7 @@ pub fn textarea(
     attrs.set("id", id)
   }
   if combile_classes(class_name, class_list) is Some(class_name) {
-    attrs.set("class", class_name)
+    attrs.set("className", class_name)
   }
   if value is Some(value) {
     attrs.set("value", value)
@@ -781,7 +781,7 @@ pub fn select(
     attrs.set("id", id)
   }
   if combile_classes(class_name, class_list) is Some(class_name) {
-    attrs.set("class", class_name)
+    attrs.set("className", class_name)
   }
   if value is Some(value) {
     attrs.set("value", value)
@@ -833,7 +833,7 @@ pub fn option(
     attrs.set("id", id)
   }
   if combile_classes(class_name, class_list) is Some(class_name) {
-    attrs.set("class", class_name)
+    attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
     attrs.set("innerHTML", innerHTML)
@@ -882,7 +882,7 @@ pub fn section(
     attrs.set("id", id)
   }
   if combile_classes(class_name, class_list) is Some(class_name) {
-    attrs.set("class", class_name)
+    attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
     attrs.set("innerHTML", innerHTML)
@@ -925,7 +925,7 @@ pub fn article(
     attrs.set("id", id)
   }
   if combile_classes(class_name, class_list) is Some(class_name) {
-    attrs.set("class", class_name)
+    attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
     attrs.set("innerHTML", innerHTML)
@@ -968,7 +968,7 @@ pub fn header(
     attrs.set("id", id)
   }
   if combile_classes(class_name, class_list) is Some(class_name) {
-    attrs.set("class", class_name)
+    attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
     attrs.set("innerHTML", innerHTML)
@@ -1011,7 +1011,7 @@ pub fn footer(
     attrs.set("id", id)
   }
   if combile_classes(class_name, class_list) is Some(class_name) {
-    attrs.set("class", class_name)
+    attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
     attrs.set("innerHTML", innerHTML)
@@ -1054,7 +1054,7 @@ pub fn nav(
     attrs.set("id", id)
   }
   if combile_classes(class_name, class_list) is Some(class_name) {
-    attrs.set("class", class_name)
+    attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
     attrs.set("innerHTML", innerHTML)
@@ -1097,7 +1097,7 @@ pub fn aside(
     attrs.set("id", id)
   }
   if combile_classes(class_name, class_list) is Some(class_name) {
-    attrs.set("class", class_name)
+    attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
     attrs.set("innerHTML", innerHTML)
@@ -1140,7 +1140,7 @@ pub fn ul(
     attrs.set("id", id)
   }
   if combile_classes(class_name, class_list) is Some(class_name) {
-    attrs.set("class", class_name)
+    attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
     attrs.set("innerHTML", innerHTML)
@@ -1183,7 +1183,7 @@ pub fn ol(
     attrs.set("id", id)
   }
   if combile_classes(class_name, class_list) is Some(class_name) {
-    attrs.set("class", class_name)
+    attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
     attrs.set("innerHTML", innerHTML)
@@ -1226,7 +1226,7 @@ pub fn li(
     attrs.set("id", id)
   }
   if combile_classes(class_name, class_list) is Some(class_name) {
-    attrs.set("class", class_name)
+    attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
     attrs.set("innerHTML", innerHTML)
@@ -1277,7 +1277,7 @@ pub fn img(
     attrs.set("id", id)
   }
   if combile_classes(class_name, class_list) is Some(class_name) {
-    attrs.set("class", class_name)
+    attrs.set("className", class_name)
   }
   if src is Some(src) {
     attrs.set("src", src)
@@ -1351,7 +1351,7 @@ pub fn video(
     attrs.set("id", id)
   }
   if combile_classes(class_name, class_list) is Some(class_name) {
-    attrs.set("class", class_name)
+    attrs.set("className", class_name)
   }
   if src is Some(src) {
     attrs.set("src", src)
@@ -1360,7 +1360,7 @@ pub fn video(
     attrs.set("controls", "true")
   }
   if autoplay is Some(true) {
-    attrs.set("autoplay", "true")
+    attrs.set("autoPlay", "true")
   }
   if loop_enabled is Some(true) {
     attrs.set("loop", "true")
@@ -1428,7 +1428,7 @@ pub fn audio(
     attrs.set("id", id)
   }
   if combile_classes(class_name, class_list) is Some(class_name) {
-    attrs.set("class", class_name)
+    attrs.set("className", class_name)
   }
   if src is Some(src) {
     attrs.set("src", src)
@@ -1437,7 +1437,7 @@ pub fn audio(
     attrs.set("controls", "true")
   }
   if autoplay is Some(true) {
-    attrs.set("autoplay", "true")
+    attrs.set("autoPlay", "true")
   }
   if loop_enabled is Some(true) {
     attrs.set("loop", "true")

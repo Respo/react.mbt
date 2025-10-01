@@ -27,7 +27,10 @@ fn comp_container(_v : ContainerProps) -> VirtualNode {
           set_counter(counter + 1.0)
         },
         class_list=[style_counter],
-        [@react.Fragment([@react.Text("Demo: ")]), @react.Text("Counter \{counter}")],
+        [
+          @react.Fragment([@react.Text("Demo: ")]),
+          @react.Text("Counter \{counter}"),
+        ],
       ),
       @react.component(comp_todolist, TodoListProps::default(), []),
       @react.component(comp_hooks_demo, HooksDemoProps::default(), []),

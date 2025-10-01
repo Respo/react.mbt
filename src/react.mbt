@@ -383,6 +383,32 @@ pub fn VirtualNode::to_js_value(self : VirtualNode) -> JsValue {
 }
 
 ///|
+/// Converts legacy DOM attribute names to React-compatible property names.
+/// This function provides backward compatibility for traditional HTML attribute names.
+/// Most attributes should use the correct React property names directly in element definitions.
+///
+/// # Parameters
+/// - `attr_name`: HTML attribute name such as "class", "for", etc.
+///
+/// # Returns
+/// `String` - React-compatible property name.
+///
+/// # Inspect Examples
+/// inspect(dom_attr_to_react_prop("class"), content="className")
+/// inspect(dom_attr_to_react_prop("for"), content="htmlFor")
+/// inspect(dom_attr_to_react_prop("id"), content="id")
+/// inspect(dom_attr_to_react_prop("data-test"), content="data-test")
+pub fn dom_attr_to_react_prop(attr_name : String) -> String {
+  match attr_name {
+    // 保留向后兼容性，支持传统的 HTML 属性名
+    "class" => "className"
+    "for" => "htmlFor"
+    // 其他属性名应该在元素定义时就使用正确的 React 属性名
+    _ => attr_name
+  }
+}
+
+///|
 /// Represents a virtual DOM element with all its properties and children.
 ///
 /// This structure encapsulates all the information needed to create and manage
@@ -452,21 +478,22 @@ pub fn css_prop_to_camel_case(name : String) -> String {
 fn VirtualElement::to_js_value(self : VirtualElement) -> JsValue {
   let props = JsObject::new()
   for key, value in self.attrs.inner() {
-    props.set(key, JsValue::from_string(value))
+    let react_prop_name = dom_attr_to_react_prop(key)
+    let prop_value = convert_prop_value(react_prop_name, value)
+    props.set(react_prop_name, prop_value)
   }
   let style = JsObject::new()
   for _idx, pair in self.style.0 {
     let (key, value) = pair
     style.set(css_prop_to_camel_case(key), JsValue::from_string(value))
   }
-  // TODO events
   props.set("style", JsValue::from_object(style))
   let children = JsArray::new()
   for child in self.children {
     children.push(child.to_js_value())
   }
   for event_type, value in self.event.inner() {
-    let event_name = "on\{first_letter_to_uppercase(event_type.to_string())}"
+    let event_name = dom_event_to_react_handler(event_type)
     props.set(event_name, value.to_js_func())
   }
   react_create_element(
@@ -566,3 +593,152 @@ pub fn[T : JsValueTrait] component(
 fn first_letter_to_uppercase(s : String) -> String {
   s[0].to_char().unwrap().to_string().to_upper() + (try! s[1:]).to_string()
 }
+
+///|
+/// Converts DOM event types to React-compatible event handler names.
+/// Ensures proper camelCase formatting for React event handlers.
+///
+/// # Parameters
+/// - `event_type`: DOM event type enum value.
+///
+/// # Returns
+/// `String` - React-compatible event handler name with "on" prefix.
+/// ```
+/// inspect(dom_event_to_react_handler(KeyDown), content="onKeyDown")
+/// inspect(dom_event_to_react_handler(Click), content="onClick")
+/// inspect(dom_event_to_react_handler(MouseEnter), content="onMouseEnter")
+/// inspect(dom_event_to_react_handler(DoubleClick), content="onDoubleClick")
+/// ```
+pub fn dom_event_to_react_handler(event_type : DOMEventType) -> String {
+  match event_type {
+    Click => "onClick"
+    DoubleClick => "onDoubleClick"
+    MouseDown => "onMouseDown"
+    MouseUp => "onMouseUp"
+    MouseMove => "onMouseMove"
+    MouseEnter => "onMouseEnter"
+    MouseLeave => "onMouseLeave"
+    MouseOver => "onMouseOver"
+    MouseOut => "onMouseOut"
+    ContextMenu => "onContextMenu"
+    KeyDown => "onKeyDown"
+    KeyUp => "onKeyUp"
+    KeyPress => "onKeyPress"
+    Input => "onInput"
+    Change => "onChange"
+    Submit => "onSubmit"
+    Reset => "onReset"
+    Focus => "onFocus"
+    Blur => "onBlur"
+    Select => "onSelect"
+    Load => "onLoad"
+    Unload => "onUnload"
+    Resize => "onResize"
+    Scroll => "onScroll"
+    Drag => "onDrag"
+    DragStart => "onDragStart"
+    DragEnd => "onDragEnd"
+    DragEnter => "onDragEnter"
+    DragLeave => "onDragLeave"
+    DragOver => "onDragOver"
+    Drop => "onDrop"
+    TouchStart => "onTouchStart"
+    TouchMove => "onTouchMove"
+    TouchEnd => "onTouchEnd"
+    TouchCancel => "onTouchCancel"
+    Error => "onError"
+    Abort => "onAbort"
+    CanPlay => "onCanPlay"
+    CanPlayThrough => "onCanPlayThrough"
+    DurationChange => "onDurationChange"
+    Ended => "onEnded"
+    LoadedData => "onLoadedData"
+    LoadedMetadata => "onLoadedMetadata"
+    LoadStart => "onLoadStart"
+    Pause => "onPause"
+    Play => "onPlay"
+    Playing => "onPlaying"
+    Progress => "onProgress"
+    RateChange => "onRateChange"
+    Seeked => "onSeeked"
+    Seeking => "onSeeking"
+    Stalled => "onStalled"
+    Suspend => "onSuspend"
+    TimeUpdate => "onTimeUpdate"
+    VolumeChange => "onVolumeChange"
+    Waiting => "onWaiting"
+  }
+}
+
+///|
+/// Checks if a React property should be treated as a boolean attribute.
+/// Returns true for attributes that React expects as boolean values.
+///
+/// # Parameters
+/// - `prop_name`: React property name (already converted from DOM attribute).
+///
+/// # Returns
+/// `Bool` - true if the property should be treated as boolean.
+///
+/// # Inspect Examples
+/// inspect(is_boolean_prop("checked"), content="true")
+/// inspect(is_boolean_prop("disabled"), content="true")
+/// inspect(is_boolean_prop("readOnly"), content="true")
+/// inspect(is_boolean_prop("className"), content="false")
+pub fn is_boolean_prop(prop_name : String) -> Bool {
+  match prop_name {
+    "checked"
+    | "disabled"
+    | "readOnly"
+    | "required"
+    | "autoFocus"
+    | "autoPlay"
+    | "controls"
+    | "defer"
+    | "hidden"
+    | "loop"
+    | "multiple"
+    | "muted"
+    | "open"
+    | "reversed"
+    | "selected"
+    | "autoComplete"
+    | "autoCorrect"
+    | "autoCapitalize"
+    | "spellCheck"
+    | "translate"
+    | "contentEditable"
+    | "draggable"
+    | "suppressContentEditableWarning"
+    | "suppressHydrationWarning" => true
+    _ => false
+  }
+}
+
+///|
+/// Converts string values to appropriate JavaScript values for React props.
+/// Handles boolean attributes by converting "true"/"false" strings to actual booleans.
+///
+/// # Parameters
+/// - `prop_name`: React property name.
+/// - `value`: String value from the attribute.
+///
+/// # Returns
+/// `JsValue` - Properly typed JavaScript value for React.
+///
+/// # Inspect Examples
+/// inspect(convert_prop_value("checked", "true"), content="JsValue::from_bool(true)")
+/// inspect(convert_prop_value("className", "my-class"), content="JsValue::from_string(\"my-class\")")
+pub fn convert_prop_value(prop_name : String, value : String) -> JsValue {
+  if is_boolean_prop(prop_name) {
+    match value {
+      "true" => JsValue::from_bool(true)
+      "false" => JsValue::from_bool(false)
+      _ => JsValue::from_string(value) // fallback for non-standard values
+    }
+  } else {
+    JsValue::from_string(value)
+  }
+}
+
+///   ElementEvents::new()

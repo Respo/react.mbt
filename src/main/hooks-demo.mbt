@@ -85,7 +85,9 @@ fn comp_hooks_demo(_props : HooksDemoProps) -> VirtualNode {
         @react.h3([@react.Text("📊 状态信息")]),
         @react.p([@react.Text("当前计数: \{count}")]),
         @react.p([@react.Text("消息: \{message}")]),
-        @react.p([@react.Text("计算值 (count² + count×10): \{expensive_value}")]),
+        @react.p([
+          @react.Text("计算值 (count² + count×10): \{expensive_value}"),
+        ]),
         @react.p([@react.Text("定时器计数: \{timer_count}")]),
       ]),
 
@@ -165,10 +167,14 @@ fn comp_hooks_demo(_props : HooksDemoProps) -> VirtualNode {
               ),
             ]),
             @react.li([
-              @react.Text("🎮 use_callback_deps: 缓存回调函数，优化性能"),
+              @react.Text(
+                "🎮 use_callback_deps: 缓存回调函数，优化性能",
+              ),
             ]),
             @react.li([
-              @react.Text("📝 use_ref: 创建可变引用，用于定时器计数"),
+              @react.Text(
+                "📝 use_ref: 创建可变引用，用于定时器计数",
+              ),
             ]),
           ]),
         ],

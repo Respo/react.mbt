@@ -61,6 +61,12 @@ This pattern ensures proper component lifecycle management and integration with 
 
 ## Tooling
 
+### Development Server
+
+- Use `yarn vite` to start the development server for testing the React application in the browser. The server will typically start on `http://localhost:5173/` or another available port if 5173 is in use.
+
+### Code Quality Tools
+
 - `moon fmt` is used to format your code properly.
 
 - `moon info` is used to update the generated interface of the package, each

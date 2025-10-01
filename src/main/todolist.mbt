@@ -156,7 +156,7 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
           class_name="toggle",
           type_=Checkbox,
           attrs=checkbox_attrs,
-          on_click=fn(_event) { toggle_todo(index) },
+          on_change=fn(_event) { toggle_todo(index) },
         ),
         @react.label([@react.Text(text)]),
         @react.button(
