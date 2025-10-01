@@ -65,64 +65,35 @@ pub(all) enum Deps[A, B, C, D, E, F, G, H] {
 }
 
 ///|
-fn[A, B, C, D, E, F, G, H] deps_to_js_array(
-  deps : Deps[A, B, C, D, E, F, G, H],
-) -> JsArray {
+fn deps_to_js_array(deps : Array[JsValue]) -> JsValue {
   let arr = JsArray::new()
-  match deps {
-    Dep0 => ()
-    Dep1(a) => arr.push(any_to_js_value(a))
-    Dep2(a, b) => {
-      arr.push(any_to_js_value(a))
-      arr.push(any_to_js_value(b))
-    }
-    Dep3(a, b, c) => {
-      arr.push(any_to_js_value(a))
-      arr.push(any_to_js_value(b))
-      arr.push(any_to_js_value(c))
-    }
-    Dep4(a, b, c, d) => {
-      arr.push(any_to_js_value(a))
-      arr.push(any_to_js_value(b))
-      arr.push(any_to_js_value(c))
-      arr.push(any_to_js_value(d))
-    }
-    Dep5(a, b, c, d, e) => {
-      arr.push(any_to_js_value(a))
-      arr.push(any_to_js_value(b))
-      arr.push(any_to_js_value(c))
-      arr.push(any_to_js_value(d))
-      arr.push(any_to_js_value(e))
-    }
-    Dep6(a, b, c, d, e, f) => {
-      arr.push(any_to_js_value(a))
-      arr.push(any_to_js_value(b))
-      arr.push(any_to_js_value(c))
-      arr.push(any_to_js_value(d))
-      arr.push(any_to_js_value(e))
-      arr.push(any_to_js_value(f))
-    }
-    Dep7(a, b, c, d, e, f, g) => {
-      arr.push(any_to_js_value(a))
-      arr.push(any_to_js_value(b))
-      arr.push(any_to_js_value(c))
-      arr.push(any_to_js_value(d))
-      arr.push(any_to_js_value(e))
-      arr.push(any_to_js_value(f))
-      arr.push(any_to_js_value(g))
-    }
-    Dep8(a, b, c, d, e, f, g, h) => {
-      arr.push(any_to_js_value(a))
-      arr.push(any_to_js_value(b))
-      arr.push(any_to_js_value(c))
-      arr.push(any_to_js_value(d))
-      arr.push(any_to_js_value(e))
-      arr.push(any_to_js_value(f))
-      arr.push(any_to_js_value(g))
-      arr.push(any_to_js_value(h))
-    }
+  for d in deps {
+    arr.push(d)
   }
-  arr
+  arr.to_value()
+}
+
+///|
+// useLayoutEffect
+pub fn use_layout_effect_deps(
+  effect : () -> Unit,
+  deps : Array[JsValue],
+) -> Unit {
+  preact_use_layout_effect(any_to_js_value(effect), deps_to_js_array(deps))
+}
+
+///|
+// useMemo
+pub fn[A] use_memo_deps(factory : () -> A, deps : Array[JsValue]) -> A {
+  let v = preact_use_memo(any_to_js_value(factory), deps_to_js_array(deps))
+  any_from_js_value(v)
+}
+
+///|
+// useCallback
+pub fn[F] use_callback_deps(callback : F, deps : Array[JsValue]) -> F {
+  let v = preact_use_callback(any_to_js_value(callback), deps_to_js_array(deps))
+  any_from_js_value(v)
 }
 
 ///|
@@ -132,62 +103,18 @@ pub fn use_effect_once(effect : () -> Unit) -> Unit {
 }
 
 ///|
-pub fn[A, B, C, D, E, F, G, H] use_effect_deps(
-  effect : () -> Unit,
-  deps : Deps[A, B, C, D, E, F, G, H],
-) -> Unit {
-  preact_use_effect(any_to_js_value(effect), deps_to_js_array(deps).to_value())
-}
+/// a short hand to turn value into JsValue in hook deps
+pub fn[T] obscure(v : T) -> JsValue = "%identity"
 
 ///|
-// useLayoutEffect
-pub fn[A, B, C, D, E, F, G, H] use_layout_effect_deps(
-  effect : () -> Unit,
-  deps : Deps[A, B, C, D, E, F, G, H],
-) -> Unit {
-  preact_use_layout_effect(
-    any_to_js_value(effect),
-    deps_to_js_array(deps).to_value(),
-  )
-}
-
-///|
-// useMemo
-pub fn[T : JsValueTrait, A, B, C, D, E, F, G, H] use_memo_deps(
-  factory : () -> T,
-  deps : Deps[A, B, C, D, E, F, G, H],
-) -> T {
-  let r = preact_use_memo(
-    any_to_js_value(factory),
-    deps_to_js_array(deps).to_value(),
-  )
-  T::from_value(r)
-}
-
-///|
-// useCallback (with one argument)
-pub fn[V, A, B, C, D, E, F, G, H] use_callback_deps(
-  f : V,
-  deps : Deps[A, B, C, D, E, F, G, H],
-) -> (A) -> Unit {
-  let raw = preact_use_callback(
-    any_to_js_value(f),
-    deps_to_js_array(deps).to_value(),
-  )
-  let cb = fn1_from_value(raw)
-  fn(a : A) { cb(any_to_js_value(a)) }
+pub fn use_effect_deps(effect : () -> Unit, deps : Array[JsValue]) -> Unit {
+  preact_use_effect(any_to_js_value(effect), deps_to_js_array(deps))
 }
 
 ///|
 // useCallback (no argument)
-pub fn[A, B, C, D, E, F, G, H] use_callback0_deps(
-  f : () -> Unit,
-  deps : Deps[A, B, C, D, E, F, G, H],
-) -> () -> Unit {
-  let raw = preact_use_callback(
-    any_to_js_value(f),
-    deps_to_js_array(deps).to_value(),
-  )
+pub fn use_callback0_deps(f : () -> Unit, deps : Array[JsValue]) -> () -> Unit {
+  let raw = preact_use_callback(any_to_js_value(f), deps_to_js_array(deps))
   fn0_from_value(raw)
 }
 
@@ -223,12 +150,15 @@ pub fn[T : JsValueTrait] use_ref(initial : T) -> PreactRef[T] {
 
 ///|
 // useReducer
-pub fn[S : JsValueTrait, A : JsValueTrait] use_reducer(
-  initial : S,
+pub fn[S : Default, A] use_reducer(
+  initial? : S,
   reducer : (S, A) -> S,
 ) -> (S, (A) -> Unit) {
-  let pair = preact_use_reducer(any_to_js_value(reducer), initial.to_value()).to_array()
-  let s0 = S::from_value(pair[0])
+  let pair = preact_use_reducer(
+    any_to_js_value(reducer),
+    any_to_js_value(initial.unwrap_or_default()),
+  ).to_array()
+  let s0 = any_from_js_value(pair[0])
   let dispatch_raw = fn1_from_value(pair[1])
-  (s0, fn(a : A) { dispatch_raw(a.to_value()) })
+  (s0, fn(a : A) { dispatch_raw(any_to_js_value(a)) })
 }

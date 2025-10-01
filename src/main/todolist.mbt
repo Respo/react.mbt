@@ -8,9 +8,6 @@ fnalias @css.respo_style
 typealias @preact.VirtualNode
 
 ///|
-typealias @preact.InputType
-
-///|
 // Todo 项的数据结构
 struct Todo {
   id : Int
@@ -43,22 +40,94 @@ impl @preact.JsValueTrait for TodoListProps with from_value(
 }
 
 ///|
+/// TodoAction 枚举类型，表示对 todos 数组的不同操作
+enum TodoAction {
+  /// 添加新的 todo，参数为文本内容
+  AddTodo(String)
+  /// 切换 todo 的完成状态，参数为 todo ID
+  ToggleTodo(Int)
+  /// 删除 todo，参数为 todo ID
+  DeleteTodo(Int)
+  /// 清除所有已完成的 todo
+  ClearCompleted
+}
+
+///|
+/// Todo reducer 函数，处理 todos 数组的状态变更
+fn todo_reducer(todos : Array[Todo], action : TodoAction) -> Array[Todo] {
+  match action {
+    AddTodo(text) => {
+      // 计算下一个 ID（当前最大 ID + 1）
+      let next_id = todos.fold(init=0, fn(max_id, todo) {
+          if todo.id > max_id {
+            todo.id
+          } else {
+            max_id
+          }
+        }) +
+        1
+      let new_todo = { id: next_id, text, completed: false }
+      let new_todos = Array::new()
+      for todo in todos {
+        new_todos.push(todo)
+      }
+      new_todos.push(new_todo)
+      new_todos
+    }
+    ToggleTodo(id) => {
+      let new_todos = Array::new()
+      for todo in todos {
+        if todo.id == id {
+          new_todos.push({
+            id: todo.id,
+            text: todo.text,
+            completed: not(todo.completed),
+          })
+        } else {
+          new_todos.push(todo)
+        }
+      }
+      new_todos
+    }
+    DeleteTodo(id) => {
+      let new_todos = Array::new()
+      for todo in todos {
+        if todo.id != id {
+          new_todos.push(todo)
+        }
+      }
+      new_todos
+    }
+    ClearCompleted => {
+      let new_todos = Array::new()
+      for todo in todos {
+        if not(todo.completed) {
+          new_todos.push(todo)
+        }
+      }
+      new_todos
+    }
+  }
+}
+
+///|
 fn comp_todolist(_v : TodoListProps) -> VirtualNode {
-  // 状态管理：todo 列表
-  let (todos, set_todos) = @preact.use_state([
+  // 使用 use_reducer 管理 todos 数组
+  let initial_todos = [
     { id: 1, text: "学习 MoonBit", completed: false },
     { id: 2, text: "构建 TodoMVC", completed: false },
     { id: 3, text: "设计数据模型", completed: true },
-  ])
+  ]
+  let (todos, dispatch) = @preact.use_reducer(
+    initial=initial_todos,
+    todo_reducer,
+  )
 
   // 状态管理：当前过滤器（使用 Filter 枚举）
   let (current_filter, set_current_filter) = @preact.use_state(All)
 
   // 状态管理：新 todo 的输入文本
   let (new_todo_text, set_new_todo_text) = @preact.use_state("")
-
-  // 状态管理：下一个 todo 的 ID
-  let (next_id, set_next_id) = @preact.use_state(4)
 
   // 计算统计数据
   let active_count = todos.filter(fn(todo) { not(todo.completed) }).length()
@@ -68,34 +137,16 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
   let add_new_todo = fn() {
     let trimmed_text = new_todo_text.trim(" ")
     if trimmed_text != "" {
-      let new_todo = {
-        id: next_id,
-        text: trimmed_text.to_string(),
-        completed: false,
-      }
-      set_todos([new_todo, ..todos])
-      set_next_id(next_id + 1)
+      dispatch(AddTodo(trimmed_text.to_string()))
       set_new_todo_text("") // 清空输入框
     }
   }
 
   // 切换 todo 完成状态的函数
-  let toggle_todo = fn(id : Int) {
-    let updated_todos = todos.map(fn(todo) {
-      if todo.id == id {
-        { id: todo.id, text: todo.text, completed: not(todo.completed) }
-      } else {
-        todo
-      }
-    })
-    set_todos(updated_todos)
-  }
+  let toggle_todo = fn(id : Int) { dispatch(ToggleTodo(id)) }
 
   // 删除 todo 的函数
-  let delete_todo = fn(id : Int) {
-    let filtered_todos = todos.filter(fn(todo) { todo.id != id })
-    set_todos(filtered_todos)
-  }
+  let delete_todo = fn(id : Int) { dispatch(DeleteTodo(id)) }
 
   // 生成 todo 项的函数
   let create_todo_item = fn(index : Int, text : String, completed : Bool) {
@@ -209,9 +260,7 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
       ]),
       @preact.button(
         class_name="clear-completed",
-        on_click=fn(_) {
-          set_todos(todos.filter(fn(todo) { not(todo.completed) }))
-        },
+        on_click=fn(_) { dispatch(ClearCompleted) },
         [Text("Clear completed")],
       ),
     ]),

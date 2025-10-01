@@ -1,4 +1,7 @@
 ///|
+fnalias @preact.obscure
+
+///|
 /// Hooks Demo Component - 展示新增的 Preact Hooks API 功能
 ///
 struct HooksDemoProps {} derive(Default)
@@ -37,7 +40,7 @@ fn comp_hooks_demo(_props : HooksDemoProps) -> VirtualNode {
         set_message("计数器已更新到: \{count}")
       }
     },
-    @preact.Dep1(count),
+    [count |> obscure],
   )
 
   // 演示 use_ref - 创建一个可变引用
@@ -49,13 +52,13 @@ fn comp_hooks_demo(_props : HooksDemoProps) -> VirtualNode {
       println("🧮 重新计算昂贵的值...")
       count * count + count * 10
     },
-    @preact.Dep1(count),
+    [count |> obscure],
   )
 
   // 演示 use_callback_deps - 缓存回调函数
   let increment_callback = @preact.use_callback_deps(
     fn() { set_count(count + 1) },
-    @preact.Dep1(count),
+    [count |> obscure],
   )
 
   // 定时器效果 - 演示更复杂的 useEffect 用法
@@ -66,7 +69,7 @@ fn comp_hooks_demo(_props : HooksDemoProps) -> VirtualNode {
         println("⏰ 定时器: \{timer_count}")
       }
     },
-    @preact.Dep1(timer_count),
+    [timer_count |> obscure],
   )
   @preact.div(
     style=respo_style(
@@ -90,7 +93,7 @@ fn comp_hooks_demo(_props : HooksDemoProps) -> VirtualNode {
       @preact.div(style=@css.respo_style(margin_bottom=15.0 |> @css.Px), [
         @preact.h3([Text("🎮 操作控制")]),
         @preact.button(
-          on_click=fn(e) { increment_callback(1) },
+          on_click=fn(_e) { increment_callback() },
           style=@css.respo_style(
             margin_right=10.0 |> @css.Px,
             padding=8.0 |> @css.Px,
