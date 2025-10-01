@@ -1,12 +1,12 @@
-# tiye/preact
+# tiye/react
 
-> MoonBit bindings for Preact
+> MoonBit bindings for React
 
 ## Project Status
 
 **⚠️ This project is not actively developed**
 
-This is an experimental hobby project exploring MoonBit bindings for Preact. The API is unstable and may change frequently. Not recommended for production use. This project is intended for technical exploration and learning purposes only.
+This is an experimental hobby project exploring MoonBit bindings for React. The API is unstable and may change frequently. Not recommended for production use. This project is intended for technical exploration and learning purposes only.
 
 ## Bound APIs and Types
 
@@ -25,7 +25,7 @@ This is an experimental hobby project exploring MoonBit bindings for Preact. The
 - `use_memo_deps[A](factory: () -> A, deps: Array[JsValue]) -> A` - Memoization hook
 - `use_callback_deps[F](callback: F, deps: Array[JsValue]) -> F` - Callback memoization hook
 - `use_callback0_deps(f: () -> Unit, deps: Array[JsValue]) -> () -> Unit` - Zero-argument callback hook
-- `use_ref[T: JsValueTrait](initial: T) -> PreactRef[T]` - Reference hook
+- `use_ref[T: JsValueTrait](initial: T) -> ReactRef[T]` - Reference hook
 - `obscure[T](v: T) -> JsValue` - Dependency conversion helper function
 
 ### HTML Element Bindings
@@ -68,21 +68,21 @@ Here's a simple example of how to use this library:
 struct ContainerProps {} derive(Default)
 
 // Implement JsValueTrait for props
-impl @preact.JsValueTrait for ContainerProps with to_value(_self) -> @preact.JsValue {
-  @preact.JsObject::new().to_value()
+impl @react.JsValueTrait for ContainerProps with to_value(_self) -> @react.JsValue {
+  @react.JsObject::new().to_value()
 }
 
-impl @preact.JsValueTrait for ContainerProps with from_value(
-  _value : @preact.JsValue,
+impl @react.JsValueTrait for ContainerProps with from_value(
+  _value : @react.JsValue,
 ) -> ContainerProps {
   ContainerProps::default()
 }
 
 // Create a functional component
-fn comp_container(_v : ContainerProps) -> @preact.VirtualNode {
-  let (counter, set_counter) = @preact.use_state(0.0.to_float())
+fn comp_container(_v : ContainerProps) -> @react.VirtualNode {
+  let (counter, set_counter) = @react.use_state(0.0.to_float())
 
-  @preact.div(
+  @react.div(
     id="container",
     style=@css.respo_style(
       color=Blue,
@@ -94,8 +94,8 @@ fn comp_container(_v : ContainerProps) -> @preact.VirtualNode {
       set_counter(counter + 1.0)
     },
     [
-      @preact.Fragment([Text("Demo: ")]),
-      Text("Counter \{counter}")
+      @react.Fragment([@react.Text("Demo: ")]),
+      @react.Text("Counter \{counter}")
     ],
   )
 }
@@ -107,8 +107,8 @@ fn main {
   let body = doc.body()
   let props = ContainerProps::default()
 
-  @preact.render(
-    @preact.component(comp_container, props, []),
+  @react.render(
+    @react.component(comp_container, props, []),
     body,
   )
   println("loaded")
@@ -125,7 +125,7 @@ fn main {
 
 ## Project Status
 
-This is an experimental hobby project exploring MoonBit bindings for Preact. The API is subject to frequent changes and breaking updates. Use at your own risk!
+This is an experimental hobby project exploring MoonBit bindings for React. The API is subject to frequent changes and breaking updates. Use at your own risk!
 
 ### License
 

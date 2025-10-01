@@ -21,9 +21,9 @@ This is a [MoonBit](https://docs.moonbitlang.com) project.
 - Try to keep deprecated blocks in file called `deprecated.mbt` in each
   directory.
 
-## Preact Component Usage
+## React Component Usage
 
-When using Preact components in this project, there are specific patterns that must be followed:
+When using React components in this project, there are specific patterns that must be followed:
 
 ### Component Function Wrapping
 
@@ -32,7 +32,7 @@ When using Preact components in this project, there are specific patterns that m
 **Correct usage:**
 ```moonbit
 // When using a component function, wrap it with component()
-component(comp_todolist, TodoListProps::default(), [])
+@react.component(comp_todolist, TodoListProps::default(), [])
 ```
 
 **Incorrect usage:**
@@ -47,18 +47,17 @@ Component functions should follow this pattern:
 ```moonbit
 fn comp_component_name(props : ComponentProps) -> VirtualNode {
   // Component implementation
-  @preact.div([...])
+  @react.div([...])
 }
 ```
 
 ### Example from main.mbt
 
-See `/Users/chenyong/repo/respo/preact.mbt/src/main/main.mbt#L37-38` for a correct example:
 ```moonbit
-component(comp_todolist, TodoListProps::default(), [])
+@react.component(comp_todolist, TodoListProps::default(), [])
 ```
 
-This pattern ensures proper component lifecycle management and integration with the Preact rendering system.
+This pattern ensures proper component lifecycle management and integration with the React rendering system.
 
 ## Tooling
 

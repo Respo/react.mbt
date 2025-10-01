@@ -15,7 +15,7 @@ extern "js" fn react_render(vdom : JsValue, parent : @dom.Node) -> Unit =
 /// Renders a virtual DOM node to the specified parent element.
 ///
 /// This function takes a virtual DOM node and a parent DOM element, then uses
-/// the Preact rendering engine to render the virtual node as a real DOM element
+/// the React rendering engine to render the virtual node as a real DOM element
 /// within the parent.
 ///
 /// # Parameters
@@ -349,7 +349,7 @@ pub fn ElementEvents::to_js_value(self : ElementEvents) -> JsValue {
 }
 
 ///|
-/// Represents a virtual DOM node in the Preact rendering system.
+/// Represents a virtual DOM node in the React rendering system.
 ///
 /// This is the core type for building virtual DOM trees. Each variant represents
 /// a different kind of node that can be rendered to the actual DOM.
@@ -408,6 +408,47 @@ pub fn VirtualElement::to_node(self : VirtualElement) -> VirtualNode {
 }
 
 ///|
+/// Converts CSS property names from hyphen-case (kebab-case) to React camelCase.
+/// Supports vendor prefixes (leading hyphen) by capitalizing the first segment.
+///
+/// # Parameters
+/// - `name`: CSS property name such as "background-color" or "-webkit-line-clamp".
+///
+/// # Returns
+/// `String` - React-style camelCase property.
+///
+/// # Inspect Examples
+/// ```
+/// inspect(css_prop_to_camel_case("background-color"), content="backgroundColor")
+/// inspect(css_prop_to_camel_case("border-top-left-radius"), content="borderTopLeftRadius")
+/// inspect(css_prop_to_camel_case("-webkit-line-clamp"), content="WebkitLineClamp")
+/// ```
+pub fn css_prop_to_camel_case(name : String) -> String {
+  // Detect leading hyphen (e.g., -webkit-)
+  let had_leading = name.has_prefix("-")
+  // Trim leading/trailing hyphens (typically we only expect leading ones)
+  let s0 = name.trim("-")
+  // Split into parts by hyphen
+  let parts = s0.split("-")
+  // Assemble camelCase
+  let mut ret = "".to_string()
+  let mut idx = 0
+  for part in parts {
+    if idx == 0 {
+      ret = ret + part.to_string()
+    } else if part.length() > 0 {
+      ret = ret + first_letter_to_uppercase(part.to_string())
+    }
+    idx = idx + 1
+  }
+  // For vendor prefixes: capitalize first letter (e.g., WebkitLineClamp)
+  if had_leading && ret.length() > 0 {
+    ret = first_letter_to_uppercase(ret)
+  }
+  ret
+}
+
+///|
 fn VirtualElement::to_js_value(self : VirtualElement) -> JsValue {
   let props = JsObject::new()
   for key, value in self.attrs.inner() {
@@ -416,7 +457,7 @@ fn VirtualElement::to_js_value(self : VirtualElement) -> JsValue {
   let style = JsObject::new()
   for _idx, pair in self.style.0 {
     let (key, value) = pair
-    style.set(key, JsValue::from_string(value))
+    style.set(css_prop_to_camel_case(key), JsValue::from_string(value))
   }
   // TODO events
   props.set("style", JsValue::from_object(style))
@@ -483,7 +524,7 @@ extern "js" fn create_factory(
 ///|
 /// Creates a component virtual node from a function, props, and children.
 ///
-/// This bridges MoonBit component functions with Preact's rendering system,
+/// This bridges MoonBit component functions with React's rendering system,
 /// enabling type-safe component creation with strongly-typed props.
 ///
 /// # Example

@@ -1,7 +1,4 @@
 ///|
-fnalias @react.component
-
-///|
 fnalias @css.respo_style
 
 ///|
@@ -131,7 +128,6 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
 
   // 计算统计数据
   let active_count = todos.filter(fn(todo) { not(todo.completed) }).length()
-  let completed_count = todos.filter(fn(todo) { todo.completed }).length()
 
   // 添加新 todo 的函数
   let add_new_todo = fn() {
