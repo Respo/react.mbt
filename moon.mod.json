@@ -12,5 +12,4 @@
   "description": "Type-safe MoonBit bindings for React with virtual DOM, hooks, and CSS-in-JS support (early experimental)",
   "source": "src",
   "preferred-target": "js"
-  // "warn-list": "-13"
 }

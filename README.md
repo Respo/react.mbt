@@ -1,10 +1,10 @@
 # tiye/react
 
-> MoonBit bindings for React
+> React bindings for MoonBit
 
 ## Project Status
 
-**⚠️ This project is not actively developed**
+**🚧 This is an early project**
 
 This is an experimental hobby project exploring MoonBit bindings for React. The API is unstable and may change frequently. Not recommended for production use. This project is intended for technical exploration and learning purposes only.
 
@@ -125,7 +125,7 @@ fn main {
 
 ## Project Status
 
-This is an experimental hobby project exploring MoonBit bindings for React. The API is subject to frequent changes and breaking updates. Use at your own risk!
+This is an early project exploring MoonBit bindings for React. The API is subject to frequent changes and breaking updates. Use at your own risk!
 
 ### License
 
