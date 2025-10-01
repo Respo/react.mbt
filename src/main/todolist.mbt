@@ -107,7 +107,7 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
       @preact.div(class_name="view", [
         @preact.input(
           class_name="toggle",
-          type_=InputType::Checkbox,
+          type_=Checkbox,
           attrs=checkbox_attrs,
           on_click=fn(_event) { toggle_todo(index) },
         ),
@@ -158,7 +158,7 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
         },
         event={
           let events = @preact.ElementEvents::new()
-          events.set(@preact.DOMEventType::KeyDown, fn(event) {
+          events.set(KeyDown, fn(event) {
             // 检查是否按下了回车键
             if event.key() == "Enter" {
               add_new_todo()

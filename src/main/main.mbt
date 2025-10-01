@@ -16,6 +16,7 @@ impl @preact.JsValueTrait for ContainerProps with from_value(
 ///|
 fn comp_container(_v : ContainerProps) -> VirtualNode {
   let (counter, set_counter) = @preact.use_state(0.0.to_float())
+  @preact.use_effect_once(fn() { println("comp_container mounted") })
   // println("counter: \{counter}")
   @preact.div(
     id="container",
@@ -33,6 +34,9 @@ fn comp_container(_v : ContainerProps) -> VirtualNode {
 
       // 添加 Todolist 组件
       component(comp_todolist, TodoListProps::default(), []),
+      
+      // 添加 Hooks Demo 组件
+      component(comp_hooks_demo, HooksDemoProps::default(), []),
     ],
   )
 }
