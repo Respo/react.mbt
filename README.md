@@ -2,7 +2,62 @@
 
 > MoonBit bindings for Preact
 
-⚠️ **Early Development Warning**: This library is in a very early stage of development. The API is unstable and may change frequently. This is a hobby project and should not be used in production environments.
+## Project Status
+
+**⚠️ This project is not actively developed**
+
+This is an experimental hobby project exploring MoonBit bindings for Preact. The API is unstable and may change frequently. Not recommended for production use. This project is intended for technical exploration and learning purposes only.
+
+## Bound APIs and Types
+
+### Core Rendering API
+
+- `render(vdom: VirtualNode, parent: @dom.Element) -> Unit` - Render virtual DOM to specified parent element
+- `component[T: JsValueTrait](f: (T) -> VirtualNode, props: T, children: Array[VirtualNode]) -> VirtualNode` - Create component
+
+### Hooks API
+
+- `use_state[T](initial: T) -> (T, (T) -> Unit)` - State management hook
+- `use_reducer[S: Default, A](initial?: S, reducer: (S, A) -> S) -> (S, (A) -> Unit)` - Reducer hook
+- `use_effect_once(effect: () -> Unit) -> Unit` - Effect hook that runs only once
+- `use_effect_deps(effect: () -> Unit, deps: Array[JsValue]) -> Unit` - Effect hook with dependencies
+- `use_layout_effect_deps(effect: () -> Unit, deps: Array[JsValue]) -> Unit` - Layout effect hook
+- `use_memo_deps[A](factory: () -> A, deps: Array[JsValue]) -> A` - Memoization hook
+- `use_callback_deps[F](callback: F, deps: Array[JsValue]) -> F` - Callback memoization hook
+- `use_callback0_deps(f: () -> Unit, deps: Array[JsValue]) -> () -> Unit` - Zero-argument callback hook
+- `use_ref[T: JsValueTrait](initial: T) -> PreactRef[T]` - Reference hook
+- `obscure[T](v: T) -> JsValue` - Dependency conversion helper function
+
+### HTML Element Bindings
+
+- `div`, `span`, `p`, `h1`, `h2`, `h3` - Basic text elements
+- `button`, `input`, `textarea`, `select`, `option` - Form elements
+- `a`, `img`, `video`, `audio` - Media and link elements
+- `ul`, `ol`, `li` - List elements
+- `section`, `article`, `header`, `footer`, `nav`, `aside` - Semantic elements
+- `label` - Label element
+
+### Event Handling
+
+- `DOMEvent` type and its methods:
+  - `target_value() -> String` - Get form element value
+  - `key() -> String`, `key_code() -> Int` - Keyboard events
+  - `client_x() -> Int`, `client_y() -> Int` - Mouse coordinates
+  - `prevent_default()`, `stop_propagation()` - Event control
+  - `ctrl_key()`, `shift_key()`, `alt_key()`, `meta_key() -> Bool` - Modifier key detection
+
+### Styles and Attributes
+
+- `ElementAttrs` - HTML attribute management
+- `ElementEvents` - Event handler management
+- `RespoStyle` - CSS styles (from `@css` module)
+- `InputType` enum - Support for all HTML input types
+
+### Virtual DOM Types
+
+- `VirtualNode` - Base virtual node type
+- `VirtualElement` - Virtual element type
+- `Text(String)` - Text node
 
 ## Quick Start
 
