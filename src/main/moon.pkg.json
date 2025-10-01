@@ -2,8 +2,8 @@
   "is-main": true,
   "import": [
     {
-      "path": "tiye/preact",
-      "alias": "preact"
+      "path": "tiye/react",
+      "alias": "react"
     },
     {
       "path": "tiye/dom-ffi/lib",

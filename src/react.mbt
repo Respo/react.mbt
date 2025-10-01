@@ -5,9 +5,10 @@ fnalias @css.respo_style
 typealias @css.RespoStyle
 
 ///|
-extern "js" fn preact_render(vdom : JsValue, parent : @dom.Node) -> Unit =
+extern "js" fn react_render(vdom : JsValue, parent : @dom.Node) -> Unit =
   #| (vdom, parent) => {
-  #|  return window.Preact.render(vdom, parent)
+  #|   const root = window.ReactDOMClient.createRoot(parent);
+  #|   root.render(vdom);
   #| }
 
 ///|
@@ -34,24 +35,24 @@ extern "js" fn preact_render(vdom : JsValue, parent : @dom.Node) -> Unit =
 /// render(custom_elem.to_node(), document.body)
 /// ```
 pub fn render(vdom : VirtualNode, parent : @dom.Element) -> Unit {
-  preact_render(vdom.to_js_value(), parent.reinterpret_as_node())
+  react_render(vdom.to_js_value(), parent.reinterpret_as_node())
 }
 
 ///|
-extern "js" fn preact_h(
+extern "js" fn react_create_element(
   tag : String,
   props : JsValue,
   children : JsValue,
 ) -> JsValue =
-  #| (tag, props, children) => window.Preact.h(tag, props, ...children)
+  #| (tag, props, children) => window.React.createElement(tag, props, ...children)
 
 ///|
-extern "js" fn preact_fragment(props : JsValue, children : JsValue) -> JsValue =
-  #| (props, children) => window.Preact.h(window.Preact.Fragment, props, ...children)
+extern "js" fn react_fragment(props : JsValue, children : JsValue) -> JsValue =
+  #| (props, children) => window.React.createElement(window.React.Fragment, props, ...children)
 
 ///|
-extern "js" fn preact_use_state(initial : JsValue) -> JsValue =
-  #| (initial) => { return window.PreactHooks.useState(initial)}
+extern "js" fn react_use_state(initial : JsValue) -> JsValue =
+  #| (initial) => { return window.React.useState(initial)}
 
 ///|
 extern "js" fn state_updater_from_value(v : JsValue) -> (JsValue) -> Unit =
@@ -65,7 +66,7 @@ fn[T] any_from_js_value(v : JsValue) -> T = "%identity"
 
 ///|
 pub fn[T] use_state(initial : T) -> (T, (T) -> Unit) {
-  let pair = preact_use_state(any_to_js_value(initial)).to_array()
+  let pair = react_use_state(any_to_js_value(initial)).to_array()
   let s0 = pair[0]
   let s1 = state_updater_from_value(pair[1])
   (any_from_js_value(s0), fn(value : T) { s1(any_to_js_value(value)) })
@@ -373,7 +374,7 @@ pub fn VirtualNode::to_js_value(self : VirtualNode) -> JsValue {
       for child in children {
         v.push(child.to_js_value())
       }
-      preact_fragment(JsObject::new().to_value(), v.to_value())
+      react_fragment(JsObject::new().to_value(), v.to_value())
     }
     Text(t) => JsValue::from_string(t)
     JsNode(v) => v
@@ -427,7 +428,7 @@ fn VirtualElement::to_js_value(self : VirtualElement) -> JsValue {
     let event_name = "on\{first_letter_to_uppercase(event_type.to_string())}"
     props.set(event_name, value.to_js_func())
   }
-  preact_h(
+  react_create_element(
     self.name,
     JsValue::from_object(props),
     JsValue::from_array(children),
@@ -475,7 +476,7 @@ extern "js" fn create_factory(
   children : JsArray,
 ) -> JsValue =
   #| (f, props, children) => {
-  #|   let h0 = window.Preact.h(f, props, ...children);
+  #|   let h0 = window.React.createElement(f, props, ...children);
   #|   return h0;
   #| }
 

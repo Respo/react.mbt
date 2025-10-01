@@ -1,15 +1,15 @@
 {
-  "name": "tiye/preact",
+  "name": "tiye/react",
   "version": "0.0.1-a3",
   "deps": {
     "tiye/dom-ffi": "0.0.9",
     "tiye/respo_css": "0.1.1"
   },
   "readme": "README.md",
-  "repository": "https://github.com/Respo/preact.mbt",
+  "repository": "https://github.com/Respo/react.mbt",
   "license": "Apache-2.0",
-  "keywords": ["preact", "binding"],
-  "description": "Type-safe MoonBit bindings for Preact with virtual DOM, hooks, and CSS-in-JS support (early experimental)",
+  "keywords": ["react", "binding"],
+  "description": "Type-safe MoonBit bindings for React with virtual DOM, hooks, and CSS-in-JS support (early experimental)",
   "source": "src",
   "preferred-target": "js"
   // "warn-list": "-13"

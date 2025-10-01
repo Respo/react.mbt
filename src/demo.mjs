@@ -1,12 +1,10 @@
-import { h, render } from "preact";
-import { useState } from "preact/hooks";
-
-// import { h, render } from "../node_modules/preact/src/index.js";
-// import { useState } from "../node_modules/preact/hooks/src/index.js";
+import * as React from "react";
+import * as ReactDOMClient from "react-dom/client";
 
 function App() {
-  let [a, setA] = useState(1);
-  return h("div", null, `Hello, Preact! ... ${a}`);
+  const [a, setA] = React.useState(1);
+  return React.createElement("div", null, `Hello, React! ... ${a}`);
 }
 
-render(h(App), document.body);
+const root = ReactDOMClient.createRoot(document.body);
+root.render(React.createElement(App));

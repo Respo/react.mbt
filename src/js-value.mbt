@@ -86,7 +86,7 @@ pub extern "js" fn JsObject::get(self : JsObject, key : String) -> JsValue =
 /// Example:
 ///
 /// ```moonbit
-/// let obj = @tiye/preact.JsObject::new()
+/// let obj = @tiye/react.JsObject::new()
 /// let _value = obj.as_value()
 /// ```
 ///

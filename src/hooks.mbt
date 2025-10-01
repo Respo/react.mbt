@@ -1,46 +1,46 @@
 ///|
-// Preact Hooks wrappers, aligned with existing use_state style
+// React Hooks wrappers, aligned with existing use_state style
 
 ///|
-extern "js" fn preact_use_effect(effect : JsValue, deps : JsValue) -> Unit =
-  #| (effect, deps) => window.PreactHooks.useEffect(effect, deps)
+extern "js" fn react_use_effect(effect : JsValue, deps : JsValue) -> Unit =
+  #| (effect, deps) => window.React.useEffect(effect, deps)
 
 ///|
-extern "js" fn preact_use_layout_effect(
+extern "js" fn react_use_layout_effect(
   effect : JsValue,
   deps : JsValue,
 ) -> Unit =
-  #| (effect, deps) => window.PreactHooks.useLayoutEffect(effect, deps)
+  #| (effect, deps) => window.React.useLayoutEffect(effect, deps)
 
 ///|
-extern "js" fn preact_use_memo(factory : JsValue, deps : JsValue) -> JsValue =
-  #| (factory, deps) => window.PreactHooks.useMemo(factory, deps)
+extern "js" fn react_use_memo(factory : JsValue, deps : JsValue) -> JsValue =
+  #| (factory, deps) => window.React.useMemo(factory, deps)
 
 ///|
-extern "js" fn preact_use_callback(
+extern "js" fn react_use_callback(
   callback : JsValue,
   deps : JsValue,
 ) -> JsValue =
-  #| (callback, deps) => window.PreactHooks.useCallback(callback, deps)
+  #| (callback, deps) => window.React.useCallback(callback, deps)
 
 ///|
-extern "js" fn preact_use_ref(initial : JsValue) -> JsValue =
-  #| (initial) => window.PreactHooks.useRef(initial)
+extern "js" fn react_use_ref(initial : JsValue) -> JsValue =
+  #| (initial) => window.React.useRef(initial)
 
 ///|
-extern "js" fn preact_ref_get_value(r : JsValue) -> JsValue =
+extern "js" fn react_ref_get_value(r : JsValue) -> JsValue =
   #| (ref) => ref.current
 
 ///|
-extern "js" fn preact_ref_set_value(r : JsValue, value : JsValue) -> Unit =
+extern "js" fn react_ref_set_value(r : JsValue, value : JsValue) -> Unit =
   #| (ref, value) => ref.current = value
 
 ///|
-extern "js" fn preact_use_reducer(
+extern "js" fn react_use_reducer(
   reducer : JsValue,
   initial : JsValue,
 ) -> JsValue =
-  #| (reducer, initial) => window.PreactHooks.useReducer(reducer, initial)
+  #| (reducer, initial) => window.React.useReducer(reducer, initial)
 
 ///|
 extern "js" fn fn0_from_value(v : JsValue) -> () -> Unit =
@@ -79,27 +79,27 @@ pub fn use_layout_effect_deps(
   effect : () -> Unit,
   deps : Array[JsValue],
 ) -> Unit {
-  preact_use_layout_effect(any_to_js_value(effect), deps_to_js_array(deps))
+  react_use_layout_effect(any_to_js_value(effect), deps_to_js_array(deps))
 }
 
 ///|
 // useMemo
 pub fn[A] use_memo_deps(factory : () -> A, deps : Array[JsValue]) -> A {
-  let v = preact_use_memo(any_to_js_value(factory), deps_to_js_array(deps))
+  let v = react_use_memo(any_to_js_value(factory), deps_to_js_array(deps))
   any_from_js_value(v)
 }
 
 ///|
 // useCallback
 pub fn[F] use_callback_deps(callback : F, deps : Array[JsValue]) -> F {
-  let v = preact_use_callback(any_to_js_value(callback), deps_to_js_array(deps))
+  let v = react_use_callback(any_to_js_value(callback), deps_to_js_array(deps))
   any_from_js_value(v)
 }
 
 ///|
 // useEffect
 pub fn use_effect_once(effect : () -> Unit) -> Unit {
-  preact_use_effect(any_to_js_value(effect), JsArray::new().to_value())
+  react_use_effect(any_to_js_value(effect), JsArray::new().to_value())
 }
 
 ///|
@@ -108,44 +108,42 @@ pub fn[T] obscure(v : T) -> JsValue = "%identity"
 
 ///|
 pub fn use_effect_deps(effect : () -> Unit, deps : Array[JsValue]) -> Unit {
-  preact_use_effect(any_to_js_value(effect), deps_to_js_array(deps))
+  react_use_effect(any_to_js_value(effect), deps_to_js_array(deps))
 }
 
 ///|
 // useCallback (no argument)
 pub fn use_callback0_deps(f : () -> Unit, deps : Array[JsValue]) -> () -> Unit {
-  let raw = preact_use_callback(any_to_js_value(f), deps_to_js_array(deps))
+  let raw = react_use_callback(any_to_js_value(f), deps_to_js_array(deps))
   fn0_from_value(raw)
 }
 
 ///|
-struct PreactRef[T] {
-  /// value passed to Preact
+struct ReactRef[T] {
   js_value : JsValue
-  /// bookkeeping value, not to be used directly
   mut _v0 : T
 }
 
 ///|
-pub fn[T] PreactRef::from(v : T) -> PreactRef[T] {
-  PreactRef::{ js_value: preact_use_ref(any_to_js_value(v)), _v0: v }
+pub fn[T] ReactRef::from(v : T) -> ReactRef[T] {
+  ReactRef::{ js_value: react_use_ref(any_to_js_value(v)), _v0: v }
 }
 
 ///|
-pub fn[T] PreactRef::get(self : PreactRef[T]) -> T {
-  any_from_js_value(preact_ref_get_value(self.js_value))
+pub fn[T] ReactRef::get(self : ReactRef[T]) -> T {
+  any_from_js_value(react_ref_get_value(self.js_value))
 }
 
 ///|
-pub fn[T] PreactRef::set(self : PreactRef[T], value : T) -> Unit {
-  preact_ref_set_value(self.js_value, any_to_js_value(value))
+pub fn[T] ReactRef::set(self : ReactRef[T], value : T) -> Unit {
+  react_ref_set_value(self.js_value, any_to_js_value(value))
   self._v0 = value
 }
 
 ///|
 // useRef
-pub fn[T : JsValueTrait] use_ref(initial : T) -> PreactRef[T] {
-  PreactRef::{ js_value: preact_use_ref(initial.to_value()), _v0: initial }
+pub fn[T : JsValueTrait] use_ref(initial : T) -> ReactRef[T] {
+  ReactRef::{ js_value: react_use_ref(initial.to_value()), _v0: initial }
 }
 
 ///|
@@ -154,7 +152,7 @@ pub fn[S : Default, A] use_reducer(
   initial? : S,
   reducer : (S, A) -> S,
 ) -> (S, (A) -> Unit) {
-  let pair = preact_use_reducer(
+  let pair = react_use_reducer(
     any_to_js_value(reducer),
     any_to_js_value(initial.unwrap_or_default()),
   ).to_array()

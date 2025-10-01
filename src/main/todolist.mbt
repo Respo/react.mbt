@@ -1,11 +1,11 @@
 ///|
-fnalias @preact.component
+fnalias @react.component
 
 ///|
 fnalias @css.respo_style
 
 ///|
-typealias @preact.VirtualNode
+typealias @react.VirtualNode
 
 ///|
 // Todo 项的数据结构
@@ -28,13 +28,13 @@ enum Filter {
 struct TodoListProps {} derive(Default)
 
 ///|
-impl @preact.JsValueTrait for TodoListProps with to_value(_self) -> @preact.JsValue {
-  @preact.JsObject::new().to_value()
+impl @react.JsValueTrait for TodoListProps with to_value(_self) -> @react.JsValue {
+  @react.JsObject::new().to_value()
 }
 
 ///|
-impl @preact.JsValueTrait for TodoListProps with from_value(
-  _value : @preact.JsValue,
+impl @react.JsValueTrait for TodoListProps with from_value(
+  _value : @react.JsValue,
 ) -> TodoListProps {
   TodoListProps::default()
 }
@@ -118,16 +118,16 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
     { id: 2, text: "构建 TodoMVC", completed: false },
     { id: 3, text: "设计数据模型", completed: true },
   ]
-  let (todos, dispatch) = @preact.use_reducer(
+  let (todos, dispatch) = @react.use_reducer(
     initial=initial_todos,
     todo_reducer,
   )
 
   // 状态管理：当前过滤器（使用 Filter 枚举）
-  let (current_filter, set_current_filter) = @preact.use_state(All)
+  let (current_filter, set_current_filter) = @react.use_state(All)
 
   // 状态管理：新 todo 的输入文本
-  let (new_todo_text, set_new_todo_text) = @preact.use_state("")
+  let (new_todo_text, set_new_todo_text) = @react.use_state("")
 
   // 计算统计数据
   let active_count = todos.filter(fn(todo) { not(todo.completed) }).length()
@@ -150,20 +150,20 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
 
   // 生成 todo 项的函数
   let create_todo_item = fn(index : Int, text : String, completed : Bool) {
-    let checkbox_attrs = @preact.ElementAttrs::new()
+    let checkbox_attrs = @react.ElementAttrs::new()
     if completed {
       checkbox_attrs.set("checked", "true")
     }
-    @preact.li(class_name=if completed { "completed" } else { "" }, [
-      @preact.div(class_name="view", [
-        @preact.input(
+    @react.li(class_name=if completed { "completed" } else { "" }, [
+      @react.div(class_name="view", [
+        @react.input(
           class_name="toggle",
           type_=Checkbox,
           attrs=checkbox_attrs,
           on_click=fn(_event) { toggle_todo(index) },
         ),
-        @preact.label([Text(text)]),
-        @preact.button(
+        @react.label([@react.Text(text)]),
+        @react.button(
           class_name="destroy",
           on_click=fn(_event) { delete_todo(index) },
           [],
@@ -191,11 +191,11 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
     items
   }
   println("rerender triggered")
-  @preact.section(class_name="todoapp", [
+  @react.section(class_name="todoapp", [
     // 头部标题
-    @preact.header(class_name="header", [
-      @preact.h1([Text("todos")]),
-      @preact.input(
+    @react.header(class_name="header", [
+      @react.h1([@react.Text("todos")]),
+      @react.input(
         class_name="new-todo",
         placeholder="What needs to be done?",
         value=new_todo_text,
@@ -208,7 +208,7 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
           set_new_todo_text(value)
         },
         event={
-          let events = @preact.ElementEvents::new()
+          let events = @react.ElementEvents::new()
           events.set(KeyDown, fn(event) {
             // 检查是否按下了回车键
             if event.key() == "Enter" {
@@ -221,47 +221,47 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
     ]),
 
     // 主要内容区域
-    @preact.section(class_name="main", [
-      @preact.input(id="toggle-all", class_name="toggle-all", type_=Checkbox),
-      @preact.label(for_="toggle-all", [Text("Mark all as complete")]),
-      @preact.ul(class_name="todo-list", todo_items),
+    @react.section(class_name="main", [
+      @react.input(id="toggle-all", class_name="toggle-all", type_=Checkbox),
+      @react.label(for_="toggle-all", [@react.Text("Mark all as complete")]),
+      @react.ul(class_name="todo-list", todo_items),
     ]),
 
     // 底部过滤器和统计
-    @preact.footer(class_name="footer", [
-      @preact.span(class_name="todo-count", [
-        Text(active_count.to_string() + " items left"),
+    @react.footer(class_name="footer", [
+      @react.span(class_name="todo-count", [
+        @react.Text(active_count.to_string() + " items left"),
       ]),
-      @preact.ul(class_name="filters", [
-        @preact.li([
-          @preact.a(
+      @react.ul(class_name="filters", [
+        @react.li([
+          @react.a(
             class_name=if current_filter == All { "selected" } else { "" },
             href="#/",
             on_click=fn(_) { set_current_filter(All) },
-            [Text("All")],
+            [@react.Text("All")],
           ),
         ]),
-        @preact.li([
-          @preact.a(
+        @react.li([
+          @react.a(
             class_name=if current_filter == Active { "selected" } else { "" },
             href="#/active",
             on_click=fn(_) { set_current_filter(Active) },
-            [Text("Active")],
+            [@react.Text("Active")],
           ),
         ]),
-        @preact.li([
-          @preact.a(
+        @react.li([
+          @react.a(
             class_name=if current_filter == Completed { "selected" } else { "" },
             href="#/completed",
             on_click=fn(_) { set_current_filter(Completed) },
-            [Text("Completed")],
+            [@react.Text("Completed")],
           ),
         ]),
       ]),
-      @preact.button(
+      @react.button(
         class_name="clear-completed",
         on_click=fn(_) { dispatch(ClearCompleted) },
-        [Text("Clear completed")],
+        [@react.Text("Clear completed")],
       ),
     ]),
   ])
