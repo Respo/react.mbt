@@ -13,6 +13,13 @@ struct Todo {
 } derive(Default)
 
 ///|
+// 编辑状态结构
+struct EditingState {
+  editing_id : Int? // 正在编辑的 todo ID，None 表示没有在编辑
+  edit_text : String // 编辑时的文本
+} derive(Default)
+
+///|
 // 过滤器枚举
 enum Filter {
   All
@@ -45,6 +52,8 @@ enum TodoAction {
   ToggleTodo(Int)
   /// 删除 todo，参数为 todo ID
   DeleteTodo(Int)
+  /// 编辑 todo 文本，参数为 todo ID 和新文本
+  EditTodo(Int, String)
   /// 清除所有已完成的 todo
   ClearCompleted
 }
@@ -95,6 +104,21 @@ fn todo_reducer(todos : Array[Todo], action : TodoAction) -> Array[Todo] {
       }
       new_todos
     }
+    EditTodo(id, new_text) => {
+      let new_todos = Array::new()
+      for todo in todos {
+        if todo.id == id {
+          new_todos.push({
+            id: todo.id,
+            text: new_text,
+            completed: todo.completed,
+          })
+        } else {
+          new_todos.push(todo)
+        }
+      }
+      new_todos
+    }
     ClearCompleted => {
       let new_todos = Array::new()
       for todo in todos {
@@ -126,6 +150,11 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
   // 状态管理：新 todo 的输入文本
   let (new_todo_text, set_new_todo_text) = @react.use_state("")
 
+  // 状态管理：编辑状态
+  let (editing_state, set_editing_state) = @react.use_state(
+    EditingState::default(),
+  )
+
   // 计算统计数据
   let active_count = todos.filter(fn(todo) { not(todo.completed) }).length()
 
@@ -144,28 +173,114 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
   // 删除 todo 的函数
   let delete_todo = fn(id : Int) { dispatch(DeleteTodo(id)) }
 
-  // 生成 todo 项的函数
-  let create_todo_item = fn(index : Int, text : String, completed : Bool) {
-    let checkbox_attrs = @react.ElementAttrs::new()
-    if completed {
-      checkbox_attrs.set("checked", "true")
+  // 开始编辑的函数
+  let start_editing = fn(id : Int, text : String) {
+    set_editing_state({ editing_id: Some(id), edit_text: text })
+  }
+
+  // 完成编辑的函数
+  let finish_editing = fn() {
+    match editing_state.editing_id {
+      Some(id) => {
+        let trimmed_text = editing_state.edit_text.trim(" ")
+        if trimmed_text != "" {
+          dispatch(EditTodo(id, trimmed_text.to_string()))
+        }
+        set_editing_state(EditingState::default())
+      }
+      None => ()
     }
-    @react.li(class_name=if completed { "completed" } else { "" }, [
-      @react.div(class_name="view", [
+  }
+
+  // 取消编辑的函数
+  let cancel_editing = fn() {
+    set_editing_state(EditingState::default())
+  }
+
+  // 生成 todo 项的函数
+  let create_todo_item = fn(todo : Todo) {
+    let is_editing = match editing_state.editing_id {
+      Some(editing_id) => editing_id == todo.id
+      None => false
+    }
+
+    let checkbox_attrs = @react.ElementAttrs::new()
+    // 修复受控组件问题：始终设置 checked 属性
+    checkbox_attrs.set("checked", if todo.completed { "true" } else { "false" })
+
+    let li_class = {
+      let classes = []
+      if todo.completed {
+        classes.push("completed")
+      }
+      if is_editing {
+        classes.push("editing")
+      }
+      classes.join(" ")
+    }
+
+    if is_editing {
+      // 编辑模式
+      @react.li(class_name=li_class, [
         @react.input(
-          class_name="toggle",
-          type_=Checkbox,
-          attrs=checkbox_attrs,
-          on_change=fn(_event) { toggle_todo(index) },
+          class_name="edit",
+          value=editing_state.edit_text,
+          on_input=fn(event) {
+            let value = event.target_value()
+            set_editing_state({
+              editing_id: editing_state.editing_id,
+              edit_text: value,
+            })
+          },
+          on_change=fn(event) {
+            let value = event.target_value()
+            set_editing_state({
+              editing_id: editing_state.editing_id,
+              edit_text: value,
+            })
+          },
+          event={
+            let events = @react.ElementEvents::new()
+            events.set(KeyDown, fn(event) {
+              match event.key() {
+                "Enter" => finish_editing()
+                "Escape" => cancel_editing()
+                _ => ()
+              }
+            })
+            events.set(Blur, fn(_event) { finish_editing() })
+            events
+          },
         ),
-        @react.label([@react.Text(text)]),
-        @react.button(
-          class_name="destroy",
-          on_click=fn(_event) { delete_todo(index) },
-          [],
-        ),
-      ]),
-    ])
+      ])
+    } else {
+      // 正常显示模式
+      @react.li(class_name=li_class, [
+        @react.div(class_name="view", [
+          @react.input(
+            class_name="toggle",
+            type_=Checkbox,
+            attrs=checkbox_attrs,
+            on_change=fn(_event) { toggle_todo(todo.id) },
+          ),
+          @react.label(
+            event={
+              let events = @react.ElementEvents::new()
+              events.set(DoubleClick, fn(_event) {
+                start_editing(todo.id, todo.text)
+              })
+              events
+            },
+            [@react.Text(todo.text)],
+          ),
+          @react.button(
+            class_name="destroy",
+            on_click=fn(_event) { delete_todo(todo.id) },
+            [],
+          ),
+        ]),
+      ])
+    }
   }
 
   // 根据 current_filter 过滤 todos
@@ -181,7 +296,7 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
     let mut i = 0
     while i < filtered_todos.length() {
       let todo = filtered_todos[i]
-      items.push(create_todo_item(todo.id, todo.text, todo.completed))
+      items.push(create_todo_item(todo))
       i = i + 1
     }
     items

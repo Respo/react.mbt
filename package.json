@@ -1,12 +1,11 @@
 {
-  "name": "mbt.respo",
-  "version": "0.0.21",
-  "main": "index.js",
-  "repository": "git@github.com:Respo/respo.mbt.git",
+  "name": "react.mbt",
+  "version": "0.0.2-a1",
+  "repository": "git@github.com:Respo/react.mbt.git",
   "author": "tiye <jiyinyiyong@gmail.com>",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "scripts": {
-    "watch-mbt": "moon build --target wasm-gc --debug --watch"
+    "watch-mbt": "moon build --debug --watch"
   },
   "devDependencies": {
     "vite": "^5.4.8"

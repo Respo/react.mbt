@@ -393,11 +393,12 @@ pub fn VirtualNode::to_js_value(self : VirtualNode) -> JsValue {
 /// # Returns
 /// `String` - React-compatible property name.
 ///
-/// # Inspect Examples
+/// ```
 /// inspect(dom_attr_to_react_prop("class"), content="className")
 /// inspect(dom_attr_to_react_prop("for"), content="htmlFor")
 /// inspect(dom_attr_to_react_prop("id"), content="id")
 /// inspect(dom_attr_to_react_prop("data-test"), content="data-test")
+/// ```
 pub fn dom_attr_to_react_prop(attr_name : String) -> String {
   match attr_name {
     // 保留向后兼容性，支持传统的 HTML 属性名
@@ -443,7 +444,6 @@ pub fn VirtualElement::to_node(self : VirtualElement) -> VirtualNode {
 /// # Returns
 /// `String` - React-style camelCase property.
 ///
-/// # Inspect Examples
 /// ```
 /// inspect(css_prop_to_camel_case("background-color"), content="backgroundColor")
 /// inspect(css_prop_to_camel_case("border-top-left-radius"), content="borderTopLeftRadius")
@@ -680,11 +680,12 @@ pub fn dom_event_to_react_handler(event_type : DOMEventType) -> String {
 /// # Returns
 /// `Bool` - true if the property should be treated as boolean.
 ///
-/// # Inspect Examples
+/// ```
 /// inspect(is_boolean_prop("checked"), content="true")
 /// inspect(is_boolean_prop("disabled"), content="true")
 /// inspect(is_boolean_prop("readOnly"), content="true")
 /// inspect(is_boolean_prop("className"), content="false")
+/// ```
 pub fn is_boolean_prop(prop_name : String) -> Bool {
   match prop_name {
     "checked"
