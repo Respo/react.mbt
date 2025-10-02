@@ -541,7 +541,7 @@ pub fn create_element(
 extern "js" fn create_factory(
   f : (JsValue) -> JsValue,
   props : JsValue,
-  children : JsArray,
+  children : Array[JsValue],
 ) -> JsValue =
   #| (f, props, children) => {
   #|   let h0 = window.React.createElement(f, props, ...children);
@@ -575,10 +575,7 @@ pub fn[T : JsValueTrait] component(
   /// Child nodes to render inside the component
   children : Array[VirtualNode],
 ) -> VirtualNode {
-  let children_js = JsArray::new()
-  for child in children {
-    children_js.push(child.to_js_value())
-  }
+  let children_js = children.map(fn(child) { child.to_js_value() })
   let r = create_factory(
     fn(p) { f(T::from_value(p)).to_js_value() },
     // TODO maybe better to use { value: PROPS} instead of props.to_value()

@@ -1,8 +1,8 @@
 {
   "name": "tiye/react",
-  "version": "0.0.2-a2",
+  "version": "0.0.2-a3",
   "deps": {
-    "tiye/dom-ffi": "0.1.0",
+    "tiye/dom-ffi": "0.1.1",
     "tiye/respo_css": "0.1.2"
   },
   "readme": "README.md",
