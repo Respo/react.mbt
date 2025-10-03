@@ -41,13 +41,16 @@ pub fn render(vdom : VirtualNode, parent : @dom.Element) -> Unit {
 ///|
 extern "js" fn react_create_element(
   tag : String,
-  props : JsValue,
+  props : @dom.JsObjectObscure,
   children : JsValue,
 ) -> JsValue =
   #| (tag, props, children) => window.React.createElement(tag, props, ...children)
 
 ///|
-extern "js" fn react_fragment(props : JsValue, children : JsValue) -> JsValue =
+extern "js" fn react_fragment(
+  props : @dom.JsObjectObscure,
+  children : JsValue,
+) -> JsValue =
   #| (props, children) => window.React.createElement(window.React.Fragment, props, ...children)
 
 ///|
@@ -374,7 +377,7 @@ pub fn VirtualNode::to_js_value(self : VirtualNode) -> JsValue {
       for child in children {
         v.push(child.to_js_value())
       }
-      react_fragment(JsObject::new().to_value(), v.to_value())
+      react_fragment(@dom.new_js_object(), v.to_value())
     }
     Text(t) => JsValue::from_string(t)
     JsNode(v) => v
@@ -475,32 +478,54 @@ pub fn css_prop_to_camel_case(name : String) -> String {
 }
 
 ///|
+/// Converts a RespoStyle to a JavaScript style object.
+/// This function takes CSS properties from RespoStyle and converts them to
+/// React-compatible camelCase property names with string values.
+///
+/// # Parameters
+/// - `style`: RespoStyle containing CSS properties
+///
+/// # Returns
+/// `JsObject` - JavaScript object with camelCase CSS properties
+///
+/// # Example
+/// ```moonbit_nocheck
+/// let style = @css.respo_style(background_color=Red, font_size=16.0 |> Px)
+/// let js_style = convert_style_to_js_object(style)
+/// // Results in: { backgroundColor: "red", fontSize: "16px" }
+/// ```
+
+///|
+pub fn convert_style_to_js_object(
+  style : @css.RespoStyle,
+) -> @dom.JsObjectObscure {
+  let style_obj = @dom.new_js_object()
+  for _idx, pair in style.0 {
+    let (key, value) = pair
+    style_obj.set(css_prop_to_camel_case(key), @dom.v_to_js_obscure(value))
+  }
+  style_obj
+}
+
+///|
 fn VirtualElement::to_js_value(self : VirtualElement) -> JsValue {
-  let props = JsObject::new()
+  let props = @dom.new_js_object()
   for key, value in self.attrs.inner() {
     let react_prop_name = dom_attr_to_react_prop(key)
     let prop_value = convert_prop_value(react_prop_name, value)
     props.set(react_prop_name, prop_value)
   }
-  let style = JsObject::new()
-  for _idx, pair in self.style.0 {
-    let (key, value) = pair
-    style.set(css_prop_to_camel_case(key), JsValue::from_string(value))
-  }
-  props.set("style", JsValue::from_object(style))
+  let style = convert_style_to_js_object(self.style)
+  props.set("style", @dom.v_to_js_obscure(style))
   let children = JsArray::new()
   for child in self.children {
     children.push(child.to_js_value())
   }
   for event_type, value in self.event.inner() {
     let event_name = dom_event_to_react_handler(event_type)
-    props.set(event_name, value.to_js_func())
+    props.set(event_name, @dom.v_to_js_obscure(value))
   }
-  react_create_element(
-    self.name,
-    JsValue::from_object(props),
-    JsValue::from_array(children),
-  )
+  react_create_element(self.name, props, JsValue::from_array(children))
 }
 
 ///|
@@ -727,16 +752,14 @@ pub fn is_boolean_prop(prop_name : String) -> Bool {
 /// # Inspect Examples
 /// inspect(convert_prop_value("checked", "true"), content="JsValue::from_bool(true)")
 /// inspect(convert_prop_value("className", "my-class"), content="JsValue::from_string(\"my-class\")")
-pub fn convert_prop_value(prop_name : String, value : String) -> JsValue {
+pub fn convert_prop_value(prop_name : String, value : String) -> @dom.JsObscure {
   if is_boolean_prop(prop_name) {
     match value {
-      "true" => JsValue::from_bool(true)
-      "false" => JsValue::from_bool(false)
-      _ => JsValue::from_string(value) // fallback for non-standard values
+      "true" => @dom.v_to_js_obscure(true)
+      "false" => @dom.v_to_js_obscure(false)
+      _ => @dom.v_to_js_obscure(value) // fallback for non-standard values
     }
   } else {
-    JsValue::from_string(value)
+    @dom.v_to_js_obscure(value)
   }
 }
-
-///   ElementEvents::new()

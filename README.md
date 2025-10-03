@@ -61,6 +61,16 @@ This is an experimental hobby project exploring MoonBit bindings for React. The 
 
 ## Quick Start
 
+Before writing any MoonBit code, make sure to include the React bindings in your project.
+
+```js
+import * as React from "react";
+import * as ReactDOMClient from "react-dom/client";
+
+window.React = React;
+window.ReactDOMClient = ReactDOMClient;
+```
+
 Here's a simple example of how to use this library:
 
 ```moonbit
