@@ -54,24 +54,23 @@ extern "js" fn react_fragment(
   #| (props, children) => window.React.createElement(window.React.Fragment, props, ...children)
 
 ///|
-extern "js" fn react_use_state(initial : JsValue) -> JsValue =
+extern "js" fn react_use_state(initial : JsObscure) -> JsObscure =
   #| (initial) => { return window.React.useState(initial)}
 
 ///|
-extern "js" fn state_updater_from_value(v : JsValue) -> (JsValue) -> Unit =
-  #| (v) => v
+fn state_updater_from_value(v : JsObscure) -> (JsObscure) -> Unit = "%identity"
 
 ///|
-fn[T] any_to_js_value(v : T) -> JsValue = "%identity"
+fn[T] any_to_js_value(v : T) -> JsObscure = "%identity"
 
 ///|
-fn[T] any_from_js_value(v : JsValue) -> T = "%identity"
+fn[T] any_from_js_value(v : JsObscure) -> T = "%identity"
 
 ///|
 pub fn[T] use_state(initial : T) -> (T, (T) -> Unit) {
-  let pair = react_use_state(any_to_js_value(initial)).to_array()
-  let s0 = pair[0]
-  let s1 = state_updater_from_value(pair[1])
+  let pair = react_use_state(any_to_js_value(initial))
+  let s0 = pair.get("0")
+  let s1 = state_updater_from_value(pair.get("1"))
   (any_from_js_value(s0), fn(value : T) { s1(any_to_js_value(value)) })
 }
 
@@ -106,7 +105,7 @@ pub fn ElementAttrs::set(
 pub type DOMEvent
 
 ///|
-pub fn DOMEvent::to_js_any_value(self : DOMEvent) -> JsValue = "%identity"
+pub fn DOMEvent::to_js_obscure(self : DOMEvent) -> JsObscure = "%identity"
 
 ///|
 /// 获取事件目标元素的值（通常用于 input、textarea 等表单元素）
@@ -164,7 +163,7 @@ pub extern "js" fn DOMEvent::meta_key(self : DOMEvent) -> Bool =
   #| (event) => event.metaKey || false
 
 ///|
-pub extern "js" fn console_log2(msg : String, v : JsValue) -> Unit =
+pub extern "js" fn console_log2(msg : String, v : JsObscure) -> Unit =
   #| (msg, v) => { console.log(msg, v) }
 
 ///|
@@ -316,8 +315,7 @@ pub fn ElementEvents::new() -> ElementEvents {
 }
 
 ///|
-extern "js" fn DOMEventHandler::to_js_func(self : DOMEventHandler) -> JsValue =
-  #| (f) => { return f }
+fn DOMEventHandler::to_js_func(self : DOMEventHandler) -> JsObscure = "%identity"
 
 ///|
 /// 使用 DOMEventType 添加事件处理器
@@ -343,12 +341,12 @@ pub fn ElementEvents::set(
 }
 
 ///|
-pub fn ElementEvents::to_js_value(self : ElementEvents) -> JsValue {
-  let obj = JsObject::new()
+pub fn ElementEvents::to_js_value(self : ElementEvents) -> JsObscure {
+  let obj = @dom.JsObjectObscure::new()
   for event_type, value in self.inner() {
     obj.set(event_type.to_string(), value.to_js_func())
   }
-  JsValue::from_object(obj)
+  obj.to_js_obscure()
 }
 
 ///|
@@ -377,9 +375,9 @@ pub fn VirtualNode::to_js_obscure(self : VirtualNode) -> @dom.JsObscure {
       for child in children {
         v.push(child.to_js_obscure())
       }
-      react_fragment(@dom.new_js_object(), v)
+      react_fragment(@dom.JsObjectObscure::new(), v)
     }
-    Text(t) => @dom.v_to_js_obscure(t)
+    Text(t) => JsObscure::from_string(t)
     JsNode(v) => v
   }
   ret
@@ -499,24 +497,24 @@ pub fn css_prop_to_camel_case(name : String) -> String {
 pub fn convert_style_to_js_object(
   style : @css.RespoStyle,
 ) -> @dom.JsObjectObscure {
-  let style_obj = @dom.new_js_object()
+  let style_obj = @dom.JsObjectObscure::new()
   for _idx, pair in style.0 {
     let (key, value) = pair
-    style_obj.set(css_prop_to_camel_case(key), @dom.v_to_js_obscure(value))
+    style_obj.set(css_prop_to_camel_case(key), JsObscure::from_string(value))
   }
   style_obj
 }
 
 ///|
 fn VirtualElement::to_js_value(self : VirtualElement) -> @dom.JsObscure {
-  let props = @dom.new_js_object()
+  let props = @dom.JsObjectObscure::new()
   for key, value in self.attrs.inner() {
     let react_prop_name = dom_attr_to_react_prop(key)
     let prop_value = convert_prop_value(react_prop_name, value)
     props.set(react_prop_name, prop_value)
   }
   let style = convert_style_to_js_object(self.style)
-  props.set("style", @dom.v_to_js_obscure(style))
+  props.set("style", style.to_js_obscure())
   let children = []
   for child in self.children {
     children.push(child.to_js_obscure())
@@ -747,16 +745,16 @@ pub fn is_boolean_prop(prop_name : String) -> Bool {
 /// - `value`: String value from the attribute.
 ///
 /// # Returns
-/// `JsValue` - Properly typed JavaScript value for React.
+/// `JsObscure` - Properly typed JavaScript value for React.
 ///
 /// # Inspect Examples
-/// inspect(convert_prop_value("checked", "true"), content="JsValue::from_bool(true)")
-/// inspect(convert_prop_value("className", "my-class"), content="JsValue::from_string(\"my-class\")")
+/// inspect(convert_prop_value("checked", "true"), content="JsObscure::from_bool(true)")
+/// inspect(convert_prop_value("className", "my-class"), content="JsObscure::from_string(\"my-class\")")
 pub fn convert_prop_value(prop_name : String, value : String) -> @dom.JsObscure {
   if is_boolean_prop(prop_name) {
     match value {
-      "true" => @dom.v_to_js_obscure(true)
-      "false" => @dom.v_to_js_obscure(false)
+      "true" => JsObscure::from_bool(true)
+      "false" => JsObscure::from_bool(false)
       _ => @dom.v_to_js_obscure(value) // fallback for non-standard values
     }
   } else {

@@ -1,6 +1,8 @@
 ///|
 // React Hooks wrappers, aligned with existing use_state style
 
+typealias @dom.JsObscure
+
 ///|
 extern "js" fn react_use_effect(
   effect : @dom.JsObscure,
@@ -26,7 +28,7 @@ extern "js" fn react_use_memo(
 extern "js" fn react_use_callback(
   callback : @dom.JsObscure,
   deps : Array[@dom.JsObscure],
-) -> JsValue =
+) -> JsObscure =
   #| (callback, deps) => window.React.useCallback(callback, deps)
 
 ///|
@@ -38,23 +40,24 @@ extern "js" fn react_ref_get_value(r : @dom.JsObscure) -> @dom.JsObscure =
   #| (ref) => ref.current
 
 ///|
-extern "js" fn react_ref_set_value(r : @dom.JsObscure, value : JsValue) -> Unit =
+extern "js" fn react_ref_set_value(
+  r : @dom.JsObscure,
+  value : JsObscure,
+) -> Unit =
   #| (ref, value) => ref.current = value
 
 ///|
 extern "js" fn react_use_reducer(
-  reducer : JsValue,
-  initial : JsValue,
-) -> JsValue =
+  reducer : JsObscure,
+  initial : JsObscure,
+) -> JsObscure =
   #| (reducer, initial) => window.React.useReducer(reducer, initial)
 
 ///|
-extern "js" fn fn0_from_value(v : JsValue) -> () -> Unit =
-  #| (v) => v
+fn fn0_to_js_obscure(f : () -> Unit) -> @dom.JsObscure = "%identity"
 
 ///|
-extern "js" fn fn1_from_value(v : JsValue) -> (JsValue) -> Unit =
-  #| (v) => v
+fn fn1_from_js_obscure(v : JsObscure) -> (JsObscure) -> Unit = "%identity"
 
 ///|
 // useLayoutEffect
@@ -62,7 +65,7 @@ pub fn use_layout_effect_deps(
   effect : () -> Unit,
   deps : Array[@dom.JsObscure],
 ) -> Unit {
-  react_use_layout_effect(@dom.v_to_js_obscure(effect), deps)
+  react_use_layout_effect(fn0_to_js_obscure(effect), deps)
 }
 
 ///|
@@ -76,17 +79,17 @@ pub fn[A] use_memo_deps(factory : () -> A, deps : Array[@dom.JsObscure]) -> A {
 // useCallback
 pub fn[F] use_callback_deps(callback : F, deps : Array[@dom.JsObscure]) -> F {
   let v = react_use_callback(@dom.v_to_js_obscure(callback), deps)
-  any_from_js_value(v)
+  @dom.js_obscure_to_v(v)
 }
 
 ///|
 // useEffect
 pub fn use_effect_once(effect : () -> Unit) -> Unit {
-  react_use_effect(@dom.v_to_js_obscure(effect), [])
+  react_use_effect(fn0_to_js_obscure(effect), [])
 }
 
 ///|
-/// a short hand to turn value into JsValue in hook deps
+/// a short hand to turn value into JsObscure in hook deps
 pub fn[T] obscure(v : T) -> @dom.JsObscure = "%identity"
 
 ///|
@@ -94,7 +97,7 @@ pub fn use_effect_deps(
   effect : () -> Unit,
   deps : Array[@dom.JsObscure],
 ) -> Unit {
-  react_use_effect(@dom.v_to_js_obscure(effect), deps)
+  react_use_effect(fn0_to_js_obscure(effect), deps)
 }
 
 ///|
@@ -104,7 +107,7 @@ pub fn use_callback0_deps(
   deps : Array[@dom.JsObscure],
 ) -> () -> Unit {
   let raw = react_use_callback(@dom.v_to_js_obscure(f), deps)
-  fn0_from_value(raw)
+  @dom.js_obscure_to_v(raw)
 }
 
 ///|
@@ -147,8 +150,8 @@ pub fn[S : Default, A] use_reducer(
   let pair = react_use_reducer(
     any_to_js_value(reducer),
     any_to_js_value(initial.unwrap_or_default()),
-  ).to_array()
-  let s0 = any_from_js_value(pair[0])
-  let dispatch_raw = fn1_from_value(pair[1])
+  )
+  let s0 = any_from_js_value(pair.get("0"))
+  let dispatch_raw = fn1_from_js_obscure(pair.get("1"))
   (s0, fn(a : A) { dispatch_raw(any_to_js_value(a)) })
 }
