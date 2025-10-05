@@ -2,37 +2,43 @@
 // React Hooks wrappers, aligned with existing use_state style
 
 ///|
-extern "js" fn react_use_effect(effect : JsValue, deps : JsValue) -> Unit =
+extern "js" fn react_use_effect(
+  effect : @dom.JsObscure,
+  deps : Array[@dom.JsObscure],
+) -> Unit =
   #| (effect, deps) => window.React.useEffect(effect, deps)
 
 ///|
 extern "js" fn react_use_layout_effect(
-  effect : JsValue,
-  deps : JsValue,
+  effect : @dom.JsObscure,
+  deps : Array[@dom.JsObscure],
 ) -> Unit =
   #| (effect, deps) => window.React.useLayoutEffect(effect, deps)
 
 ///|
-extern "js" fn react_use_memo(factory : JsValue, deps : JsValue) -> JsValue =
+extern "js" fn react_use_memo(
+  factory : @dom.JsObscure,
+  deps : Array[@dom.JsObscure],
+) -> @dom.JsObscure =
   #| (factory, deps) => window.React.useMemo(factory, deps)
 
 ///|
 extern "js" fn react_use_callback(
-  callback : JsValue,
-  deps : JsValue,
+  callback : @dom.JsObscure,
+  deps : Array[@dom.JsObscure],
 ) -> JsValue =
   #| (callback, deps) => window.React.useCallback(callback, deps)
 
 ///|
-extern "js" fn react_use_ref(initial : JsValue) -> JsValue =
+extern "js" fn react_use_ref(initial : @dom.JsObscure) -> @dom.JsObscure =
   #| (initial) => window.React.useRef(initial)
 
 ///|
-extern "js" fn react_ref_get_value(r : JsValue) -> JsValue =
+extern "js" fn react_ref_get_value(r : @dom.JsObscure) -> @dom.JsObscure =
   #| (ref) => ref.current
 
 ///|
-extern "js" fn react_ref_set_value(r : JsValue, value : JsValue) -> Unit =
+extern "js" fn react_ref_set_value(r : @dom.JsObscure, value : JsValue) -> Unit =
   #| (ref, value) => ref.current = value
 
 ///|
@@ -51,87 +57,70 @@ extern "js" fn fn1_from_value(v : JsValue) -> (JsValue) -> Unit =
   #| (v) => v
 
 ///|
-/// 最多支持 8 个依赖项
-pub(all) enum Deps[A, B, C, D, E, F, G, H] {
-  Dep0
-  Dep1(A)
-  Dep2(A, B)
-  Dep3(A, B, C)
-  Dep4(A, B, C, D)
-  Dep5(A, B, C, D, E)
-  Dep6(A, B, C, D, E, F)
-  Dep7(A, B, C, D, E, F, G)
-  Dep8(A, B, C, D, E, F, G, H)
-}
-
-///|
-fn deps_to_js_array(deps : Array[JsValue]) -> JsValue {
-  let arr = JsArray::new()
-  for d in deps {
-    arr.push(d)
-  }
-  arr.to_value()
-}
-
-///|
 // useLayoutEffect
 pub fn use_layout_effect_deps(
   effect : () -> Unit,
-  deps : Array[JsValue],
+  deps : Array[@dom.JsObscure],
 ) -> Unit {
-  react_use_layout_effect(any_to_js_value(effect), deps_to_js_array(deps))
+  react_use_layout_effect(@dom.v_to_js_obscure(effect), deps)
 }
 
 ///|
 // useMemo
-pub fn[A] use_memo_deps(factory : () -> A, deps : Array[JsValue]) -> A {
-  let v = react_use_memo(any_to_js_value(factory), deps_to_js_array(deps))
-  any_from_js_value(v)
+pub fn[A] use_memo_deps(factory : () -> A, deps : Array[@dom.JsObscure]) -> A {
+  let v = react_use_memo(@dom.v_to_js_obscure(factory), deps)
+  @dom.js_obscure_to_v(v)
 }
 
 ///|
 // useCallback
-pub fn[F] use_callback_deps(callback : F, deps : Array[JsValue]) -> F {
-  let v = react_use_callback(any_to_js_value(callback), deps_to_js_array(deps))
+pub fn[F] use_callback_deps(callback : F, deps : Array[@dom.JsObscure]) -> F {
+  let v = react_use_callback(@dom.v_to_js_obscure(callback), deps)
   any_from_js_value(v)
 }
 
 ///|
 // useEffect
 pub fn use_effect_once(effect : () -> Unit) -> Unit {
-  react_use_effect(any_to_js_value(effect), JsArray::new().to_value())
+  react_use_effect(@dom.v_to_js_obscure(effect), [])
 }
 
 ///|
 /// a short hand to turn value into JsValue in hook deps
-pub fn[T] obscure(v : T) -> JsValue = "%identity"
+pub fn[T] obscure(v : T) -> @dom.JsObscure = "%identity"
 
 ///|
-pub fn use_effect_deps(effect : () -> Unit, deps : Array[JsValue]) -> Unit {
-  react_use_effect(any_to_js_value(effect), deps_to_js_array(deps))
+pub fn use_effect_deps(
+  effect : () -> Unit,
+  deps : Array[@dom.JsObscure],
+) -> Unit {
+  react_use_effect(@dom.v_to_js_obscure(effect), deps)
 }
 
 ///|
 // useCallback (no argument)
-pub fn use_callback0_deps(f : () -> Unit, deps : Array[JsValue]) -> () -> Unit {
-  let raw = react_use_callback(any_to_js_value(f), deps_to_js_array(deps))
+pub fn use_callback0_deps(
+  f : () -> Unit,
+  deps : Array[@dom.JsObscure],
+) -> () -> Unit {
+  let raw = react_use_callback(@dom.v_to_js_obscure(f), deps)
   fn0_from_value(raw)
 }
 
 ///|
 struct ReactRef[T] {
-  js_value : JsValue
+  js_value : @dom.JsObscure
   mut _v0 : T
 }
 
 ///|
 pub fn[T] ReactRef::from(v : T) -> ReactRef[T] {
-  ReactRef::{ js_value: react_use_ref(any_to_js_value(v)), _v0: v }
+  ReactRef::{ js_value: react_use_ref(@dom.v_to_js_obscure(v)), _v0: v }
 }
 
 ///|
 pub fn[T] ReactRef::get(self : ReactRef[T]) -> T {
-  any_from_js_value(react_ref_get_value(self.js_value))
+  @dom.js_obscure_to_v(react_ref_get_value(self.js_value))
 }
 
 ///|
@@ -142,8 +131,11 @@ pub fn[T] ReactRef::set(self : ReactRef[T], value : T) -> Unit {
 
 ///|
 // useRef
-pub fn[T : JsValueTrait] use_ref(initial : T) -> ReactRef[T] {
-  ReactRef::{ js_value: react_use_ref(initial.to_value()), _v0: initial }
+pub fn[T] use_ref(initial : T) -> ReactRef[T] {
+  ReactRef::{
+    js_value: react_use_ref(@dom.v_to_js_obscure(initial)),
+    _v0: initial,
+  }
 }
 
 ///|

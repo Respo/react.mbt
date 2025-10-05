@@ -5,7 +5,7 @@ fnalias @css.respo_style
 typealias @css.RespoStyle
 
 ///|
-extern "js" fn react_render(vdom : JsValue, parent : @dom.Node) -> Unit =
+extern "js" fn react_render(vdom : @dom.JsObscure, parent : @dom.Node) -> Unit =
   #| (vdom, parent) => {
   #|   const root = window.ReactDOMClient.createRoot(parent);
   #|   root.render(vdom);
@@ -35,22 +35,22 @@ extern "js" fn react_render(vdom : JsValue, parent : @dom.Node) -> Unit =
 /// render(custom_elem.to_node(), document.body)
 /// ```
 pub fn render(vdom : VirtualNode, parent : @dom.Element) -> Unit {
-  react_render(vdom.to_js_value(), parent.reinterpret_as_node())
+  react_render(vdom.to_js_obscure(), parent.reinterpret_as_node())
 }
 
 ///|
 extern "js" fn react_create_element(
   tag : String,
   props : @dom.JsObjectObscure,
-  children : JsValue,
-) -> JsValue =
+  children : Array[@dom.JsObscure],
+) -> @dom.JsObscure =
   #| (tag, props, children) => window.React.createElement(tag, props, ...children)
 
 ///|
 extern "js" fn react_fragment(
   props : @dom.JsObjectObscure,
-  children : JsValue,
-) -> JsValue =
+  children : Array[@dom.JsObscure],
+) -> @dom.JsObscure =
   #| (props, children) => window.React.createElement(window.React.Fragment, props, ...children)
 
 ///|
@@ -364,22 +364,22 @@ pub(all) enum VirtualNode {
   /// A text node containing plain string content
   Text(String)
   /// A pre-converted JavaScript value for advanced usage (e.g., from `component` function)
-  /// already converted to JsValue, hard to convert back
-  JsNode(JsValue) // for advanced usage, e.g. connect
+  /// already converted to JsObscure, hard to convert back
+  JsNode(@dom.JsObscure) // for advanced usage, e.g. connect
 }
 
 ///|
-pub fn VirtualNode::to_js_value(self : VirtualNode) -> JsValue {
+pub fn VirtualNode::to_js_obscure(self : VirtualNode) -> @dom.JsObscure {
   let ret = match self {
     Element(el) => el.to_js_value()
     Fragment(children) => {
-      let v = JsArray::new()
+      let v = []
       for child in children {
-        v.push(child.to_js_value())
+        v.push(child.to_js_obscure())
       }
-      react_fragment(@dom.new_js_object(), v.to_value())
+      react_fragment(@dom.new_js_object(), v)
     }
-    Text(t) => JsValue::from_string(t)
+    Text(t) => @dom.v_to_js_obscure(t)
     JsNode(v) => v
   }
   ret
@@ -508,7 +508,7 @@ pub fn convert_style_to_js_object(
 }
 
 ///|
-fn VirtualElement::to_js_value(self : VirtualElement) -> JsValue {
+fn VirtualElement::to_js_value(self : VirtualElement) -> @dom.JsObscure {
   let props = @dom.new_js_object()
   for key, value in self.attrs.inner() {
     let react_prop_name = dom_attr_to_react_prop(key)
@@ -517,15 +517,15 @@ fn VirtualElement::to_js_value(self : VirtualElement) -> JsValue {
   }
   let style = convert_style_to_js_object(self.style)
   props.set("style", @dom.v_to_js_obscure(style))
-  let children = JsArray::new()
+  let children = []
   for child in self.children {
-    children.push(child.to_js_value())
+    children.push(child.to_js_obscure())
   }
   for event_type, value in self.event.inner() {
     let event_name = dom_event_to_react_handler(event_type)
     props.set(event_name, @dom.v_to_js_obscure(value))
   }
-  react_create_element(self.name, props, JsValue::from_array(children))
+  react_create_element(self.name, props, children)
 }
 
 ///|
@@ -564,10 +564,10 @@ pub fn create_element(
 
 ///|
 extern "js" fn create_factory(
-  f : (JsValue) -> JsValue,
-  props : JsValue,
-  children : Array[JsValue],
-) -> JsValue =
+  f : (@dom.JsObscure) -> @dom.JsObscure,
+  props : @dom.JsObscure,
+  children : Array[@dom.JsObscure],
+) -> @dom.JsObscure =
   #| (f, props, children) => {
   #|   let h0 = window.React.createElement(f, props, ...children);
   #|   return h0;
@@ -592,7 +592,7 @@ extern "js" fn create_factory(
 ///
 /// let node = component(my_button, ButtonProps { text: "Click me", disabled: false }, [])
 /// ```
-pub fn[T : JsValueTrait] component(
+pub fn[T] component(
   /// Component function that transforms props into a virtual node
   f : (T) -> VirtualNode,
   /// Props to pass to the component function
@@ -600,12 +600,12 @@ pub fn[T : JsValueTrait] component(
   /// Child nodes to render inside the component
   children : Array[VirtualNode],
 ) -> VirtualNode {
-  let children_js = children.map(fn(child) { child.to_js_value() })
+  let children_js = children.map(fn(child) { child.to_js_obscure() })
   let r = create_factory(
-    fn(p) { f(T::from_value(p)).to_js_value() },
+    fn(p) { f(@dom.js_obscure_to_v(p)).to_js_obscure() },
     // TODO maybe better to use { value: PROPS} instead of props.to_value()
     // need future refactor to explore it
-    props.to_value(),
+    @dom.v_to_js_obscure(props),
     children_js,
   )
   JsNode(r)

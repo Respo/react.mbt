@@ -2,18 +2,6 @@
 struct ContainerProps {} derive(Default)
 
 ///|
-impl @react.JsValueTrait for ContainerProps with to_value(_self) -> @react.JsValue {
-  @react.JsObject::new().to_value()
-}
-
-///|
-impl @react.JsValueTrait for ContainerProps with from_value(
-  _value : @react.JsValue,
-) -> ContainerProps {
-  ContainerProps::default()
-}
-
-///|
 fn comp_container(_v : ContainerProps) -> VirtualNode {
   let (counter, set_counter) = @react.use_state(0.0.to_float())
   @react.use_effect_once(fn() { println("comp_container mounted") })

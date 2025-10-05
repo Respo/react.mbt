@@ -7,18 +7,6 @@ fnalias @react.obscure
 struct HooksDemoProps {} derive(Default)
 
 ///|
-impl @react.JsValueTrait for HooksDemoProps with to_value(_self) -> @react.JsValue {
-  @react.JsObject::new().to_value()
-}
-
-///|
-impl @react.JsValueTrait for HooksDemoProps with from_value(
-  _value : @react.JsValue,
-) -> HooksDemoProps {
-  HooksDemoProps::default()
-}
-
-///|
 /// 主要的 Hooks 演示组件
 fn comp_hooks_demo(_props : HooksDemoProps) -> VirtualNode {
   // 基础状态管理

@@ -13,6 +13,10 @@ struct Todo {
 } derive(Default)
 
 ///|
+// TodoList 组件的 Props
+struct TodoListProps {} derive(Default)
+
+///|
 // 编辑状态结构
 struct EditingState {
   editing_id : Int? // 正在编辑的 todo ID，None 表示没有在编辑
@@ -26,22 +30,6 @@ enum Filter {
   Active
   Completed
 } derive(Eq)
-
-///|
-// TodoList 组件的 Props
-struct TodoListProps {} derive(Default)
-
-///|
-impl @react.JsValueTrait for TodoListProps with to_value(_self) -> @react.JsValue {
-  @react.JsObject::new().to_value()
-}
-
-///|
-impl @react.JsValueTrait for TodoListProps with from_value(
-  _value : @react.JsValue,
-) -> TodoListProps {
-  TodoListProps::default()
-}
 
 ///|
 /// TodoAction 枚举类型，表示对 todos 数组的不同操作
@@ -193,9 +181,7 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
   }
 
   // 取消编辑的函数
-  let cancel_editing = fn() {
-    set_editing_state(EditingState::default())
-  }
+  let cancel_editing = fn() { set_editing_state(EditingState::default()) }
 
   // 生成 todo 项的函数
   let create_todo_item = fn(todo : Todo) {
@@ -203,11 +189,9 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
       Some(editing_id) => editing_id == todo.id
       None => false
     }
-
     let checkbox_attrs = @react.ElementAttrs::new()
     // 修复受控组件问题：始终设置 checked 属性
     checkbox_attrs.set("checked", if todo.completed { "true" } else { "false" })
-
     let li_class = {
       let classes = []
       if todo.completed {
@@ -218,7 +202,6 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
       }
       classes.join(" ")
     }
-
     if is_editing {
       // 编辑模式
       @react.li(class_name=li_class, [
