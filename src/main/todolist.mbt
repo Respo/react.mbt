@@ -254,7 +254,7 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
               })
               events
             },
-            [@react.Text(todo.text)],
+            [Text(todo.text)],
           ),
           @react.button(
             class_name="destroy",
@@ -288,7 +288,7 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
   @react.section(class_name="todoapp", [
     // 头部标题
     @react.header(class_name="header", [
-      @react.h1([@react.Text("todos")]),
+      @react.h1([Text("todos")]),
       @react.input(
         class_name="new-todo",
         placeholder="What needs to be done?",
@@ -317,45 +317,40 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
     // 主要内容区域
     @react.section(class_name="main", [
       @react.input(id="toggle-all", class_name="toggle-all", type_=Checkbox),
-      @react.label(for_="toggle-all", [@react.Text("Mark all as complete")]),
+      @react.label(for_="toggle-all", [Text("Mark all as complete")]),
       @react.ul(class_name="todo-list", todo_items),
     ]),
 
     // 底部过滤器和统计
     @react.footer(class_name="footer", [
-      @react.span(class_name="todo-count", [
-        @react.Text(active_count.to_string() + " items left"),
-      ]),
+      @react.span(class_name="todo-count", [Text("\{active_count} items left")]),
       @react.ul(class_name="filters", [
         @react.li([
           @react.a(
             class_name=if current_filter == All { "selected" } else { "" },
-            href="#/",
             on_click=fn(_) { set_current_filter(All) },
-            [@react.Text("All")],
+            [Text("All")],
           ),
         ]),
         @react.li([
           @react.a(
             class_name=if current_filter == Active { "selected" } else { "" },
-            href="#/active",
             on_click=fn(_) { set_current_filter(Active) },
-            [@react.Text("Active")],
+            [Text("Active")],
           ),
         ]),
         @react.li([
           @react.a(
             class_name=if current_filter == Completed { "selected" } else { "" },
-            href="#/completed",
             on_click=fn(_) { set_current_filter(Completed) },
-            [@react.Text("Completed")],
+            [Text("Completed")],
           ),
         ]),
       ]),
       @react.button(
         class_name="clear-completed",
         on_click=fn(_) { dispatch(ClearCompleted) },
-        [@react.Text("Clear completed")],
+        [Text("Clear completed")],
       ),
     ]),
   ])
