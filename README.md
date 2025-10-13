@@ -20,13 +20,13 @@ This is an experimental hobby project exploring MoonBit bindings for React. The 
 - `use_state[T](initial: T) -> (T, (T) -> Unit)` - State management hook
 - `use_reducer[S: Default, A](initial?: S, reducer: (S, A) -> S) -> (S, (A) -> Unit)` - Reducer hook
 - `use_effect_once(effect: () -> Unit) -> Unit` - Effect hook that runs only once
-- `use_effect_deps(effect: () -> Unit, deps: Array[JsValue]) -> Unit` - Effect hook with dependencies
-- `use_layout_effect_deps(effect: () -> Unit, deps: Array[JsValue]) -> Unit` - Layout effect hook
-- `use_memo_deps[A](factory: () -> A, deps: Array[JsValue]) -> A` - Memoization hook
-- `use_callback_deps[F](callback: F, deps: Array[JsValue]) -> F` - Callback memoization hook
-- `use_callback0_deps(f: () -> Unit, deps: Array[JsValue]) -> () -> Unit` - Zero-argument callback hook
+- `use_effect_deps(effect: () -> Unit, deps: Array[JsObscure]) -> Unit` - Effect hook with dependencies
+- `use_layout_effect_deps(effect: () -> Unit, deps: Array[JsObscure]) -> Unit` - Layout effect hook
+- `use_memo_deps[A](factory: () -> A, deps: Array[JsObscure]) -> A` - Memoization hook
+- `use_callback_deps[F](callback: F, deps: Array[JsObscure]) -> F` - Callback memoization hook
+- `use_callback0_deps(f: () -> Unit, deps: Array[JsObscure]) -> () -> Unit` - Zero-argument callback hook
 - `use_ref[T: JsValueTrait](initial: T) -> ReactRef[T]` - Reference hook
-- `obscure[T](v: T) -> JsValue` - Dependency conversion helper function
+- `obscure[T](v: T) -> JsObscure` - Dependency conversion helper function
 
 ### HTML Element Bindings
 
@@ -61,6 +61,16 @@ This is an experimental hobby project exploring MoonBit bindings for React. The 
 
 ## Quick Start
 
+Before writing any MoonBit code, make sure to include the React bindings in your project.
+
+```js
+import * as React from "react";
+import * as ReactDOMClient from "react-dom/client";
+
+window.React = React;
+window.ReactDOMClient = ReactDOMClient;
+```
+
 Here's a simple example of how to use this library:
 
 ```moonbit
@@ -68,12 +78,12 @@ Here's a simple example of how to use this library:
 struct ContainerProps {} derive(Default)
 
 // Implement JsValueTrait for props
-impl @react.JsValueTrait for ContainerProps with to_value(_self) -> @react.JsValue {
+impl @react.JsValueTrait for ContainerProps with to_value(_self) -> @dom.JsObscure {
   @react.JsObject::new().to_value()
 }
 
 impl @react.JsValueTrait for ContainerProps with from_value(
-  _value : @react.JsValue,
+  _value : @dom.JsObscure,
 ) -> ContainerProps {
   ContainerProps::default()
 }

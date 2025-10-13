@@ -1,22 +1,10 @@
 ///|
-fnalias @react.obscure
+fnalias @react.(obscure, li)
 
 ///|
 /// Hooks Demo Component - 展示新增的 React Hooks API 功能
 ///
 struct HooksDemoProps {} derive(Default)
-
-///|
-impl @react.JsValueTrait for HooksDemoProps with to_value(_self) -> @react.JsValue {
-  @react.JsObject::new().to_value()
-}
-
-///|
-impl @react.JsValueTrait for HooksDemoProps with from_value(
-  _value : @react.JsValue,
-) -> HooksDemoProps {
-  HooksDemoProps::default()
-}
 
 ///|
 /// 主要的 Hooks 演示组件
@@ -130,51 +118,47 @@ fn comp_hooks_demo(_props : HooksDemoProps) -> VirtualNode {
             set_timer_count(new_val)
           },
           style=@css.respo_style(
-            padding=8.0 |> @css.Px,
-            background_color=@css.Hsl(120, 70, 40),
-            color=@css.White,
+            padding=8.0 |> Px,
+            background_color=Hsl(120, 70, 40),
+            color=White,
             border_radius=4.0,
             cursor=Pointer,
           ),
-          [@react.Text("启动定时器")],
+          [Text("启动定时器")],
         ),
       ]),
 
       // 功能说明区域
       @react.div(
         style=@css.respo_style(
-          background_color=@css.Hsl(60, 30, 95),
+          background_color=Hsl(60, 30, 95),
           padding=15.0 |> Px,
           border_radius=6.0,
-          border=CssBorder(1.0, Solid, @css.Hsl(60, 30, 80)),
+          border=CssBorder(1.0, Solid, Hsl(60, 30, 80)),
         ),
         [
-          @react.h3([@react.Text("📚 功能说明")]),
+          @react.h3([Text("📚 功能说明")]),
           @react.ul([
-            @react.li([
-              @react.Text(
+            li([
+              Text(
                 "🎯 use_effect_once: 组件挂载时执行一次，查看控制台日志",
               ),
             ]),
-            @react.li([
-              @react.Text(
+            li([
+              Text(
                 "📊 use_effect_deps: 依赖计数器变化，每次点击增加都会触发",
               ),
             ]),
-            @react.li([
-              @react.Text(
+            li([
+              Text(
                 "🧮 use_memo_deps: 缓存计算结果，只在计数变化时重新计算",
               ),
             ]),
-            @react.li([
-              @react.Text(
-                "🎮 use_callback_deps: 缓存回调函数，优化性能",
-              ),
+            li([
+              Text("🎮 use_callback_deps: 缓存回调函数，优化性能"),
             ]),
-            @react.li([
-              @react.Text(
-                "📝 use_ref: 创建可变引用，用于定时器计数",
-              ),
+            li([
+              Text("📝 use_ref: 创建可变引用，用于定时器计数"),
             ]),
           ]),
         ],

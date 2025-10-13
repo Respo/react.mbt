@@ -2,18 +2,6 @@
 struct ContainerProps {} derive(Default)
 
 ///|
-impl @react.JsValueTrait for ContainerProps with to_value(_self) -> @react.JsValue {
-  @react.JsObject::new().to_value()
-}
-
-///|
-impl @react.JsValueTrait for ContainerProps with from_value(
-  _value : @react.JsValue,
-) -> ContainerProps {
-  ContainerProps::default()
-}
-
-///|
 fn comp_container(_v : ContainerProps) -> VirtualNode {
   let (counter, set_counter) = @react.use_state(0.0.to_float())
   @react.use_effect_once(fn() { println("comp_container mounted") })
@@ -27,10 +15,7 @@ fn comp_container(_v : ContainerProps) -> VirtualNode {
           set_counter(counter + 1.0)
         },
         class_list=[style_counter],
-        [
-          @react.Fragment([@react.Text("Demo: ")]),
-          @react.Text("Counter \{counter}"),
-        ],
+        [Fragment([Text("Demo: ")]), Text("Counter \{counter}")],
       ),
       @react.component(comp_todolist, TodoListProps::default(), []),
       @react.component(comp_hooks_demo, HooksDemoProps::default(), []),
