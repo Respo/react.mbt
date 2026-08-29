@@ -147,6 +147,16 @@ The browser entry point loads React and ReactDOMClient before the generated
 MoonBit application. `render` can be called again for the same parent element;
 the binding reuses its React root rather than creating a second one.
 
+## Release
+
+The release workflow verifies the module, builds the demo, packages the MoonBit
+module, and attaches the package archive to a GitHub Release. Trigger it by
+pushing a tag that exactly matches the module version, for example `v0.1.0`.
+
+To also publish the module to mooncakes.io, log in with `moon login` and run
+`moon publish --frozen` after the release checks pass. The registry credential
+is deliberately not stored in the GitHub workflow.
+
 ### License
 
 Apache 2.0

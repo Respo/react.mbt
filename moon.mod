@@ -1,6 +1,6 @@
 name = "tiye/react"
 
-version = "0.0.3"
+version = "0.1.0"
 
 import {
   "tiye/dom-ffi@0.2.3",
