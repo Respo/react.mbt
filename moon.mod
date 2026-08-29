@@ -4,7 +4,7 @@ version = "0.1.0"
 
 import {
   "tiye/dom-ffi@0.2.3",
-  "tiye/respo_css@0.1.6",
+  "tiye/respo_css@0.1.7",
 }
 
 readme = "README.md"
