@@ -152,6 +152,12 @@ pub fn DOMEvent::target_value(Self) -> String
 pub fn DOMEvent::to_js_obscure(Self) -> @dom-ffi.JsObscure
 
 pub(all) enum DOMEventType {
+  Copy
+  Cut
+  Paste
+  CompositionEnd
+  CompositionStart
+  CompositionUpdate
   Click
   DoubleClick
   MouseDown
@@ -162,9 +168,20 @@ pub(all) enum DOMEventType {
   MouseOver
   MouseOut
   ContextMenu
+  PointerDown
+  PointerMove
+  PointerUp
+  PointerCancel
+  PointerEnter
+  PointerLeave
+  PointerOver
+  PointerOut
+  GotPointerCapture
+  LostPointerCapture
   KeyDown
   KeyUp
   KeyPress
+  BeforeInput
   Input
   Change
   Submit
@@ -176,6 +193,7 @@ pub(all) enum DOMEventType {
   Unload
   Resize
   Scroll
+  Wheel
   Drag
   DragStart
   DragEnd
@@ -208,6 +226,12 @@ pub(all) enum DOMEventType {
   TimeUpdate
   VolumeChange
   Waiting
+  AnimationStart
+  AnimationEnd
+  AnimationIteration
+  TransitionEnd
+  Invalid
+  Toggle
 } derive(Compare, Eq, Hash)
 pub fn DOMEventType::to_string(Self) -> String
 pub impl Show for DOMEventType

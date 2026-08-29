@@ -260,6 +260,16 @@ priv struct DOMEventHandler((DOMEvent) -> Unit)
 ///|
 /// DOM 事件类型枚举
 pub(all) enum DOMEventType {
+  // 剪贴板事件
+  Copy
+  Cut
+  Paste
+
+  // 输入法组合事件
+  CompositionEnd
+  CompositionStart
+  CompositionUpdate
+
   // 鼠标事件
   Click
   DoubleClick
@@ -272,10 +282,23 @@ pub(all) enum DOMEventType {
   MouseOut
   ContextMenu
 
+  // 指针事件
+  PointerDown
+  PointerMove
+  PointerUp
+  PointerCancel
+  PointerEnter
+  PointerLeave
+  PointerOver
+  PointerOut
+  GotPointerCapture
+  LostPointerCapture
+
   // 键盘事件
   KeyDown
   KeyUp
   KeyPress
+  BeforeInput
 
   // 表单事件
   Input
@@ -291,6 +314,7 @@ pub(all) enum DOMEventType {
   Unload
   Resize
   Scroll
+  Wheel
 
   // 拖拽事件
   Drag
@@ -329,12 +353,28 @@ pub(all) enum DOMEventType {
   TimeUpdate
   VolumeChange
   Waiting
+
+  // CSS 动画和过渡事件
+  AnimationStart
+  AnimationEnd
+  AnimationIteration
+  TransitionEnd
+
+  // 其他可冒泡的元素事件
+  Invalid
+  Toggle
 } derive(Eq, Compare, Hash)
 
 ///|
 /// 将 DOMEventType 转换为字符串
 pub fn DOMEventType::to_string(self : DOMEventType) -> String {
   match self {
+    Copy => "copy"
+    Cut => "cut"
+    Paste => "paste"
+    CompositionEnd => "compositionend"
+    CompositionStart => "compositionstart"
+    CompositionUpdate => "compositionupdate"
     Click => "click"
     DoubleClick => "dblclick"
     MouseDown => "mousedown"
@@ -345,9 +385,20 @@ pub fn DOMEventType::to_string(self : DOMEventType) -> String {
     MouseOver => "mouseover"
     MouseOut => "mouseout"
     ContextMenu => "contextmenu"
+    PointerDown => "pointerdown"
+    PointerMove => "pointermove"
+    PointerUp => "pointerup"
+    PointerCancel => "pointercancel"
+    PointerEnter => "pointerenter"
+    PointerLeave => "pointerleave"
+    PointerOver => "pointerover"
+    PointerOut => "pointerout"
+    GotPointerCapture => "gotpointercapture"
+    LostPointerCapture => "lostpointercapture"
     KeyDown => "keydown"
     KeyUp => "keyup"
     KeyPress => "keypress"
+    BeforeInput => "beforeinput"
     Input => "input"
     Change => "change"
     Submit => "submit"
@@ -359,6 +410,7 @@ pub fn DOMEventType::to_string(self : DOMEventType) -> String {
     Unload => "unload"
     Resize => "resize"
     Scroll => "scroll"
+    Wheel => "wheel"
     Drag => "drag"
     DragStart => "dragstart"
     DragEnd => "dragend"
@@ -391,6 +443,12 @@ pub fn DOMEventType::to_string(self : DOMEventType) -> String {
     TimeUpdate => "timeupdate"
     VolumeChange => "volumechange"
     Waiting => "waiting"
+    AnimationStart => "animationstart"
+    AnimationEnd => "animationend"
+    AnimationIteration => "animationiteration"
+    TransitionEnd => "transitionend"
+    Invalid => "invalid"
+    Toggle => "toggle"
   }
 }
 
@@ -756,6 +814,12 @@ fn first_letter_to_uppercase(s : String) -> String {
 /// ```
 pub fn dom_event_to_react_handler(event_type : DOMEventType) -> String {
   match event_type {
+    Copy => "onCopy"
+    Cut => "onCut"
+    Paste => "onPaste"
+    CompositionEnd => "onCompositionEnd"
+    CompositionStart => "onCompositionStart"
+    CompositionUpdate => "onCompositionUpdate"
     Click => "onClick"
     DoubleClick => "onDoubleClick"
     MouseDown => "onMouseDown"
@@ -766,9 +830,20 @@ pub fn dom_event_to_react_handler(event_type : DOMEventType) -> String {
     MouseOver => "onMouseOver"
     MouseOut => "onMouseOut"
     ContextMenu => "onContextMenu"
+    PointerDown => "onPointerDown"
+    PointerMove => "onPointerMove"
+    PointerUp => "onPointerUp"
+    PointerCancel => "onPointerCancel"
+    PointerEnter => "onPointerEnter"
+    PointerLeave => "onPointerLeave"
+    PointerOver => "onPointerOver"
+    PointerOut => "onPointerOut"
+    GotPointerCapture => "onGotPointerCapture"
+    LostPointerCapture => "onLostPointerCapture"
     KeyDown => "onKeyDown"
     KeyUp => "onKeyUp"
     KeyPress => "onKeyPress"
+    BeforeInput => "onBeforeInput"
     Input => "onInput"
     Change => "onChange"
     Submit => "onSubmit"
@@ -780,6 +855,7 @@ pub fn dom_event_to_react_handler(event_type : DOMEventType) -> String {
     Unload => "onUnload"
     Resize => "onResize"
     Scroll => "onScroll"
+    Wheel => "onWheel"
     Drag => "onDrag"
     DragStart => "onDragStart"
     DragEnd => "onDragEnd"
@@ -812,6 +888,12 @@ pub fn dom_event_to_react_handler(event_type : DOMEventType) -> String {
     TimeUpdate => "onTimeUpdate"
     VolumeChange => "onVolumeChange"
     Waiting => "onWaiting"
+    AnimationStart => "onAnimationStart"
+    AnimationEnd => "onAnimationEnd"
+    AnimationIteration => "onAnimationIteration"
+    TransitionEnd => "onTransitionEnd"
+    Invalid => "onInvalid"
+    Toggle => "onToggle"
   }
 }
 

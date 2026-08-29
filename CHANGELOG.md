@@ -19,6 +19,8 @@
   both boolean values intact.
 - Added `DOMEvent::target_checked()` for reading controlled checkbox and radio
   state from form handlers.
+- Extended typed event bindings with clipboard, composition, pointer, wheel,
+  animation, transition, `beforeinput`, `invalid`, and `toggle` events.
 - Updated JavaScript FFI array boundaries to MoonBit's `FixedArray` ABI while
   preserving the public `Array`-based hook API.
 - Added regression coverage for React element conversion, roots, components,

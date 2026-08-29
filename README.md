@@ -48,6 +48,10 @@ This is an experimental hobby project exploring MoonBit bindings for React. The 
 
 ### Event Handling
 
+`DOMEventType` covers clipboard, composition, keyboard, mouse, pointer, wheel,
+form, drag, touch, media, animation, and transition events. It maps each value
+to React's camel-cased `onXxx` property automatically.
+
 - `DOMEvent` type and its methods:
   - `target_value() -> String` - Get form element value
   - `target_checked() -> Bool` - Get checkbox or radio checked state

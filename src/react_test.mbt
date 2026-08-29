@@ -312,6 +312,16 @@ test "DOM events use React handler names" {
 ///|
 test "all DOM event types map to native and React names" {
   let cases : Array[(DOMEventType, String, String)] = [
+    (DOMEventType::Copy, "copy", "onCopy"),
+    (DOMEventType::Cut, "cut", "onCut"),
+    (DOMEventType::Paste, "paste", "onPaste"),
+    (DOMEventType::CompositionEnd, "compositionend", "onCompositionEnd"),
+    (DOMEventType::CompositionStart, "compositionstart", "onCompositionStart"),
+    (
+      DOMEventType::CompositionUpdate,
+      "compositionupdate",
+      "onCompositionUpdate",
+    ),
     (DOMEventType::Click, "click", "onClick"),
     (DOMEventType::DoubleClick, "dblclick", "onDoubleClick"),
     (DOMEventType::MouseDown, "mousedown", "onMouseDown"),
@@ -322,9 +332,28 @@ test "all DOM event types map to native and React names" {
     (DOMEventType::MouseOver, "mouseover", "onMouseOver"),
     (DOMEventType::MouseOut, "mouseout", "onMouseOut"),
     (DOMEventType::ContextMenu, "contextmenu", "onContextMenu"),
+    (DOMEventType::PointerDown, "pointerdown", "onPointerDown"),
+    (DOMEventType::PointerMove, "pointermove", "onPointerMove"),
+    (DOMEventType::PointerUp, "pointerup", "onPointerUp"),
+    (DOMEventType::PointerCancel, "pointercancel", "onPointerCancel"),
+    (DOMEventType::PointerEnter, "pointerenter", "onPointerEnter"),
+    (DOMEventType::PointerLeave, "pointerleave", "onPointerLeave"),
+    (DOMEventType::PointerOver, "pointerover", "onPointerOver"),
+    (DOMEventType::PointerOut, "pointerout", "onPointerOut"),
+    (
+      DOMEventType::GotPointerCapture,
+      "gotpointercapture",
+      "onGotPointerCapture",
+    ),
+    (
+      DOMEventType::LostPointerCapture,
+      "lostpointercapture",
+      "onLostPointerCapture",
+    ),
     (DOMEventType::KeyDown, "keydown", "onKeyDown"),
     (DOMEventType::KeyUp, "keyup", "onKeyUp"),
     (DOMEventType::KeyPress, "keypress", "onKeyPress"),
+    (DOMEventType::BeforeInput, "beforeinput", "onBeforeInput"),
     (DOMEventType::Input, "input", "onInput"),
     (DOMEventType::Change, "change", "onChange"),
     (DOMEventType::Submit, "submit", "onSubmit"),
@@ -336,6 +365,7 @@ test "all DOM event types map to native and React names" {
     (DOMEventType::Unload, "unload", "onUnload"),
     (DOMEventType::Resize, "resize", "onResize"),
     (DOMEventType::Scroll, "scroll", "onScroll"),
+    (DOMEventType::Wheel, "wheel", "onWheel"),
     (DOMEventType::Drag, "drag", "onDrag"),
     (DOMEventType::DragStart, "dragstart", "onDragStart"),
     (DOMEventType::DragEnd, "dragend", "onDragEnd"),
@@ -368,6 +398,16 @@ test "all DOM event types map to native and React names" {
     (DOMEventType::TimeUpdate, "timeupdate", "onTimeUpdate"),
     (DOMEventType::VolumeChange, "volumechange", "onVolumeChange"),
     (DOMEventType::Waiting, "waiting", "onWaiting"),
+    (DOMEventType::AnimationStart, "animationstart", "onAnimationStart"),
+    (DOMEventType::AnimationEnd, "animationend", "onAnimationEnd"),
+    (
+      DOMEventType::AnimationIteration,
+      "animationiteration",
+      "onAnimationIteration",
+    ),
+    (DOMEventType::TransitionEnd, "transitionend", "onTransitionEnd"),
+    (DOMEventType::Invalid, "invalid", "onInvalid"),
+    (DOMEventType::Toggle, "toggle", "onToggle"),
   ]
   for case in cases {
     let (event_type, native_name, react_name) = case
