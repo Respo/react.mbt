@@ -134,6 +134,48 @@ extern "js" fn hook_test_reduced_state() -> Int =
   #| () => globalThis.__moonbitHookState.reduced
 
 ///|
+extern "js" fn install_test_style_document() -> Unit =
+  #| () => {
+  #|   const tags = [];
+  #|   const head = { appendChild: (tag) => { tags.push(tag); } };
+  #|   globalThis.window = {
+  #|     document: {
+  #|       head,
+  #|       createElement: () => {
+  #|         const tag = { attributes: {} };
+  #|         tag.setAttribute = (key, value) => { tag.attributes[key] = value; };
+  #|         return tag;
+  #|       },
+  #|     },
+  #|   };
+  #|   globalThis.__moonbitStyleTags = tags;
+  #| }
+
+///|
+extern "js" fn test_style_tag_count() -> Int =
+  #| () => globalThis.__moonbitStyleTags.length
+
+///|
+extern "js" fn test_style_tag_contains(index : Int, text : String) -> Bool =
+  #| (index, text) => globalThis.__moonbitStyleTags[index].innerHTML.includes(text)
+
+///|
+fn static_style_for_test() -> String {
+  static_style([("&", @css.respo_style(color=@css.CssColor::Blue))])
+}
+
+///|
+fn contained_static_style_for_test() -> String {
+  contained_static_style([
+    (
+      Some("@media (min-width: 640px)"),
+      "&:hover",
+      @css.respo_style(color=@css.CssColor::Red),
+    ),
+  ])
+}
+
+///|
 test "DOM attribute names use React property names" {
   inspect(dom_attr_to_react_prop("class"), content="className")
   inspect(dom_attr_to_react_prop("for"), content="htmlFor")
@@ -161,6 +203,34 @@ test "Respo styles convert to React style objects" {
   ).to_js_obscure()
   inspect(js_value_string_prop(style, "color"), content="blue")
   inspect(js_value_string_prop(style, "fontSize"), content="16px")
+}
+
+///|
+test "static styles inject once per callsite" {
+  install_test_style_document()
+  let first = static_style_for_test()
+  let second = static_style_for_test()
+  assert_eq(first, second)
+  inspect(test_style_tag_count(), content="1")
+  inspect(test_style_tag_contains(0, "." + first), content="true")
+  inspect(test_style_tag_contains(0, "color"), content="true")
+  inspect(test_style_tag_contains(0, "blue"), content="true")
+}
+
+///|
+test "contained static styles preserve their container and selector" {
+  install_test_style_document()
+  let class_name = contained_static_style_for_test()
+  inspect(test_style_tag_count(), content="1")
+  inspect(
+    test_style_tag_contains(0, "@media (min-width: 640px)"),
+    content="true",
+  )
+  inspect(
+    test_style_tag_contains(0, "." + class_name + ":hover"),
+    content="true",
+  )
+  inspect(test_style_tag_contains(0, "red"), content="true")
 }
 
 ///|
