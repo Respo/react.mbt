@@ -13,19 +13,23 @@ This is an experimental hobby project exploring MoonBit bindings for React. The 
 ### Core Rendering API
 
 - `render(vdom: VirtualNode, parent: @dom.Element) -> Unit` - Render virtual DOM to specified parent element
-- `component[T: JsValueTrait](f: (T) -> VirtualNode, props: T, children: Array[VirtualNode]) -> VirtualNode` - Create component
+- `unmount(parent: @dom.Element) -> Unit` - Unmount the React root for an element
+- `component[T](f: (T) -> VirtualNode, props: T, children: Array[VirtualNode]) -> VirtualNode` - Create a leaf component
+- `component_with_children[T](f: (T, Array[VirtualNode]) -> VirtualNode, props: T, children: Array[VirtualNode]) -> VirtualNode` - Create a component that places its children
 
 ### Hooks API
 
 - `use_state[T](initial: T) -> (T, (T) -> Unit)` - State management hook
 - `use_reducer[S: Default, A](initial?: S, reducer: (S, A) -> S) -> (S, (A) -> Unit)` - Reducer hook
 - `use_effect_once(effect: () -> Unit) -> Unit` - Effect hook that runs only once
+- `use_effect_cleanup_deps(effect: () -> () -> Unit, deps: Array[JsObscure]) -> Unit` - Effect hook with a cleanup function
+- `use_effect_once_with_cleanup(effect: () -> () -> Unit) -> Unit` - One-time effect with a cleanup function
 - `use_effect_deps(effect: () -> Unit, deps: Array[JsObscure]) -> Unit` - Effect hook with dependencies
 - `use_layout_effect_deps(effect: () -> Unit, deps: Array[JsObscure]) -> Unit` - Layout effect hook
 - `use_memo_deps[A](factory: () -> A, deps: Array[JsObscure]) -> A` - Memoization hook
 - `use_callback_deps[F](callback: F, deps: Array[JsObscure]) -> F` - Callback memoization hook
 - `use_callback0_deps(f: () -> Unit, deps: Array[JsObscure]) -> () -> Unit` - Zero-argument callback hook
-- `use_ref[T: JsValueTrait](initial: T) -> ReactRef[T]` - Reference hook
+- `use_ref[T](initial: T) -> ReactRef[T]` - Reference hook
 - `obscure[T](v: T) -> JsObscure` - Dependency conversion helper function
 
 ### HTML Element Bindings
@@ -77,17 +81,6 @@ Here's a simple example of how to use this library:
 // Define your component props
 struct ContainerProps {} derive(Default)
 
-// Implement JsValueTrait for props
-impl @react.JsValueTrait for ContainerProps with to_value(_self) -> @dom.JsObscure {
-  @react.JsObject::new().to_value()
-}
-
-impl @react.JsValueTrait for ContainerProps with from_value(
-  _value : @dom.JsObscure,
-) -> ContainerProps {
-  ContainerProps::default()
-}
-
 // Create a functional component
 fn comp_container(_v : ContainerProps) -> @react.VirtualNode {
   let (counter, set_counter) = @react.use_state(0.0.to_float())
@@ -136,6 +129,33 @@ fn main {
 ## Project Status
 
 This is an early project exploring MoonBit bindings for React. The API is subject to frequent changes and breaking updates. Use at your own risk!
+
+## Development
+
+The package follows the current MoonBit manifest format (`moon.mod` and
+`moon.pkg`). To run the checks locally:
+
+```sh
+moon check
+moon test
+moon info
+corepack yarn install --frozen-lockfile
+corepack yarn build
+```
+
+The browser entry point loads React and ReactDOMClient before the generated
+MoonBit application. `render` can be called again for the same parent element;
+the binding reuses its React root rather than creating a second one.
+
+## Release
+
+The release workflow verifies the module, builds the demo, packages the MoonBit
+module, and attaches the package archive to a GitHub Release. Trigger it by
+pushing a tag that exactly matches the module version, for example `v0.1.0`.
+
+To also publish the module to mooncakes.io, log in with `moon login` and run
+`moon publish --frozen` after the release checks pass. The registry credential
+is deliberately not stored in the GitHub workflow.
 
 ### License
 

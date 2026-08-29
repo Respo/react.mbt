@@ -3,7 +3,7 @@ struct ContainerProps {} derive(Default)
 
 ///|
 fn comp_container(_v : ContainerProps) -> VirtualNode {
-  let (counter, set_counter) = @react.use_state(0.0.to_float())
+  let (counter, set_counter) = @react.use_state(Float::from_double(0.0))
   @react.use_effect_once(fn() { println("comp_container mounted") })
   @react.div(
     id="container",

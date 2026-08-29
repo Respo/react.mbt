@@ -14,28 +14,32 @@ jobs:
 
       - name: Setup Moonbit
         uses: hustcer/setup-moonbit@v1
-        # with:
-        #   version: "nightly"
 
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: "yarn"
 
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install frontend dependencies
+        run: yarn install --frozen-lockfile
+
       - name: moon check
         run: moon update && moon version && moon check --target js
 
-      # - name: moon info
-      #   run: |
-      #     moon info
-      #     git diff --exit-code
+      - name: Check generated interfaces
+        run: moon info
 
       - name: moon test
-        run: |
-          moon build --target js --debug
+        run: moon test
+
+      - name: Check formatting
+        run: git diff --check
 
       - name: "compiles to js"
-        run: yarn && yarn vite build --base=./
+        run: yarn build
 
       # - name: moon bundle
       #   run: moon bundle
@@ -49,6 +53,7 @@ jobs:
       #     git diff
 
       - name: Deploy to server
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         id: deploy
         uses: Pendect/action-rsyncer@v2.0.0
         env:

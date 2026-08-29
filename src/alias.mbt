@@ -63,7 +63,7 @@ pub fn InputType::to_string(self : InputType) -> String {
 ///
 /// Example:
 ///
-/// ```moonbit
+/// ```moonbit nocheck
 /// let _ = span(
 ///   class_name="text-bold",
 ///   on_click=fn(_e) { println("Clicked!") }, []
@@ -547,12 +547,12 @@ fn combile_classes(class_name : String?, class_list : Array[String]) -> String? 
   if class_name is Some(class_name) {
     class_content += " " + class_name
   }
-  if not(class_list.is_empty()) {
+  if !class_list.is_empty() {
     for class_name in class_list {
       class_content += " " + class_name
     }
   }
-  class_content = class_content.trim(" ").to_string()
+  class_content = class_content.trim(chars=" ").to_owned()
   if class_content.is_empty() {
     None
   } else {

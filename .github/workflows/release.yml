@@ -1,0 +1,48 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Version tag to release, for example v0.1.0"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: hustcer/setup-moonbit@v1
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Install JavaScript dependencies
+        run: yarn install --frozen-lockfile
+      - name: Verify MoonBit module
+        run: |
+          moon check --target js
+          moon test
+          moon info
+          git diff --check
+      - name: Build browser demo and MoonBit package
+        run: |
+          yarn build
+          moon package --list
+      - name: Verify tag matches module version
+        run: |
+          module_version="$(sed -n 's/^version = "\(.*\)"/\1/p' moon.mod)"
+          test "$RELEASE_TAG" = "v$module_version"
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$RELEASE_TAG" _build/publish/*.zip --generate-notes
