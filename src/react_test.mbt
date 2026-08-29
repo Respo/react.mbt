@@ -165,9 +165,13 @@ extern "js" fn install_test_react_hooks() -> Unit =
   #|   };
   #|   globalThis.window = {
   #|     React: {
-  #|       useState: (initial) => [initial, (value) => {
-  #|         globalThis.__moonbitHookState.state = value;
-  #|       }],
+  #|       useState: (initial) => {
+  #|         let current = initial;
+  #|         return [initial, (value) => {
+  #|           current = typeof value === "function" ? value(current) : value;
+  #|           globalThis.__moonbitHookState.state = current;
+  #|         }];
+  #|       },
   #|       useEffect: runEffect,
   #|       useLayoutEffect: runEffect,
   #|       useMemo: (factory) => factory(),
@@ -671,6 +675,13 @@ test "hook wrappers preserve MoonBit values and callbacks" {
   inspect(value, content="1")
   set_value(2)
   inspect(hook_test_state(), content="2")
+
+  let (updatable, update_value) = use_state_with_updater(3)
+  inspect(updatable, content="3")
+  update_value(StateUpdate::Set(4))
+  inspect(hook_test_state(), content="4")
+  update_value(StateUpdate::Update(fn(current) { current + 5 }))
+  inspect(hook_test_state(), content="9")
 
   let memoized = use_memo_deps(fn() { 41 }, [])
   inspect(memoized, content="41")

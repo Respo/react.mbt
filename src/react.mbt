@@ -95,6 +95,39 @@ pub fn[T] use_state(initial : T) -> (T, (T) -> Unit) {
 }
 
 ///|
+/// Represents a React state update. `Set` replaces state directly and `Update`
+/// calculates the next state from React's current value.
+pub(all) enum StateUpdate[T] {
+  Set(T)
+  Update((T) -> T)
+}
+
+///|
+/// Like `use_state`, but its setter supports functional updates through
+/// `StateUpdate::Update`. Prefer this form when the next state depends on the
+/// previous value and React may batch or defer updates.
+pub fn[T] use_state_with_updater(initial : T) -> (T, (StateUpdate[T]) -> Unit) {
+  let pair = react_use_state(any_to_js_value(initial))
+  let state : T = any_from_js_value(pair.get("0"))
+  let set_state = state_updater_from_value(pair.get("1"))
+  (
+    state,
+    fn(update) {
+      match update {
+        Set(value) => set_state(any_to_js_value(value))
+        Update(update_fn) =>
+          set_state(
+            @dom.v_to_js_obscure(fn(current) {
+              let current : T = any_from_js_value(current)
+              any_to_js_value(update_fn(current))
+            }),
+          )
+      }
+    },
+  )
+}
+
+///|
 enum ElementPropValue {
   StringProp(String)
   BoolProp(Bool)

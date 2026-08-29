@@ -20,6 +20,7 @@ This is an experimental hobby project exploring MoonBit bindings for React. The 
 ### Hooks API
 
 - `use_state[T](initial: T) -> (T, (T) -> Unit)` - State management hook
+- `use_state_with_updater[T](initial: T) -> (T, (StateUpdate[T]) -> Unit)` - State hook with direct and functional updates
 - `use_reducer[S: Default, A](initial?: S, reducer: (S, A) -> S) -> (S, (A) -> Unit)` - Reducer hook
 - `use_effect_once(effect: () -> Unit) -> Unit` - Effect hook that runs only once
 - `use_effect_cleanup_deps(effect: () -> () -> Unit, deps: Array[JsObscure]) -> Unit` - Effect hook with a cleanup function
@@ -61,6 +62,7 @@ This is an experimental hobby project exploring MoonBit bindings for React. The 
 - `ElementEvents` - Event handler management
 - `RespoStyle` - CSS styles (from `@css` module)
 - `InputType` enum - Support for all HTML input types
+- `StateUpdate[T]` - `Set(value)` or `Update(fn(previous) { ... })` for safely deriving state from the latest React value
 
 `innerHTML` parameters are converted to React's `dangerouslySetInnerHTML` API.
 Only pass trusted, sanitized HTML through this escape hatch.

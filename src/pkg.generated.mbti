@@ -127,6 +127,8 @@ pub fn[T] use_ref(T) -> ReactRef[T]
 
 pub fn[T] use_state(T) -> (T, (T) -> Unit)
 
+pub fn[T] use_state_with_updater(T) -> (T, (StateUpdate[T]) -> Unit)
+
 pub fn use_transition() -> (Bool, (() -> Unit) -> Unit)
 
 pub fn video(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], src? : String, controls? : Bool, autoplay? : Bool, loop_enabled? : Bool, muted? : Bool, width? : String, height? : String, on_click? : (DOMEvent) -> Unit, on_play? : (DOMEvent) -> Unit, on_pause? : (DOMEvent) -> Unit) -> VirtualNode
@@ -255,6 +257,11 @@ type ReactRef[T]
 pub fn[T] ReactRef::from(T) -> Self[T]
 pub fn[T] ReactRef::get(Self[T]) -> T
 pub fn[T] ReactRef::set(Self[T], T) -> Unit
+
+pub(all) enum StateUpdate[T] {
+  Set(T)
+  Update((T) -> T)
+}
 
 pub struct VirtualElement {
   name : String
