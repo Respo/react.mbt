@@ -11,6 +11,12 @@ extern "js" fn install_test_react() -> Unit =
   #| }
 
 ///|
+enum NonDefaultReducerState {
+  Initial
+  Updated
+} derive(Eq)
+
+///|
 extern "js" fn react_element_child_count(node : @dom.JsObscure) -> Int =
   #| (node) => node.children.length
 
@@ -20,6 +26,104 @@ extern "js" fn react_element_string_prop(
   key : String,
 ) -> String =
   #| (node, key) => node.props[key] || ""
+
+///|
+extern "js" fn js_value_string_prop(
+  value : @dom.JsObscure,
+  key : String,
+) -> String =
+  #| (value, key) => value[key] || ""
+
+///|
+extern "js" fn react_element_tag(node : @dom.JsObscure) -> String =
+  #| (node) => node.tag
+
+///|
+extern "js" fn react_element_bool_prop(
+  node : @dom.JsObscure,
+  key : String,
+) -> Bool =
+  #| (node, key) => node.props[key] === true
+
+///|
+extern "js" fn react_element_has_prop(
+  node : @dom.JsObscure,
+  key : String,
+) -> Bool =
+  #| (node, key) => Object.hasOwn(node.props, key)
+
+///|
+extern "js" fn react_element_prop_equals(
+  node : @dom.JsObscure,
+  key : String,
+  value : @dom.JsObscure,
+) -> Bool =
+  #| (node, key, value) => node.props[key] === value
+
+///|
+extern "js" fn react_element_has_function_prop(
+  node : @dom.JsObscure,
+  key : String,
+) -> Bool =
+  #| (node, key) => typeof node.props[key] === "function"
+
+///|
+extern "js" fn react_element_int_prop(
+  node : @dom.JsObscure,
+  key : String,
+) -> Int =
+  #| (node, key) => node.props[key]
+
+///|
+extern "js" fn react_element_inner_html(node : @dom.JsObscure) -> String =
+  #| (node) => node.props.dangerouslySetInnerHTML?.__html || ""
+
+///|
+extern "js" fn js_value_has_function_prop(
+  value : @dom.JsObscure,
+  key : String,
+) -> Bool =
+  #| (value, key) => typeof value[key] === "function"
+
+///|
+extern "js" fn js_value_bool(value : @dom.JsObscure) -> Bool =
+  #| (value) => value === true
+
+///|
+extern "js" fn js_value_string(value : @dom.JsObscure) -> String =
+  #| (value) => value
+
+///|
+extern "js" fn test_dom_event() -> DOMEvent =
+  #| () => ({
+  #|   target: { value: "updated value", checked: true },
+  #|   key: "Enter",
+  #|   keyCode: 13,
+  #|   clientX: 24,
+  #|   clientY: 48,
+  #|   ctrlKey: true,
+  #|   shiftKey: true,
+  #|   altKey: true,
+  #|   metaKey: true,
+  #|   preventDefault() { this.defaultPrevented = true; },
+  #|   stopPropagation() { this.propagationStopped = true; },
+  #| })
+
+///|
+extern "js" fn test_dom_event_default_prevented(event : DOMEvent) -> Bool =
+  #| (event) => event.defaultPrevented === true
+
+///|
+extern "js" fn test_dom_event_propagation_stopped(event : DOMEvent) -> Bool =
+  #| (event) => event.propagationStopped === true
+
+///|
+extern "js" fn react_element_trigger_event(
+  node : @dom.JsObscure,
+  handler_name : String,
+  event : DOMEvent,
+) -> Unit =
+  #| (node, handlerName, event) => node.props[handlerName](event)
 
 ///|
 extern "js" fn install_test_react_dom() -> Unit =
@@ -60,21 +164,44 @@ extern "js" fn react_unmount_call_count() -> Int =
 ///|
 extern "js" fn install_test_react_hooks() -> Unit =
   #| () => {
-  #|   globalThis.__moonbitHookState = { state: null, reduced: null };
+  #|   globalThis.__moonbitHookState = {
+  #|     state: null,
+  #|     reduced: null,
+  #|     transitionActions: 0,
+  #|   };
+  #|   const runTransition = (action) => {
+  #|     globalThis.__moonbitHookState.transitionActions += 1;
+  #|     action();
+  #|   };
   #|   const runEffect = (effect) => {
   #|     const cleanup = effect();
   #|     if (typeof cleanup === "function") cleanup();
   #|   };
   #|   globalThis.window = {
   #|     React: {
-  #|       useState: (initial) => [initial, (value) => {
-  #|         globalThis.__moonbitHookState.state = value;
-  #|       }],
+  #|       Fragment: Symbol("Fragment"),
+  #|       createElement: (tag, props, ...children) =>
+  #|         typeof tag === "function" ? tag(props) : ({ tag, props, children }),
+  #|       useState: (initial) => {
+  #|         let current = initial;
+  #|         return [initial, (value) => {
+  #|           current = typeof value === "function" ? value(current) : value;
+  #|           globalThis.__moonbitHookState.state = current;
+  #|         }];
+  #|       },
   #|       useEffect: runEffect,
   #|       useLayoutEffect: runEffect,
   #|       useMemo: (factory) => factory(),
   #|       useCallback: (callback) => callback,
+  #|       useEffectEvent: (callback) => callback,
+  #|       useActionState: (action, initial) => [initial, (value) => {
+  #|         globalThis.__moonbitHookState.reduced = action(initial, value);
+  #|       }, false],
   #|       useRef: (initial) => ({ current: initial }),
+  #|       useId: () => "moonbit-test-id",
+  #|       useDeferredValue: (value) => value,
+  #|       useTransition: () => [false, runTransition],
+  #|       startTransition: runTransition,
   #|       useReducer: (reducer, initial) => [initial, (action) => {
   #|         globalThis.__moonbitHookState.reduced = reducer(initial, action);
   #|       }],
@@ -91,9 +218,82 @@ extern "js" fn hook_test_reduced_state() -> Int =
   #| () => globalThis.__moonbitHookState.reduced
 
 ///|
+extern "js" fn hook_test_transition_action_count() -> Int =
+  #| () => globalThis.__moonbitHookState.transitionActions
+
+///|
+extern "js" fn install_test_style_document() -> Unit =
+  #| () => {
+  #|   const tags = [];
+  #|   const head = { appendChild: (tag) => { tags.push(tag); } };
+  #|   globalThis.window = {
+  #|     document: {
+  #|       head,
+  #|       createElement: () => {
+  #|         const tag = { attributes: {} };
+  #|         tag.setAttribute = (key, value) => { tag.attributes[key] = value; };
+  #|         return tag;
+  #|       },
+  #|     },
+  #|   };
+  #|   globalThis.__moonbitStyleTags = tags;
+  #| }
+
+///|
+extern "js" fn clear_test_window() -> Unit =
+  #| () => { delete globalThis.window; }
+
+///|
+extern "js" fn test_style_tag_count() -> Int =
+  #| () => globalThis.__moonbitStyleTags.length
+
+///|
+extern "js" fn test_style_tag_contains(index : Int, text : String) -> Bool =
+  #| (index, text) => globalThis.__moonbitStyleTags[index].innerHTML.includes(text)
+
+///|
+fn static_style_for_test() -> String {
+  static_style([("&", @css.respo_style(color=@css.CssColor::Blue))])
+}
+
+///|
+fn static_style_without_document_for_test() -> String {
+  static_style([("&", @css.respo_style(color=@css.CssColor::Purple))])
+}
+
+///|
+fn contained_static_style_for_test() -> String {
+  contained_static_style([
+    (
+      Some("@media (min-width: 640px)"),
+      "&:hover",
+      @css.respo_style(color=@css.CssColor::Red),
+    ),
+  ])
+}
+
+///|
+fn contained_static_style_without_container_for_test() -> String {
+  contained_static_style([
+    (None, "&:focus", @css.respo_style(color=@css.CssColor::Green)),
+  ])
+}
+
+///|
+fn contained_static_style_without_document_for_test() -> String {
+  contained_static_style([
+    (None, "&:focus", @css.respo_style(color=@css.CssColor::Purple)),
+  ])
+}
+
+///|
 test "DOM attribute names use React property names" {
   inspect(dom_attr_to_react_prop("class"), content="className")
   inspect(dom_attr_to_react_prop("for"), content="htmlFor")
+  inspect(
+    dom_attr_to_react_prop("innerHTML"),
+    content="dangerouslySetInnerHTML",
+  )
   inspect(dom_attr_to_react_prop("data-testid"), content="data-testid")
 }
 
@@ -105,6 +305,75 @@ test "CSS property names convert to React camel case" {
     content="WebkitLineClamp",
   )
   inspect(css_prop_to_camel_case("font"), content="font")
+  inspect(css_prop_to_camel_case(""), content="")
+}
+
+///|
+test "Respo styles convert to React style objects" {
+  let style = convert_style_to_js_object(
+    @css.respo_style(color=@css.CssColor::Blue, font_size=16),
+  ).to_js_obscure()
+  inspect(js_value_string_prop(style, "color"), content="blue")
+  inspect(js_value_string_prop(style, "fontSize"), content="16px")
+}
+
+///|
+test "static styles inject once per callsite" {
+  install_test_style_document()
+  let first = static_style_for_test()
+  let second = static_style_for_test()
+  assert_eq(first, second)
+  inspect(test_style_tag_count(), content="1")
+  inspect(test_style_tag_contains(0, "." + first), content="true")
+  inspect(test_style_tag_contains(0, "color"), content="true")
+  inspect(test_style_tag_contains(0, "blue"), content="true")
+}
+
+///|
+test "static styles defer injection without a document" {
+  clear_test_window()
+  let static_class_name = static_style_without_document_for_test()
+  let contained_class_name = contained_static_style_without_document_for_test()
+
+  install_test_style_document()
+  assert_eq(static_style_without_document_for_test(), static_class_name)
+  assert_eq(
+    contained_static_style_without_document_for_test(),
+    contained_class_name,
+  )
+  inspect(test_style_tag_count(), content="2")
+  inspect(test_style_tag_contains(0, "." + static_class_name), content="true")
+  inspect(
+    test_style_tag_contains(1, "." + contained_class_name + ":focus"),
+    content="true",
+  )
+}
+
+///|
+test "contained static styles preserve their container and selector" {
+  install_test_style_document()
+  let class_name = contained_static_style_for_test()
+  inspect(test_style_tag_count(), content="1")
+  inspect(
+    test_style_tag_contains(0, "@media (min-width: 640px)"),
+    content="true",
+  )
+  inspect(
+    test_style_tag_contains(0, "." + class_name + ":hover"),
+    content="true",
+  )
+  inspect(test_style_tag_contains(0, "red"), content="true")
+}
+
+///|
+test "contained static styles cache uncontained rules per callsite" {
+  install_test_style_document()
+  let first = contained_static_style_without_container_for_test()
+  let second = contained_static_style_without_container_for_test()
+  assert_eq(first, second)
+  inspect(test_style_tag_count(), content="1")
+  inspect(test_style_tag_contains(0, "." + first + ":focus"), content="true")
+  inspect(test_style_tag_contains(0, "green"), content="true")
 }
 
 ///|
@@ -116,10 +385,381 @@ test "DOM events use React handler names" {
 }
 
 ///|
+test "all DOM event types map to native and React names" {
+  let cases : Array[(DOMEventType, String, String)] = [
+    (DOMEventType::Copy, "copy", "onCopy"),
+    (DOMEventType::Cut, "cut", "onCut"),
+    (DOMEventType::Paste, "paste", "onPaste"),
+    (DOMEventType::CompositionEnd, "compositionend", "onCompositionEnd"),
+    (DOMEventType::CompositionStart, "compositionstart", "onCompositionStart"),
+    (
+      DOMEventType::CompositionUpdate,
+      "compositionupdate",
+      "onCompositionUpdate",
+    ),
+    (DOMEventType::Click, "click", "onClick"),
+    (DOMEventType::DoubleClick, "dblclick", "onDoubleClick"),
+    (DOMEventType::MouseDown, "mousedown", "onMouseDown"),
+    (DOMEventType::MouseUp, "mouseup", "onMouseUp"),
+    (DOMEventType::MouseMove, "mousemove", "onMouseMove"),
+    (DOMEventType::MouseEnter, "mouseenter", "onMouseEnter"),
+    (DOMEventType::MouseLeave, "mouseleave", "onMouseLeave"),
+    (DOMEventType::MouseOver, "mouseover", "onMouseOver"),
+    (DOMEventType::MouseOut, "mouseout", "onMouseOut"),
+    (DOMEventType::ContextMenu, "contextmenu", "onContextMenu"),
+    (DOMEventType::PointerDown, "pointerdown", "onPointerDown"),
+    (DOMEventType::PointerMove, "pointermove", "onPointerMove"),
+    (DOMEventType::PointerUp, "pointerup", "onPointerUp"),
+    (DOMEventType::PointerCancel, "pointercancel", "onPointerCancel"),
+    (DOMEventType::PointerEnter, "pointerenter", "onPointerEnter"),
+    (DOMEventType::PointerLeave, "pointerleave", "onPointerLeave"),
+    (DOMEventType::PointerOver, "pointerover", "onPointerOver"),
+    (DOMEventType::PointerOut, "pointerout", "onPointerOut"),
+    (
+      DOMEventType::GotPointerCapture,
+      "gotpointercapture",
+      "onGotPointerCapture",
+    ),
+    (
+      DOMEventType::LostPointerCapture,
+      "lostpointercapture",
+      "onLostPointerCapture",
+    ),
+    (DOMEventType::KeyDown, "keydown", "onKeyDown"),
+    (DOMEventType::KeyUp, "keyup", "onKeyUp"),
+    (DOMEventType::KeyPress, "keypress", "onKeyPress"),
+    (DOMEventType::BeforeInput, "beforeinput", "onBeforeInput"),
+    (DOMEventType::Input, "input", "onInput"),
+    (DOMEventType::Change, "change", "onChange"),
+    (DOMEventType::Submit, "submit", "onSubmit"),
+    (DOMEventType::Reset, "reset", "onReset"),
+    (DOMEventType::Focus, "focus", "onFocus"),
+    (DOMEventType::Blur, "blur", "onBlur"),
+    (DOMEventType::Select, "select", "onSelect"),
+    (DOMEventType::Load, "load", "onLoad"),
+    (DOMEventType::Unload, "unload", "onUnload"),
+    (DOMEventType::Resize, "resize", "onResize"),
+    (DOMEventType::Scroll, "scroll", "onScroll"),
+    (DOMEventType::Wheel, "wheel", "onWheel"),
+    (DOMEventType::Drag, "drag", "onDrag"),
+    (DOMEventType::DragStart, "dragstart", "onDragStart"),
+    (DOMEventType::DragEnd, "dragend", "onDragEnd"),
+    (DOMEventType::DragEnter, "dragenter", "onDragEnter"),
+    (DOMEventType::DragLeave, "dragleave", "onDragLeave"),
+    (DOMEventType::DragOver, "dragover", "onDragOver"),
+    (DOMEventType::Drop, "drop", "onDrop"),
+    (DOMEventType::TouchStart, "touchstart", "onTouchStart"),
+    (DOMEventType::TouchMove, "touchmove", "onTouchMove"),
+    (DOMEventType::TouchEnd, "touchend", "onTouchEnd"),
+    (DOMEventType::TouchCancel, "touchcancel", "onTouchCancel"),
+    (DOMEventType::Error, "error", "onError"),
+    (DOMEventType::Abort, "abort", "onAbort"),
+    (DOMEventType::CanPlay, "canplay", "onCanPlay"),
+    (DOMEventType::CanPlayThrough, "canplaythrough", "onCanPlayThrough"),
+    (DOMEventType::DurationChange, "durationchange", "onDurationChange"),
+    (DOMEventType::Ended, "ended", "onEnded"),
+    (DOMEventType::LoadedData, "loadeddata", "onLoadedData"),
+    (DOMEventType::LoadedMetadata, "loadedmetadata", "onLoadedMetadata"),
+    (DOMEventType::LoadStart, "loadstart", "onLoadStart"),
+    (DOMEventType::Pause, "pause", "onPause"),
+    (DOMEventType::Play, "play", "onPlay"),
+    (DOMEventType::Playing, "playing", "onPlaying"),
+    (DOMEventType::Progress, "progress", "onProgress"),
+    (DOMEventType::RateChange, "ratechange", "onRateChange"),
+    (DOMEventType::Seeked, "seeked", "onSeeked"),
+    (DOMEventType::Seeking, "seeking", "onSeeking"),
+    (DOMEventType::Stalled, "stalled", "onStalled"),
+    (DOMEventType::Suspend, "suspend", "onSuspend"),
+    (DOMEventType::TimeUpdate, "timeupdate", "onTimeUpdate"),
+    (DOMEventType::VolumeChange, "volumechange", "onVolumeChange"),
+    (DOMEventType::Waiting, "waiting", "onWaiting"),
+    (DOMEventType::AnimationStart, "animationstart", "onAnimationStart"),
+    (DOMEventType::AnimationEnd, "animationend", "onAnimationEnd"),
+    (
+      DOMEventType::AnimationIteration,
+      "animationiteration",
+      "onAnimationIteration",
+    ),
+    (DOMEventType::TransitionEnd, "transitionend", "onTransitionEnd"),
+    (DOMEventType::Invalid, "invalid", "onInvalid"),
+    (DOMEventType::Toggle, "toggle", "onToggle"),
+  ]
+  for case in cases {
+    let (event_type, native_name, react_name) = case
+    assert_eq(event_type.to_string(), native_name)
+    assert_eq(dom_event_to_react_handler(event_type), react_name)
+  }
+  inspect(DOMEventType::Click, content="click")
+}
+
+///|
+test "ElementEvents serializes React handler property names" {
+  let events = ElementEvents::new().add(Click, fn(_event) {  })
+  inspect(
+    js_value_has_function_prop(events.to_js_value(), "onClick"),
+    content="true",
+  )
+}
+
+///|
+test "all built-in element helpers emit their HTML tag" {
+  install_test_react()
+  let cases : Array[(VirtualNode, String)] = [
+    (span([]), "span"),
+    (p([]), "p"),
+    (label([]), "label"),
+    (h1([]), "h1"),
+    (h2([]), "h2"),
+    (h3([]), "h3"),
+    (h4([]), "h4"),
+    (h5([]), "h5"),
+    (h6([]), "h6"),
+    (a([]), "a"),
+    (div([]), "div"),
+    (input(), "input"),
+    (button([]), "button"),
+    (textarea(), "textarea"),
+    (select([]), "select"),
+    (option([]), "option"),
+    (section([]), "section"),
+    (article([]), "article"),
+    (header([]), "header"),
+    (footer([]), "footer"),
+    (nav([]), "nav"),
+    (aside([]), "aside"),
+    (ul([]), "ul"),
+    (ol([]), "ol"),
+    (li([]), "li"),
+    (img(), "img"),
+    (video([]), "video"),
+    (audio([]), "audio"),
+  ]
+  for case in cases {
+    let (node, tag) = case
+    assert_eq(react_element_tag(node.to_js_obscure()), tag)
+  }
+}
+
+///|
+test "text, structure, and list helpers preserve common optional props" {
+  install_test_react()
+  let nodes : Array[VirtualNode] = [
+    p(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    h1(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    h2(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    h3(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    h4(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    h5(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    h6(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    a(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    div(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    section(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    article(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    header(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    footer(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    nav(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    aside(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    ul(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    ol(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    li(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+  ]
+  for node in nodes {
+    let value = node.to_js_obscure()
+    assert_eq(react_element_string_prop(value, "id"), "common-id")
+    assert_eq(react_element_string_prop(value, "className"), "base extra-class")
+    assert_eq(react_element_inner_html(value), "<em>trusted</em>")
+    assert_eq(react_element_has_function_prop(value, "onClick"), true)
+  }
+
+  let label_node = label(
+    id="common-id",
+    class_name="base",
+    class_list=["extra-class"],
+    innerHTML="<em>trusted</em>",
+    on_click=fn(_event) {  },
+    for_="input-id",
+    [],
+  ).to_js_obscure()
+  assert_eq(react_element_string_prop(label_node, "id"), "common-id")
+  assert_eq(
+    react_element_string_prop(label_node, "className"),
+    "base extra-class",
+  )
+  assert_eq(react_element_inner_html(label_node), "<em>trusted</em>")
+  assert_eq(react_element_has_function_prop(label_node, "onClick"), true)
+  inspect(react_element_string_prop(label_node, "htmlFor"), content="input-id")
+}
+
+///|
+test "input types use valid HTML values" {
+  inspect(InputType::Button.to_string(), content="button")
+  inspect(InputType::Checkbox.to_string(), content="checkbox")
+  inspect(InputType::Color.to_string(), content="color")
+  inspect(InputType::Date.to_string(), content="date")
+  inspect(InputType::DatetimeLocal.to_string(), content="datetime-local")
+  inspect(InputType::Email.to_string(), content="email")
+  inspect(InputType::File.to_string(), content="file")
+  inspect(InputType::Hidden.to_string(), content="hidden")
+  inspect(InputType::Image.to_string(), content="image")
+  inspect(InputType::Month.to_string(), content="month")
+  inspect(InputType::Number.to_string(), content="number")
+  inspect(InputType::Password.to_string(), content="password")
+  inspect(InputType::Radio.to_string(), content="radio")
+  inspect(InputType::Range.to_string(), content="range")
+  inspect(InputType::Reset.to_string(), content="reset")
+  inspect(InputType::Search.to_string(), content="search")
+  inspect(InputType::Submit.to_string(), content="submit")
+  inspect(InputType::Tel.to_string(), content="tel")
+  inspect(InputType::Text.to_string(), content="text")
+  inspect(InputType::Time.to_string(), content="time")
+  inspect(InputType::Url.to_string(), content="url")
+  inspect(InputType::Week.to_string(), content="week")
+}
+
+///|
 test "boolean React properties are recognized" {
   inspect(is_boolean_prop("checked"), content="true")
   inspect(is_boolean_prop("readOnly"), content="true")
   inspect(is_boolean_prop("className"), content="false")
+}
+
+///|
+test "legacy boolean string props retain their React value type" {
+  inspect(js_value_bool(convert_prop_value("checked", "true")), content="true")
+  inspect(
+    js_value_bool(convert_prop_value("checked", "false")),
+    content="false",
+  )
+  inspect(
+    js_value_string(convert_prop_value("checked", "mixed")),
+    content="mixed",
+  )
 }
 
 ///|
@@ -136,10 +776,22 @@ test "virtual elements convert each child exactly once" {
 }
 
 ///|
+test "fragments create React fragment nodes with every child" {
+  install_test_react()
+  let fragment = VirtualNode::Fragment([
+    VirtualNode::Text("first"),
+    VirtualNode::Text("second"),
+  ]).to_js_obscure()
+  inspect(react_element_child_count(fragment), content="2")
+}
+
+///|
 test "attributes set through ElementAttrs are converted to React props" {
   install_test_react()
   let attrs = ElementAttrs::new().add("title", "first")
   attrs.set("title", "updated")
+  attrs.set_bool("checked", false)
+  attrs.set_int("tabIndex", 3)
   let node = create_element(
     "div",
     attrs,
@@ -151,6 +803,313 @@ test "attributes set through ElementAttrs are converted to React props" {
     react_element_string_prop(node.to_js_obscure(), "title"),
     content="updated",
   )
+  inspect(
+    react_element_has_prop(node.to_js_obscure(), "checked"),
+    content="true",
+  )
+  inspect(
+    react_element_bool_prop(node.to_js_obscure(), "checked"),
+    content="false",
+  )
+  inspect(react_element_int_prop(node.to_js_obscure(), "tabIndex"), content="3")
+}
+
+///|
+test "form handlers receive DOM event values through React props" {
+  install_test_react()
+  let mut received_value = ""
+  let node = input(on_change=fn(event) { received_value = event.target_value() }).to_js_obscure()
+  react_element_trigger_event(node, "onChange", test_dom_event())
+  inspect(received_value, content="updated value")
+}
+
+///|
+test "DOMEvent exposes keyboard, pointer, modifier, and control APIs" {
+  let event = test_dom_event()
+  inspect(event.target_value(), content="updated value")
+  inspect(event.target_checked(), content="true")
+  inspect(event.key(), content="Enter")
+  inspect(event.key_code(), content="13")
+  inspect(event.client_x(), content="24")
+  inspect(event.client_y(), content="48")
+  inspect(event.ctrl_key(), content="true")
+  inspect(event.shift_key(), content="true")
+  inspect(event.alt_key(), content="true")
+  inspect(event.meta_key(), content="true")
+  event.prevent_default()
+  event.stop_propagation()
+  inspect(test_dom_event_default_prevented(event), content="true")
+  inspect(test_dom_event_propagation_stopped(event), content="true")
+}
+
+///|
+test "innerHTML uses React's required object prop" {
+  install_test_react()
+  let node = div(innerHTML="<strong>trusted</strong>", []).to_js_obscure()
+  inspect(react_element_inner_html(node), content="<strong>trusted</strong>")
+}
+
+///|
+test "element helpers preserve form, link, and media props" {
+  install_test_react()
+
+  let label_node = label(for_="email", []).to_js_obscure()
+  inspect(react_element_tag(label_node), content="label")
+  inspect(react_element_string_prop(label_node, "htmlFor"), content="email")
+
+  let input_node = input(
+    id="terms",
+    class_name="field",
+    class_list=["controlled"],
+    type_=Checkbox,
+    value="accepted",
+    placeholder="accept terms",
+    disabled=true,
+    checked=false,
+    on_click=fn(_event) {  },
+    on_input=fn(_event) {  },
+  ).to_js_obscure()
+  inspect(react_element_tag(input_node), content="input")
+  inspect(react_element_string_prop(input_node, "id"), content="terms")
+  inspect(
+    react_element_string_prop(input_node, "className"),
+    content="field controlled",
+  )
+  inspect(react_element_string_prop(input_node, "type"), content="checkbox")
+  inspect(react_element_bool_prop(input_node, "disabled"), content="true")
+  inspect(react_element_has_prop(input_node, "checked"), content="true")
+  inspect(react_element_bool_prop(input_node, "checked"), content="false")
+  inspect(
+    react_element_has_function_prop(input_node, "onClick"),
+    content="true",
+  )
+  inspect(
+    react_element_has_function_prop(input_node, "onInput"),
+    content="true",
+  )
+
+  let button_node = button(
+    id="submit",
+    class_name="action",
+    class_list=["primary"],
+    innerHTML="<b>Submit</b>",
+    button_type="submit",
+    disabled=true,
+    on_click=fn(_event) {  },
+    [],
+  ).to_js_obscure()
+  inspect(react_element_string_prop(button_node, "id"), content="submit")
+  inspect(
+    react_element_string_prop(button_node, "className"),
+    content="action primary",
+  )
+  inspect(react_element_inner_html(button_node), content="<b>Submit</b>")
+  inspect(react_element_string_prop(button_node, "type"), content="submit")
+  inspect(react_element_bool_prop(button_node, "disabled"), content="true")
+  inspect(
+    react_element_has_function_prop(button_node, "onClick"),
+    content="true",
+  )
+
+  let link_node = a(href="/docs", target="_blank", [Text("docs")]).to_js_obscure()
+  inspect(react_element_tag(link_node), content="a")
+  inspect(react_element_string_prop(link_node, "href"), content="/docs")
+  inspect(react_element_string_prop(link_node, "target"), content="_blank")
+
+  let media_node = video(
+    id="video",
+    class_name="media",
+    class_list=["wide"],
+    src="movie.mp4",
+    controls=true,
+    autoplay=true,
+    loop_enabled=true,
+    muted=true,
+    width="640",
+    height="360",
+    on_click=fn(_event) {  },
+    on_play=fn(_event) {  },
+    on_pause=fn(_event) {  },
+    [],
+  ).to_js_obscure()
+  inspect(react_element_tag(media_node), content="video")
+  inspect(react_element_string_prop(media_node, "id"), content="video")
+  inspect(
+    react_element_string_prop(media_node, "className"),
+    content="media wide",
+  )
+  inspect(react_element_bool_prop(media_node, "controls"), content="true")
+  inspect(react_element_bool_prop(media_node, "autoPlay"), content="true")
+  inspect(react_element_bool_prop(media_node, "loop"), content="true")
+  inspect(react_element_bool_prop(media_node, "muted"), content="true")
+  inspect(react_element_string_prop(media_node, "width"), content="640")
+  inspect(react_element_string_prop(media_node, "height"), content="360")
+  inspect(
+    react_element_has_function_prop(media_node, "onClick"),
+    content="true",
+  )
+  inspect(react_element_has_function_prop(media_node, "onPlay"), content="true")
+  inspect(
+    react_element_has_function_prop(media_node, "onPause"),
+    content="true",
+  )
+
+  let audio_node = audio(
+    id="audio",
+    class_name="media",
+    class_list=["sound"],
+    src="sound.mp3",
+    controls=true,
+    autoplay=true,
+    loop_enabled=true,
+    muted=true,
+    on_play=fn(_event) {  },
+    on_pause=fn(_event) {  },
+    [],
+  ).to_js_obscure()
+  inspect(react_element_tag(audio_node), content="audio")
+  inspect(react_element_string_prop(audio_node, "id"), content="audio")
+  inspect(
+    react_element_string_prop(audio_node, "className"),
+    content="media sound",
+  )
+  inspect(react_element_bool_prop(audio_node, "controls"), content="true")
+  inspect(react_element_bool_prop(audio_node, "autoPlay"), content="true")
+  inspect(react_element_bool_prop(audio_node, "loop"), content="true")
+  inspect(react_element_bool_prop(audio_node, "muted"), content="true")
+  inspect(react_element_has_function_prop(audio_node, "onPlay"), content="true")
+  inspect(
+    react_element_has_function_prop(audio_node, "onPause"),
+    content="true",
+  )
+
+  let select_node = select(
+    id="choices",
+    class_name="field",
+    class_list=["multiple"],
+    value="second",
+    disabled=true,
+    multiple=true,
+    on_change=fn(_event) {  },
+    [],
+  ).to_js_obscure()
+  inspect(react_element_string_prop(select_node, "id"), content="choices")
+  inspect(
+    react_element_string_prop(select_node, "className"),
+    content="field multiple",
+  )
+  inspect(react_element_string_prop(select_node, "value"), content="second")
+  inspect(react_element_bool_prop(select_node, "disabled"), content="true")
+  inspect(react_element_bool_prop(select_node, "multiple"), content="true")
+  inspect(
+    react_element_has_function_prop(select_node, "onChange"),
+    content="true",
+  )
+
+  let option_node = option(
+    id="second",
+    class_name="choice",
+    class_list=["selected"],
+    innerHTML="<i>Second</i>",
+    value="second",
+    selected=true,
+    disabled=true,
+    [],
+  ).to_js_obscure()
+  inspect(react_element_string_prop(option_node, "id"), content="second")
+  inspect(
+    react_element_string_prop(option_node, "className"),
+    content="choice selected",
+  )
+  inspect(react_element_inner_html(option_node), content="<i>Second</i>")
+  inspect(react_element_string_prop(option_node, "value"), content="second")
+  inspect(react_element_bool_prop(option_node, "selected"), content="true")
+  inspect(react_element_bool_prop(option_node, "disabled"), content="true")
+
+  let textarea_node = textarea(
+    id="notes",
+    class_name="field",
+    class_list=["large"],
+    value="hello",
+    placeholder="notes",
+    rows=3,
+    cols=20,
+    disabled=true,
+    on_change=fn(_event) {  },
+    on_input=fn(_event) {  },
+  ).to_js_obscure()
+  inspect(react_element_string_prop(textarea_node, "id"), content="notes")
+  inspect(
+    react_element_string_prop(textarea_node, "className"),
+    content="field large",
+  )
+  inspect(react_element_string_prop(textarea_node, "value"), content="hello")
+  inspect(
+    react_element_string_prop(textarea_node, "placeholder"),
+    content="notes",
+  )
+  inspect(react_element_int_prop(textarea_node, "rows"), content="3")
+  inspect(react_element_int_prop(textarea_node, "cols"), content="20")
+  inspect(react_element_bool_prop(textarea_node, "disabled"), content="true")
+  inspect(
+    react_element_has_function_prop(textarea_node, "onChange"),
+    content="true",
+  )
+  inspect(
+    react_element_has_function_prop(textarea_node, "onInput"),
+    content="true",
+  )
+
+  let image_node = img(
+    id="logo",
+    class_name="image",
+    class_list=["responsive"],
+    src="logo.svg",
+    alt="Logo",
+    width="120",
+    height="40",
+    on_click=fn(_event) {  },
+    on_load=fn(_event) {  },
+    on_error=fn(_event) {  },
+  ).to_js_obscure()
+  inspect(react_element_string_prop(image_node, "id"), content="logo")
+  inspect(
+    react_element_string_prop(image_node, "className"),
+    content="image responsive",
+  )
+  inspect(react_element_string_prop(image_node, "src"), content="logo.svg")
+  inspect(react_element_string_prop(image_node, "alt"), content="Logo")
+  inspect(react_element_string_prop(image_node, "width"), content="120")
+  inspect(react_element_string_prop(image_node, "height"), content="40")
+  inspect(
+    react_element_has_function_prop(image_node, "onClick"),
+    content="true",
+  )
+  inspect(react_element_has_function_prop(image_node, "onLoad"), content="true")
+  inspect(
+    react_element_has_function_prop(image_node, "onError"),
+    content="true",
+  )
+}
+
+///|
+test "text element helpers combine classes and handlers" {
+  install_test_react()
+  let node = span(
+    id="notice",
+    class_name="base",
+    class_list=["expanded", "active"],
+    innerHTML="<em>trusted</em>",
+    on_click=fn(_event) {  },
+    [],
+  ).to_js_obscure()
+  inspect(react_element_string_prop(node, "id"), content="notice")
+  inspect(
+    react_element_string_prop(node, "className"),
+    content="base expanded active",
+  )
+  inspect(react_element_inner_html(node), content="<em>trusted</em>")
+  inspect(react_element_has_function_prop(node, "onClick"), content="true")
 }
 
 ///|
@@ -182,10 +1141,19 @@ test "hook wrappers preserve MoonBit values and callbacks" {
   set_value(2)
   inspect(hook_test_state(), content="2")
 
+  let (updatable, update_value) = use_state_with_updater(3)
+  inspect(updatable, content="3")
+  update_value(StateUpdate::Set(4))
+  inspect(hook_test_state(), content="4")
+  update_value(StateUpdate::Update(fn(current) { current + 5 }))
+  inspect(hook_test_state(), content="9")
+
   let memoized = use_memo_deps(fn() { 41 }, [])
   inspect(memoized, content="41")
   let callback = use_callback_deps(fn(value : Int) { value + 1 }, [])
   inspect(callback(4), content="5")
+  let effect_event = use_effect_event(fn(value : Int) { value + 2 })
+  inspect(effect_event(4), content="6")
   let mut callback0_calls = 0
   let callback0 = use_callback0_deps(
     fn() { callback0_calls = callback0_calls + 1 },
@@ -201,6 +1169,22 @@ test "hook wrappers preserve MoonBit values and callbacks" {
   let direct_ref = ReactRef::from("direct")
   inspect(direct_ref.get(), content="direct")
 
+  let attrs = ElementAttrs::new()
+  attrs.set_js_value("ref", direct_ref.to_js_obscure())
+  let ref_node = create_element(
+      "input",
+      attrs,
+      ElementEvents::new(),
+      style=@css.respo_style(),
+      [],
+    )
+    .to_node()
+    .to_js_obscure()
+  inspect(
+    react_element_prop_equals(ref_node, "ref", direct_ref.to_js_obscure()),
+    content="true",
+  )
+
   let (reduced, dispatch) = use_reducer(initial=3, fn(
     state : Int,
     action : Int,
@@ -210,6 +1194,39 @@ test "hook wrappers preserve MoonBit values and callbacks" {
   inspect(reduced, content="3")
   dispatch(4)
   inspect(hook_test_reduced_state(), content="7")
+
+  let (non_default_state, dispatch_non_default) = use_reducer_with_initial(
+    NonDefaultReducerState::Initial,
+    fn(_state : NonDefaultReducerState, _action : Unit) {
+      NonDefaultReducerState::Updated
+    },
+  )
+  inspect(non_default_state == NonDefaultReducerState::Initial, content="true")
+  dispatch_non_default(())
+
+  let (action_state, dispatch_action, is_action_pending) = use_action_state(
+    10,
+    fn(state : Int, value : Int) { state + value },
+  )
+  inspect(action_state, content="10")
+  inspect(is_action_pending, content="false")
+  dispatch_action(5)
+  inspect(hook_test_reduced_state(), content="15")
+}
+
+///|
+test "concurrent hook wrappers preserve values and run transitions" {
+  install_test_react_hooks()
+  inspect(use_id(), content="moonbit-test-id")
+  inspect(use_deferred_value("deferred"), content="deferred")
+
+  let (is_pending, start) = use_transition()
+  inspect(is_pending, content="false")
+  let mut transition_effects = 0
+  start(fn() { transition_effects = transition_effects + 1 })
+  start_transition(fn() { transition_effects = transition_effects + 1 })
+  inspect(transition_effects, content="2")
+  inspect(hook_test_transition_action_count(), content="2")
 }
 
 ///|
@@ -233,6 +1250,18 @@ test "effect wrappers invoke effects and cleanup functions" {
   )
   inspect(effects, content="5")
   inspect(cleanups, content="2")
+}
+
+///|
+test "components without child access render through their React factory" {
+  install_test_react()
+  let node = component(
+    fn(_props : String) { div([Text("component body")]) },
+    "props",
+    [Text("React receives this child")],
+  ).to_js_obscure()
+  inspect(react_element_tag(node), content="div")
+  inspect(react_element_child_count(node), content="1")
 }
 
 ///|

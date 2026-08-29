@@ -8,6 +8,29 @@
 
 This is an experimental hobby project exploring MoonBit bindings for React. The API is unstable and may change frequently. Not recommended for production use. This project is intended for technical exploration and learning purposes only.
 
+## API Stability and JavaScript Boundary
+
+All public APIs are experimental. The virtual-node, element-helper, and basic
+hook APIs are the maintained baseline; React 19 concurrent hooks and the broad
+event catalogue are newer additions that should receive application-level
+testing before adoption. Deprecated compatibility APIs remain available only
+until the next breaking release.
+
+`JsObscure` is the explicit escape hatch at the MoonBit/JavaScript boundary.
+Use it for hook dependency values with `obscure(value)` and for intentional JS
+interoperation only. Generic hook and component values cross React using the
+MoonBit JavaScript representation, so they must be values that the generated
+MoonBit runtime can pass directly; do not assume JSON serialization or deep
+cloning occurs.
+
+The browser entry point must initialize `window.React` and
+`window.ReactDOMClient` before calling this package. The bundled demo shows the
+supported ESM integration pattern.
+
+Component functions must be placed in the virtual DOM through `component`, not
+called directly. Use `component_with_children` when the component needs to
+place caller-supplied children in its own tree.
+
 ## Bound APIs and Types
 
 ### Core Rendering API
@@ -17,9 +40,14 @@ This is an experimental hobby project exploring MoonBit bindings for React. The 
 - `component[T](f: (T) -> VirtualNode, props: T, children: Array[VirtualNode]) -> VirtualNode` - Create a leaf component
 - `component_with_children[T](f: (T, Array[VirtualNode]) -> VirtualNode, props: T, children: Array[VirtualNode]) -> VirtualNode` - Create a component that places its children
 
+For example, use `component(my_component, props, [])`, never
+`my_component(props)` directly in a virtual DOM tree.
+
 ### Hooks API
 
 - `use_state[T](initial: T) -> (T, (T) -> Unit)` - State management hook
+- `use_state_with_updater[T](initial: T) -> (T, (StateUpdate[T]) -> Unit)` - State hook with direct and functional updates
+- `use_reducer_with_initial[S, A](initial: S, reducer: (S, A) -> S) -> (S, (A) -> Unit)` - Reducer hook for any explicit state type
 - `use_reducer[S: Default, A](initial?: S, reducer: (S, A) -> S) -> (S, (A) -> Unit)` - Reducer hook
 - `use_effect_once(effect: () -> Unit) -> Unit` - Effect hook that runs only once
 - `use_effect_cleanup_deps(effect: () -> () -> Unit, deps: Array[JsObscure]) -> Unit` - Effect hook with a cleanup function
@@ -28,8 +56,14 @@ This is an experimental hobby project exploring MoonBit bindings for React. The 
 - `use_layout_effect_deps(effect: () -> Unit, deps: Array[JsObscure]) -> Unit` - Layout effect hook
 - `use_memo_deps[A](factory: () -> A, deps: Array[JsObscure]) -> A` - Memoization hook
 - `use_callback_deps[F](callback: F, deps: Array[JsObscure]) -> F` - Callback memoization hook
+- `use_effect_event[F](callback: F) -> F` - React 19.2 effect-only callback that reads latest state without re-subscribing an effect
+- `use_action_state[S, A](initial: S, action: (S, A) -> S) -> (S, (A) -> Unit, Bool)` - React 19 action state, dispatch, and pending flag
 - `use_callback0_deps(f: () -> Unit, deps: Array[JsObscure]) -> () -> Unit` - Zero-argument callback hook
 - `use_ref[T](initial: T) -> ReactRef[T]` - Reference hook
+- `use_id() -> String` - Stable component-local identifier hook
+- `use_deferred_value[T](value: T) -> T` - Deferred-value hook for non-urgent rendering
+- `use_transition() -> (Bool, (() -> Unit) -> Unit)` - Transition state and starter hook
+- `start_transition(action: () -> Unit) -> Unit` - Start a transition when pending state is not needed
 - `obscure[T](v: T) -> JsObscure` - Dependency conversion helper function
 
 ### HTML Element Bindings
@@ -43,8 +77,13 @@ This is an experimental hobby project exploring MoonBit bindings for React. The 
 
 ### Event Handling
 
+`DOMEventType` covers clipboard, composition, keyboard, mouse, pointer, wheel,
+form, drag, touch, media, animation, and transition events. It maps each value
+to React's camel-cased `onXxx` property automatically.
+
 - `DOMEvent` type and its methods:
   - `target_value() -> String` - Get form element value
+  - `target_checked() -> Bool` - Get checkbox or radio checked state
   - `key() -> String`, `key_code() -> Int` - Keyboard events
   - `client_x() -> Int`, `client_y() -> Int` - Mouse coordinates
   - `prevent_default()`, `stop_propagation()` - Event control
@@ -52,10 +91,28 @@ This is an experimental hobby project exploring MoonBit bindings for React. The 
 
 ### Styles and Attributes
 
-- `ElementAttrs` - HTML attribute management
+- `ElementAttrs` - HTML attribute management, including typed boolean and integer setters
 - `ElementEvents` - Event handler management
 - `RespoStyle` - CSS styles (from `@css` module)
 - `InputType` enum - Support for all HTML input types
+- `StateUpdate[T]` - `Set(value)` or `Update(fn(previous) { ... })` for safely deriving state from the latest React value
+
+`innerHTML` parameters are converted to React's `dangerouslySetInnerHTML` API.
+Only pass trusted, sanitized HTML through this escape hatch.
+
+Use `ElementAttrs::set` for string attributes, `set_bool` for React boolean
+properties such as `disabled`, and `set_int` for numeric properties such as
+`rows`. The built-in element helpers use these typed conversions automatically.
+Use `set_js_value` only for explicit React values such as a DOM ref:
+`attrs.set_js_value("ref", input_ref.to_js_obscure())`.
+For controlled checkbox or radio inputs, use `input(checked=value)` so both
+`true` and `false` reach React as booleans.
+
+`declare_contained_style` is deprecated; use `contained_static_style` instead.
+
+Static-style declarations are safe during server-side rendering or pre-rendering:
+without a browser document they return their deterministic class name without
+injecting a tag. The browser's module evaluation then performs the injection.
 
 ### Virtual DOM Types
 
@@ -83,14 +140,14 @@ struct ContainerProps {} derive(Default)
 
 // Create a functional component
 fn comp_container(_v : ContainerProps) -> @react.VirtualNode {
-  let (counter, set_counter) = @react.use_state(0.0.to_float())
+  let (counter, set_counter) = @react.use_state(Float::from_double(0.0))
 
   @react.div(
     id="container",
     style=@css.respo_style(
-      color=Blue,
+      color=@css.CssColor::Blue,
       font_family="Arial",
-      padding=10.0 |> Px
+      padding=@css.CssSize::Px(10.0),
     ),
     on_click=fn(_) {
       println("clicked \{counter}")
@@ -108,7 +165,7 @@ fn main {
   let window = @dom.window()
   let doc = window.document()
   let body = doc.body()
-  let props = ContainerProps::default()
+  let props : ContainerProps = Default::default()
 
   @react.render(
     @react.component(comp_container, props, []),
@@ -126,10 +183,6 @@ fn main {
 - Event handling
 - Component composition
 
-## Project Status
-
-This is an early project exploring MoonBit bindings for React. The API is subject to frequent changes and breaking updates. Use at your own risk!
-
 ## Development
 
 The package follows the current MoonBit manifest format (`moon.mod` and
@@ -141,7 +194,15 @@ moon test
 moon info
 corepack yarn install --frozen-lockfile
 corepack yarn build
+corepack yarn test:browser
 ```
+
+CI pins MoonBit compiler `0.10.4+2cc641edf` and validates Node 22 with Yarn
+1.22.22. `test:browser` runs the deterministic TodoMVC smoke flow in Chromium;
+install it once locally with `yarn playwright install chromium`. Update the
+toolchain pin only through the full check, unit-test, interface, browser-test,
+and browser-build matrix. This revision was verified with MoonBit
+`0.1.20260713`, React 19.2.x, and Vite 8.2.x.
 
 The browser entry point loads React and ReactDOMClient before the generated
 MoonBit application. `render` can be called again for the same parent element;

@@ -62,14 +62,14 @@ pub fn unmount(parent : @dom.Element) -> Unit {
 extern "js" fn react_create_element(
   tag : String,
   props : @dom.JsObjectObscure,
-  children : Array[@dom.JsObscure],
+  children : FixedArray[@dom.JsObscure],
 ) -> @dom.JsObscure =
   #| (tag, props, children) => window.React.createElement(tag, props, ...children)
 
 ///|
 extern "js" fn react_fragment(
   props : @dom.JsObjectObscure,
-  children : Array[@dom.JsObscure],
+  children : FixedArray[@dom.JsObscure],
 ) -> @dom.JsObscure =
   #| (props, children) => window.React.createElement(window.React.Fragment, props, ...children)
 
@@ -78,6 +78,9 @@ extern "js" fn react_use_state(initial : JsObscure) -> JsObscure =
   #| (initial) => { return window.React.useState(initial)}
 
 ///|
+// React hook values are emitted by the MoonBit JavaScript runtime. These
+// identity bridges intentionally preserve that runtime representation instead
+// of serializing values across the JavaScript boundary.
 fn state_updater_from_value(v : JsObscure) -> (JsObscure) -> Unit = "%identity"
 
 ///|
@@ -95,7 +98,48 @@ pub fn[T] use_state(initial : T) -> (T, (T) -> Unit) {
 }
 
 ///|
-pub struct ElementAttrs(Map[String, String]) derive(Default)
+/// Represents a React state update. `Set` replaces state directly and `Update`
+/// calculates the next state from React's current value.
+pub(all) enum StateUpdate[T] {
+  Set(T)
+  Update((T) -> T)
+}
+
+///|
+/// Like `use_state`, but its setter supports functional updates through
+/// `StateUpdate::Update`. Prefer this form when the next state depends on the
+/// previous value and React may batch or defer updates.
+pub fn[T] use_state_with_updater(initial : T) -> (T, (StateUpdate[T]) -> Unit) {
+  let pair = react_use_state(any_to_js_value(initial))
+  let state : T = any_from_js_value(pair.get("0"))
+  let set_state = state_updater_from_value(pair.get("1"))
+  (
+    state,
+    fn(update) {
+      match update {
+        Set(value) => set_state(any_to_js_value(value))
+        Update(update_fn) =>
+          set_state(
+            @dom.v_to_js_obscure(fn(current) {
+              let current : T = any_from_js_value(current)
+              any_to_js_value(update_fn(current))
+            }),
+          )
+      }
+    },
+  )
+}
+
+///|
+enum ElementPropValue {
+  StringProp(String)
+  BoolProp(Bool)
+  IntProp(Int)
+  JsProp(JsObscure)
+}
+
+///|
+pub struct ElementAttrs(Map[String, ElementPropValue]) derive(Default)
 
 ///|
 pub fn ElementAttrs::new() -> ElementAttrs {
@@ -103,22 +147,56 @@ pub fn ElementAttrs::new() -> ElementAttrs {
 }
 
 ///|
+/// Adds a string-valued React property and returns the same attribute map.
 pub fn ElementAttrs::add(
   self : ElementAttrs,
   key : String,
   value : String,
 ) -> ElementAttrs {
-  self.0.set(key, value)
+  self.0.set(key, StringProp(value))
   self
 }
 
 ///|
+/// Sets a string-valued React property.
 pub fn ElementAttrs::set(
   self : ElementAttrs,
   key : String,
   value : String,
 ) -> Unit {
-  self.0.set(key, value)
+  self.0.set(key, StringProp(value))
+}
+
+///|
+/// Sets a boolean React property without converting it to a string.
+pub fn ElementAttrs::set_bool(
+  self : ElementAttrs,
+  key : String,
+  value : Bool,
+) -> Unit {
+  self.0.set(key, BoolProp(value))
+}
+
+///|
+/// Sets an integer React property without converting it to a string.
+pub fn ElementAttrs::set_int(
+  self : ElementAttrs,
+  key : String,
+  value : Int,
+) -> Unit {
+  self.0.set(key, IntProp(value))
+}
+
+///|
+/// Sets an explicitly pre-converted JavaScript property. Use this escape hatch
+/// for React values such as `ref` that cannot be represented as strings,
+/// booleans, or integers.
+pub fn ElementAttrs::set_js_value(
+  self : ElementAttrs,
+  key : String,
+  value : JsObscure,
+) -> Unit {
+  self.0.set(key, JsProp(value))
 }
 
 ///|
@@ -131,6 +209,12 @@ pub fn DOMEvent::to_js_obscure(self : DOMEvent) -> JsObscure = "%identity"
 /// 获取事件目标元素的值（通常用于 input、textarea 等表单元素）
 pub extern "js" fn DOMEvent::target_value(self : DOMEvent) -> String =
   #| (event) => event.target ? event.target.value || "" : ""
+
+///|
+/// Returns whether the event target is checked. This is intended for controlled
+/// checkbox and radio inputs; non-checkable targets return false.
+pub extern "js" fn DOMEvent::target_checked(self : DOMEvent) -> Bool =
+  #| (event) => event.target?.checked === true
 
 ///|
 /// 获取键盘事件的键值
@@ -192,6 +276,16 @@ priv struct DOMEventHandler((DOMEvent) -> Unit)
 ///|
 /// DOM 事件类型枚举
 pub(all) enum DOMEventType {
+  // 剪贴板事件
+  Copy
+  Cut
+  Paste
+
+  // 输入法组合事件
+  CompositionEnd
+  CompositionStart
+  CompositionUpdate
+
   // 鼠标事件
   Click
   DoubleClick
@@ -204,10 +298,23 @@ pub(all) enum DOMEventType {
   MouseOut
   ContextMenu
 
+  // 指针事件
+  PointerDown
+  PointerMove
+  PointerUp
+  PointerCancel
+  PointerEnter
+  PointerLeave
+  PointerOver
+  PointerOut
+  GotPointerCapture
+  LostPointerCapture
+
   // 键盘事件
   KeyDown
   KeyUp
   KeyPress
+  BeforeInput
 
   // 表单事件
   Input
@@ -223,6 +330,7 @@ pub(all) enum DOMEventType {
   Unload
   Resize
   Scroll
+  Wheel
 
   // 拖拽事件
   Drag
@@ -261,12 +369,28 @@ pub(all) enum DOMEventType {
   TimeUpdate
   VolumeChange
   Waiting
+
+  // CSS 动画和过渡事件
+  AnimationStart
+  AnimationEnd
+  AnimationIteration
+  TransitionEnd
+
+  // 其他可冒泡的元素事件
+  Invalid
+  Toggle
 } derive(Eq, Compare, Hash)
 
 ///|
 /// 将 DOMEventType 转换为字符串
 pub fn DOMEventType::to_string(self : DOMEventType) -> String {
   match self {
+    Copy => "copy"
+    Cut => "cut"
+    Paste => "paste"
+    CompositionEnd => "compositionend"
+    CompositionStart => "compositionstart"
+    CompositionUpdate => "compositionupdate"
     Click => "click"
     DoubleClick => "dblclick"
     MouseDown => "mousedown"
@@ -277,9 +401,20 @@ pub fn DOMEventType::to_string(self : DOMEventType) -> String {
     MouseOver => "mouseover"
     MouseOut => "mouseout"
     ContextMenu => "contextmenu"
+    PointerDown => "pointerdown"
+    PointerMove => "pointermove"
+    PointerUp => "pointerup"
+    PointerCancel => "pointercancel"
+    PointerEnter => "pointerenter"
+    PointerLeave => "pointerleave"
+    PointerOver => "pointerover"
+    PointerOut => "pointerout"
+    GotPointerCapture => "gotpointercapture"
+    LostPointerCapture => "lostpointercapture"
     KeyDown => "keydown"
     KeyUp => "keyup"
     KeyPress => "keypress"
+    BeforeInput => "beforeinput"
     Input => "input"
     Change => "change"
     Submit => "submit"
@@ -291,6 +426,7 @@ pub fn DOMEventType::to_string(self : DOMEventType) -> String {
     Unload => "unload"
     Resize => "resize"
     Scroll => "scroll"
+    Wheel => "wheel"
     Drag => "drag"
     DragStart => "dragstart"
     DragEnd => "dragend"
@@ -323,6 +459,12 @@ pub fn DOMEventType::to_string(self : DOMEventType) -> String {
     TimeUpdate => "timeupdate"
     VolumeChange => "volumechange"
     Waiting => "waiting"
+    AnimationStart => "animationstart"
+    AnimationEnd => "animationend"
+    AnimationIteration => "animationiteration"
+    TransitionEnd => "transitionend"
+    Invalid => "invalid"
+    Toggle => "toggle"
   }
 }
 
@@ -367,9 +509,10 @@ pub fn ElementEvents::set(
 
 ///|
 pub fn ElementEvents::to_js_value(self : ElementEvents) -> JsObscure {
+  // React consumes handler properties such as onClick, not native names like click.
   let obj = @dom.JsObjectObscure::new()
   for event_type, value in self.0 {
-    obj.set(event_type.to_string(), value.to_js_func())
+    obj.set(dom_event_to_react_handler(event_type), value.to_js_func())
   }
   obj.to_js_obscure()
 }
@@ -400,7 +543,7 @@ pub fn VirtualNode::to_js_obscure(self : VirtualNode) -> @dom.JsObscure {
       for child in children {
         v.push(child.to_js_obscure())
       }
-      react_fragment(@dom.JsObjectObscure::new(), v)
+      react_fragment(@dom.JsObjectObscure::new(), FixedArray::from_array(v))
     }
     Text(t) => JsObscure::from_string(t)
     JsNode(v) => v
@@ -414,7 +557,7 @@ pub fn VirtualNode::to_js_obscure(self : VirtualNode) -> @dom.JsObscure {
 /// Most attributes should use the correct React property names directly in element definitions.
 ///
 /// # Parameters
-/// - `attr_name`: HTML attribute name such as "class", "for", etc.
+/// - `attr_name`: HTML attribute name such as "class", "for", or "innerHTML".
 ///
 /// # Returns
 /// `String` - React-compatible property name.
@@ -422,6 +565,7 @@ pub fn VirtualNode::to_js_obscure(self : VirtualNode) -> @dom.JsObscure {
 /// ```
 /// inspect(dom_attr_to_react_prop("class"), content="className")
 /// inspect(dom_attr_to_react_prop("for"), content="htmlFor")
+/// inspect(dom_attr_to_react_prop("innerHTML"), content="dangerouslySetInnerHTML")
 /// inspect(dom_attr_to_react_prop("id"), content="id")
 /// inspect(dom_attr_to_react_prop("data-test"), content="data-test")
 /// ```
@@ -430,6 +574,7 @@ pub fn dom_attr_to_react_prop(attr_name : String) -> String {
     // 保留向后兼容性，支持传统的 HTML 属性名
     "class" => "className"
     "for" => "htmlFor"
+    "innerHTML" => "dangerouslySetInnerHTML"
     // 其他属性名应该在元素定义时就使用正确的 React 属性名
     _ => attr_name
   }
@@ -535,7 +680,12 @@ fn VirtualElement::to_js_value(self : VirtualElement) -> @dom.JsObscure {
   let props = @dom.JsObjectObscure::new()
   for key, value in self.attrs.0 {
     let react_prop_name = dom_attr_to_react_prop(key)
-    let prop_value = convert_prop_value(react_prop_name, value)
+    let prop_value = match value {
+      StringProp(value) => convert_prop_value(react_prop_name, value)
+      BoolProp(value) => @dom.v_to_js_obscure(value)
+      IntProp(value) => @dom.v_to_js_obscure(value)
+      JsProp(value) => value
+    }
     props.set(react_prop_name, prop_value)
   }
   let style = convert_style_to_js_object(self.style)
@@ -548,7 +698,7 @@ fn VirtualElement::to_js_value(self : VirtualElement) -> @dom.JsObscure {
     let event_name = dom_event_to_react_handler(event_type)
     props.set(event_name, @dom.v_to_js_obscure(value))
   }
-  react_create_element(self.name, props, children)
+  react_create_element(self.name, props, FixedArray::from_array(children))
 }
 
 ///|
@@ -589,7 +739,7 @@ pub fn create_element(
 extern "js" fn create_factory(
   f : (@dom.JsObscure) -> @dom.JsObscure,
   props : @dom.JsObscure,
-  children : Array[@dom.JsObscure],
+  children : FixedArray[@dom.JsObscure],
 ) -> @dom.JsObscure =
   #| (f, props, children) => {
   #|   let h0 = window.React.createElement(f, props, ...children);
@@ -626,10 +776,10 @@ pub fn[T] component(
   let children_js = children.map(fn(child) { child.to_js_obscure() })
   let r = create_factory(
     fn(p) { f(@dom.js_obscure_to_v(p)).to_js_obscure() },
-    // TODO maybe better to use { value: PROPS} instead of props.to_value()
-    // need future refactor to explore it
+    // Props retain their MoonBit JavaScript representation; React receives no
+    // JSON conversion or defensive clone at this boundary.
     @dom.v_to_js_obscure(props),
-    children_js,
+    FixedArray::from_array(children_js),
   )
   JsNode(r)
 }
@@ -651,7 +801,7 @@ pub fn[T] component_with_children(
   let r = create_factory(
     fn(p) { f(@dom.js_obscure_to_v(p), children).to_js_obscure() },
     @dom.v_to_js_obscure(props),
-    children_js,
+    FixedArray::from_array(children_js),
   )
   JsNode(r)
 }
@@ -681,6 +831,12 @@ fn first_letter_to_uppercase(s : String) -> String {
 /// ```
 pub fn dom_event_to_react_handler(event_type : DOMEventType) -> String {
   match event_type {
+    Copy => "onCopy"
+    Cut => "onCut"
+    Paste => "onPaste"
+    CompositionEnd => "onCompositionEnd"
+    CompositionStart => "onCompositionStart"
+    CompositionUpdate => "onCompositionUpdate"
     Click => "onClick"
     DoubleClick => "onDoubleClick"
     MouseDown => "onMouseDown"
@@ -691,9 +847,20 @@ pub fn dom_event_to_react_handler(event_type : DOMEventType) -> String {
     MouseOver => "onMouseOver"
     MouseOut => "onMouseOut"
     ContextMenu => "onContextMenu"
+    PointerDown => "onPointerDown"
+    PointerMove => "onPointerMove"
+    PointerUp => "onPointerUp"
+    PointerCancel => "onPointerCancel"
+    PointerEnter => "onPointerEnter"
+    PointerLeave => "onPointerLeave"
+    PointerOver => "onPointerOver"
+    PointerOut => "onPointerOut"
+    GotPointerCapture => "onGotPointerCapture"
+    LostPointerCapture => "onLostPointerCapture"
     KeyDown => "onKeyDown"
     KeyUp => "onKeyUp"
     KeyPress => "onKeyPress"
+    BeforeInput => "onBeforeInput"
     Input => "onInput"
     Change => "onChange"
     Submit => "onSubmit"
@@ -705,6 +872,7 @@ pub fn dom_event_to_react_handler(event_type : DOMEventType) -> String {
     Unload => "onUnload"
     Resize => "onResize"
     Scroll => "onScroll"
+    Wheel => "onWheel"
     Drag => "onDrag"
     DragStart => "onDragStart"
     DragEnd => "onDragEnd"
@@ -737,6 +905,12 @@ pub fn dom_event_to_react_handler(event_type : DOMEventType) -> String {
     TimeUpdate => "onTimeUpdate"
     VolumeChange => "onVolumeChange"
     Waiting => "onWaiting"
+    AnimationStart => "onAnimationStart"
+    AnimationEnd => "onAnimationEnd"
+    AnimationIteration => "onAnimationIteration"
+    TransitionEnd => "onTransitionEnd"
+    Invalid => "onInvalid"
+    Toggle => "onToggle"
   }
 }
 
@@ -789,6 +963,8 @@ pub fn is_boolean_prop(prop_name : String) -> Bool {
 ///|
 /// Converts string values to appropriate JavaScript values for React props.
 /// Handles boolean attributes by converting "true"/"false" strings to actual booleans.
+/// The internal `innerHTML` attribute is converted to React's
+/// `dangerouslySetInnerHTML` object; only provide trusted HTML to that API.
 ///
 /// # Parameters
 /// - `prop_name`: React property name.
@@ -801,7 +977,11 @@ pub fn is_boolean_prop(prop_name : String) -> Bool {
 /// inspect(convert_prop_value("checked", "true"), content="JsObscure::from_bool(true)")
 /// inspect(convert_prop_value("className", "my-class"), content="JsObscure::from_string(\"my-class\")")
 pub fn convert_prop_value(prop_name : String, value : String) -> @dom.JsObscure {
-  if is_boolean_prop(prop_name) {
+  if prop_name == "dangerouslySetInnerHTML" {
+    let html = @dom.JsObjectObscure::new()
+    html.set("__html", JsObscure::from_string(value))
+    html.to_js_obscure()
+  } else if is_boolean_prop(prop_name) {
     match value {
       "true" => JsObscure::from_bool(true)
       "false" => JsObscure::from_bool(false)

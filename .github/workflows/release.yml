@@ -20,20 +20,26 @@ jobs:
     env:
       RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: hustcer/setup-moonbit@v1
+        with:
+          version: "0.10.4+2cc641edf"
+          core-version: "0.10.4+2cc641edf"
       - name: Enable Corepack
         run: corepack enable
       - name: Install JavaScript dependencies
         run: yarn install --frozen-lockfile
       - name: Verify MoonBit module
         run: |
+          moon update
           moon check --target js
           moon test
           moon info
+          moon fmt
           git diff --check
+          git diff --exit-code
       - name: Build browser demo and MoonBit package
         run: |
           yarn build

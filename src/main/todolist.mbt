@@ -42,6 +42,8 @@ enum TodoAction {
   DeleteTodo(Int)
   /// 编辑 todo 文本，参数为 todo ID 和新文本
   EditTodo(Int, String)
+  /// Sets every todo to the provided completion state.
+  SetAllCompleted(Bool)
   /// 清除所有已完成的 todo
   ClearCompleted
 }
@@ -107,6 +109,13 @@ fn todo_reducer(todos : Array[Todo], action : TodoAction) -> Array[Todo] {
       }
       new_todos
     }
+    SetAllCompleted(completed) => {
+      let new_todos = Array::new()
+      for todo in todos {
+        new_todos.push({ id: todo.id, text: todo.text, completed })
+      }
+      new_todos
+    }
     ClearCompleted => {
       let new_todos = Array::new()
       for todo in todos {
@@ -127,9 +136,8 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
     { id: 2, text: "构建 TodoMVC", completed: false },
     { id: 3, text: "设计数据模型", completed: true },
   ]
-  let (todos, dispatch) = @react.use_reducer(
-    initial=initial_todos,
-    todo_reducer,
+  let (todos, dispatch) = @react.use_reducer_with_initial(
+    initial_todos, todo_reducer,
   )
 
   // 状态管理：当前过滤器（使用 Filter 枚举）
@@ -139,12 +147,11 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
   let (new_todo_text, set_new_todo_text) = @react.use_state("")
 
   // 状态管理：编辑状态
-  let (editing_state, set_editing_state) = @react.use_state(
-    EditingState::default(),
-  )
+  let (editing_state, set_editing_state) = @react.use_state(Default::default())
 
   // 计算统计数据
   let active_count = todos.filter(fn(todo) { !todo.completed }).length()
+  let all_completed = todos.length() > 0 && active_count == 0
 
   // 添加新 todo 的函数
   let add_new_todo = fn() {
@@ -174,14 +181,14 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
         if trimmed_text != "" {
           dispatch(EditTodo(id, trimmed_text.to_owned()))
         }
-        set_editing_state(EditingState::default())
+        set_editing_state(Default::default())
       }
       None => ()
     }
   }
 
   // 取消编辑的函数
-  let cancel_editing = fn() { set_editing_state(EditingState::default()) }
+  let cancel_editing = fn() { set_editing_state(Default::default()) }
 
   // 生成 todo 项的函数
   let create_todo_item = fn(todo : Todo) {
@@ -189,9 +196,7 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
       Some(editing_id) => editing_id == todo.id
       None => false
     }
-    let checkbox_attrs = @react.ElementAttrs::new()
-    // 修复受控组件问题：始终设置 checked 属性
-    checkbox_attrs.set("checked", if todo.completed { "true" } else { "false" })
+    // Keep the controlled checkbox value as a React boolean, including false.
     let li_class = {
       let classes = []
       if todo.completed {
@@ -243,7 +248,7 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
           @react.input(
             class_name="toggle",
             type_=Checkbox,
-            attrs=checkbox_attrs,
+            checked=todo.completed,
             on_change=fn(_event) { toggle_todo(todo.id) },
           ),
           @react.label(
@@ -284,7 +289,6 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
     }
     items
   }
-  println("rerender triggered")
   @react.section(class_name="todoapp", [
     // 头部标题
     @react.header(class_name="header", [
@@ -316,7 +320,15 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
 
     // 主要内容区域
     @react.section(class_name="main", [
-      @react.input(id="toggle-all", class_name="toggle-all", type_=Checkbox),
+      @react.input(
+        id="toggle-all",
+        class_name="toggle-all",
+        type_=Checkbox,
+        checked=all_completed,
+        on_change=fn(event) {
+          dispatch(SetAllCompleted(event.target_checked()))
+        },
+      ),
       @react.label(for_="toggle-all", [Text("Mark all as complete")]),
       @react.ul(class_name="todo-list", todo_items),
     ]),
@@ -327,22 +339,34 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
       @react.ul(class_name="filters", [
         @react.li([
           @react.a(
+            href="#/",
             class_name=if current_filter == All { "selected" } else { "" },
-            on_click=fn(_) { set_current_filter(All) },
+            on_click=fn(event) {
+              event.prevent_default()
+              set_current_filter(All)
+            },
             [Text("All")],
           ),
         ]),
         @react.li([
           @react.a(
+            href="#/active",
             class_name=if current_filter == Active { "selected" } else { "" },
-            on_click=fn(_) { set_current_filter(Active) },
+            on_click=fn(event) {
+              event.prevent_default()
+              set_current_filter(Active)
+            },
             [Text("Active")],
           ),
         ]),
         @react.li([
           @react.a(
+            href="#/completed",
             class_name=if current_filter == Completed { "selected" } else { "" },
-            on_click=fn(_) { set_current_filter(Completed) },
+            on_click=fn(event) {
+              event.prevent_default()
+              set_current_filter(Completed)
+            },
             [Text("Completed")],
           ),
         ]),

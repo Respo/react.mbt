@@ -5,7 +5,11 @@
 let class_name_in_tags : @hashset.HashSet[String] = HashSet([], capacity=16)
 
 ///|
-/// Declare a static style in the head of the documentm for example
+extern "js" fn has_style_document() -> Bool =
+  #| () => typeof window !== "undefined" && window.document?.head != null
+
+///|
+/// Declares a static style in the document head, for example:
 /// ```moonbit_nocheck
 /// let style_demo : String = static_style(
 ///  [("&", respo_style(margin=4 |> Px, background_color=Hsl(200, 90, 96)))],
@@ -27,7 +31,10 @@ pub fn[U : Show] static_style(
     .replace_all(old=":", new="_")
     .replace_all(old=".", new="_")
     .to_owned()
-  if class_name_in_tags.contains(gen_name) {
+  if !has_style_document() {
+    // Do not cache this result: the browser module evaluation must still inject it.
+    gen_name
+  } else if class_name_in_tags.contains(gen_name) {
     gen_name
   } else {
     let window = @dom.window()
@@ -56,18 +63,7 @@ pub fn[U : Show] static_style(
 }
 
 ///|
-/// use `contained_static_style` instead
-#callsite(autofill(loc))
-#deprecated
-pub fn[U : Show] declare_contained_style(
-  rules : Array[(String?, U, RespoStyle)],
-  loc~ : SourceLoc,
-) -> String {
-  contained_static_style(rules, loc~)
-}
-
-///|
-/// Declare a static style in the head of the documentm for example
+/// Declares a static style in the document head, for example:
 /// ```moonbit_nocheck
 /// let style_demo : String = contained_static_style(
 ///  [(Some("@media only screen and (max-width: 600px)"), "&", respo_style(margin=4 |> Px, background_color=Hsl(200, 90, 96)))],
@@ -89,7 +85,10 @@ pub fn[U : Show] contained_static_style(
     .replace_all(old=":", new="_")
     .replace_all(old=".", new="_")
     .to_owned()
-  if class_name_in_tags.contains(gen_name) {
+  if !has_style_document() {
+    // Do not cache this result: the browser module evaluation must still inject it.
+    gen_name
+  } else if class_name_in_tags.contains(gen_name) {
     gen_name
   } else {
     let window = @dom.window()

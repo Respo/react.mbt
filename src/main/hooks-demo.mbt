@@ -13,33 +13,30 @@ fn comp_hooks_demo(_props : HooksDemoProps) -> VirtualNode {
   let (count, set_count) = @react.use_state(0)
   let (message, set_message) = @react.use_state("初始消息")
   let (timer_count, set_timer_count) = @react.use_state(0)
+  let (action_status, dispatch_action, is_action_pending) = @react.use_action_state(
+    "未执行",
+    fn(_previous : String, action : String) { action },
+  )
 
   // 演示 use_effect_once - 仅在组件挂载时执行一次
-  @react.use_effect_once(fn() {
-    println("🎯 Hooks Demo 组件已挂载！")
-    set_message("组件已成功挂载")
+  @react.use_effect_once(fn() { set_message("组件已成功挂载") })
+
+  // 演示 use_effect_event：读取最新状态但不使 effect 因回调身份变化重订阅
+  let update_count_message = @react.use_effect_event(fn() {
+    if count > 0 {
+      set_message("计数器已更新到: \{count}")
+    }
   })
 
   // 演示 use_effect_deps - 依赖于 count 变化
-  @react.use_effect_deps(
-    fn() {
-      println("📊 计数器变化: \{count}")
-      if count > 0 {
-        set_message("计数器已更新到: \{count}")
-      }
-    },
-    [count |> obscure],
-  )
+  @react.use_effect_deps(fn() { update_count_message() }, [count |> obscure])
 
   // 演示 use_ref - 创建一个可变引用
   let timer_ref = @react.use_ref(0)
 
   // 演示 use_memo_deps - 计算昂贵的值
   let expensive_value = @react.use_memo_deps(
-    fn() {
-      println("🧮 重新计算昂贵的值...")
-      count * count + count * 10
-    },
+    fn() { count * count + count * 10 },
     [count |> obscure],
   )
 
@@ -52,9 +49,8 @@ fn comp_hooks_demo(_props : HooksDemoProps) -> VirtualNode {
   // 定时器效果 - 演示更复杂的 useEffect 用法
   @react.use_effect_deps(
     fn() {
-      if timer_count < 10 {
-        // 模拟定时器效果
-        println("⏰ 定时器: \{timer_count}")
+      if timer_count > 0 {
+        set_message("定时器已更新到: \{timer_count}")
       }
     },
     [timer_count |> obscure],
@@ -73,6 +69,11 @@ fn comp_hooks_demo(_props : HooksDemoProps) -> VirtualNode {
         @react.h3([@react.Text("📊 状态信息")]),
         @react.p([@react.Text("当前计数: \{count}")]),
         @react.p([@react.Text("消息: \{message}")]),
+        @react.p([
+          @react.Text(
+            "操作状态: \{action_status}（进行中: \{is_action_pending}）",
+          ),
+        ]),
         @react.p([
           @react.Text("计算值 (count² + count×10): \{expensive_value}"),
         ]),
@@ -126,6 +127,20 @@ fn comp_hooks_demo(_props : HooksDemoProps) -> VirtualNode {
           ),
           [Text("启动定时器")],
         ),
+        @react.button(
+          on_click=fn(_) {
+            @react.start_transition(fn() { dispatch_action("操作已完成") })
+          },
+          style=@css.respo_style(
+            margin_left=10.0 |> @css.Px,
+            padding=8.0 |> @css.Px,
+            background_color=@css.Hsl(280, 60, 45),
+            color=@css.White,
+            border_radius=4.0,
+            cursor=Pointer,
+          ),
+          [Text("执行状态操作")],
+        ),
       ]),
 
       // 功能说明区域
@@ -140,9 +155,7 @@ fn comp_hooks_demo(_props : HooksDemoProps) -> VirtualNode {
           @react.h3([Text("📚 功能说明")]),
           @react.ul([
             li([
-              Text(
-                "🎯 use_effect_once: 组件挂载时执行一次，查看控制台日志",
-              ),
+              Text("🎯 use_effect_once: 组件挂载时初始化状态消息"),
             ]),
             li([
               Text(

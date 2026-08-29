@@ -62,7 +62,7 @@ pub fn header(id? : String, class_name? : String, class_list? : Array[String], a
 
 pub fn img(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, src? : String, alt? : String, width? : String, height? : String, on_click? : (DOMEvent) -> Unit, on_load? : (DOMEvent) -> Unit, on_error? : (DOMEvent) -> Unit) -> VirtualNode
 
-pub fn input(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, type_? : InputType, value? : String, placeholder? : String, disabled? : Bool, on_click? : (DOMEvent) -> Unit, on_change? : (DOMEvent) -> Unit, on_input? : (DOMEvent) -> Unit) -> VirtualNode
+pub fn input(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, type_? : InputType, value? : String, placeholder? : String, disabled? : Bool, checked? : Bool, on_click? : (DOMEvent) -> Unit, on_change? : (DOMEvent) -> Unit, on_input? : (DOMEvent) -> Unit) -> VirtualNode
 
 pub fn is_boolean_prop(String) -> Bool
 
@@ -88,6 +88,8 @@ pub fn select(id? : String, class_name? : String, class_list? : Array[String], a
 
 pub fn span(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
+pub fn start_transition(() -> Unit) -> Unit
+
 #callsite(autofill(loc))
 pub fn[U : Show] static_style(Array[(U, @respo_css.RespoStyle)], loc~ : SourceLoc) -> String
 
@@ -97,17 +99,25 @@ pub fn ul(id? : String, class_name? : String, class_list? : Array[String], attrs
 
 pub fn unmount(@dom-ffi.Element) -> Unit
 
+pub fn[S, A] use_action_state(S, (S, A) -> S) -> (S, (A) -> Unit, Bool)
+
 pub fn use_callback0_deps(() -> Unit, Array[@dom-ffi.JsObscure]) -> () -> Unit
 
 pub fn[F] use_callback_deps(F, Array[@dom-ffi.JsObscure]) -> F
+
+pub fn[T] use_deferred_value(T) -> T
 
 pub fn use_effect_cleanup_deps(() -> () -> Unit, Array[@dom-ffi.JsObscure]) -> Unit
 
 pub fn use_effect_deps(() -> Unit, Array[@dom-ffi.JsObscure]) -> Unit
 
+pub fn[F] use_effect_event(F) -> F
+
 pub fn use_effect_once(() -> Unit) -> Unit
 
 pub fn use_effect_once_with_cleanup(() -> () -> Unit) -> Unit
+
+pub fn use_id() -> String
 
 pub fn use_layout_effect_cleanup_deps(() -> () -> Unit, Array[@dom-ffi.JsObscure]) -> Unit
 
@@ -117,9 +127,15 @@ pub fn[A] use_memo_deps(() -> A, Array[@dom-ffi.JsObscure]) -> A
 
 pub fn[S : Default, A] use_reducer(initial? : S, (S, A) -> S) -> (S, (A) -> Unit)
 
+pub fn[S, A] use_reducer_with_initial(S, (S, A) -> S) -> (S, (A) -> Unit)
+
 pub fn[T] use_ref(T) -> ReactRef[T]
 
 pub fn[T] use_state(T) -> (T, (T) -> Unit)
+
+pub fn[T] use_state_with_updater(T) -> (T, (StateUpdate[T]) -> Unit)
+
+pub fn use_transition() -> (Bool, (() -> Unit) -> Unit)
 
 pub fn video(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], src? : String, controls? : Bool, autoplay? : Bool, loop_enabled? : Bool, muted? : Bool, width? : String, height? : String, on_click? : (DOMEvent) -> Unit, on_play? : (DOMEvent) -> Unit, on_pause? : (DOMEvent) -> Unit) -> VirtualNode
 
@@ -137,10 +153,17 @@ pub fn DOMEvent::meta_key(Self) -> Bool
 pub fn DOMEvent::prevent_default(Self) -> Unit
 pub fn DOMEvent::shift_key(Self) -> Bool
 pub fn DOMEvent::stop_propagation(Self) -> Unit
+pub fn DOMEvent::target_checked(Self) -> Bool
 pub fn DOMEvent::target_value(Self) -> String
 pub fn DOMEvent::to_js_obscure(Self) -> @dom-ffi.JsObscure
 
 pub(all) enum DOMEventType {
+  Copy
+  Cut
+  Paste
+  CompositionEnd
+  CompositionStart
+  CompositionUpdate
   Click
   DoubleClick
   MouseDown
@@ -151,9 +174,20 @@ pub(all) enum DOMEventType {
   MouseOver
   MouseOut
   ContextMenu
+  PointerDown
+  PointerMove
+  PointerUp
+  PointerCancel
+  PointerEnter
+  PointerLeave
+  PointerOver
+  PointerOut
+  GotPointerCapture
+  LostPointerCapture
   KeyDown
   KeyUp
   KeyPress
+  BeforeInput
   Input
   Change
   Submit
@@ -165,6 +199,7 @@ pub(all) enum DOMEventType {
   Unload
   Resize
   Scroll
+  Wheel
   Drag
   DragStart
   DragEnd
@@ -197,20 +232,31 @@ pub(all) enum DOMEventType {
   TimeUpdate
   VolumeChange
   Waiting
+  AnimationStart
+  AnimationEnd
+  AnimationIteration
+  TransitionEnd
+  Invalid
+  Toggle
 } derive(Compare, Eq, Hash)
 pub fn DOMEventType::to_string(Self) -> String
 pub impl Show for DOMEventType
 
-pub struct ElementAttrs(Map[String, String]) derive(Default)
+pub struct ElementAttrs(Map[String, ElementPropValue]) derive(Default)
 pub fn ElementAttrs::add(Self, String, String) -> Self
 pub fn ElementAttrs::new() -> Self
 pub fn ElementAttrs::set(Self, String, String) -> Unit
+pub fn ElementAttrs::set_bool(Self, String, Bool) -> Unit
+pub fn ElementAttrs::set_int(Self, String, Int) -> Unit
+pub fn ElementAttrs::set_js_value(Self, String, @dom-ffi.JsObscure) -> Unit
 
 type ElementEvents derive(Default)
 pub fn ElementEvents::add(Self, DOMEventType, (DOMEvent) -> Unit) -> Self
 pub fn ElementEvents::new() -> Self
 pub fn ElementEvents::set(Self, DOMEventType, (DOMEvent) -> Unit) -> Unit
 pub fn ElementEvents::to_js_value(Self) -> @dom-ffi.JsObscure
+
+type ElementPropValue
 
 pub(all) enum InputType {
   Button
@@ -242,6 +288,12 @@ type ReactRef[T]
 pub fn[T] ReactRef::from(T) -> Self[T]
 pub fn[T] ReactRef::get(Self[T]) -> T
 pub fn[T] ReactRef::set(Self[T], T) -> Unit
+pub fn[T] ReactRef::to_js_obscure(Self[T]) -> @dom-ffi.JsObscure
+
+pub(all) enum StateUpdate[T] {
+  Set(T)
+  Update((T) -> T)
+}
 
 pub struct VirtualElement {
   name : String

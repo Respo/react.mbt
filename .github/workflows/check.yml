@@ -10,14 +10,17 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Moonbit
         uses: hustcer/setup-moonbit@v1
-
-      - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          version: "0.10.4+2cc641edf"
+          core-version: "0.10.4+2cc641edf"
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
           cache: "yarn"
 
       - name: Enable Corepack
@@ -35,8 +38,17 @@ jobs:
       - name: moon test
         run: moon test
 
+      - name: Install Chromium for browser tests
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser smoke test
+        run: yarn test:browser
+
       - name: Check formatting
-        run: git diff --check
+        run: |
+          moon fmt
+          git diff --check
+          git diff --exit-code
 
       - name: "compiles to js"
         run: yarn build

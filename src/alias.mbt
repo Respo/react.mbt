@@ -95,7 +95,7 @@ pub fn span(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -138,7 +138,7 @@ pub fn p(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -183,7 +183,7 @@ pub fn label(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -229,7 +229,7 @@ pub fn h1(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -272,7 +272,7 @@ pub fn h2(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -315,7 +315,7 @@ pub fn h3(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -358,7 +358,7 @@ pub fn h4(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -401,7 +401,7 @@ pub fn h5(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -444,7 +444,7 @@ pub fn h6(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -491,7 +491,7 @@ pub fn a(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -526,7 +526,7 @@ pub fn div(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -542,7 +542,7 @@ pub fn div(
 /// Combines a base class name with a list of additional class names into a
 /// single string, with class names separated by spaces. Returns `None` if both
 /// inputs are empty.
-fn combile_classes(class_name : String?, class_list : Array[String]) -> String? {
+fn combine_classes(class_name : String?, class_list : Array[String]) -> String? {
   let mut class_content = ""
   if class_name is Some(class_name) {
     class_content += " " + class_name
@@ -587,6 +587,9 @@ pub fn input(
   placeholder? : String,
   /// Whether the input is disabled.
   disabled? : Bool,
+  /// Controlled checked value for checkbox and radio inputs. Unlike `disabled`,
+  /// this is emitted for both true and false values.
+  checked? : Bool,
   /// Click event handler.
   on_click? : (DOMEvent) -> Unit,
   /// Change event handler (fired when value changes and input loses focus).
@@ -599,7 +602,7 @@ pub fn input(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if type_ is Some(input_type) {
@@ -612,7 +615,10 @@ pub fn input(
     attrs.set("placeholder", placeholder)
   }
   if disabled is Some(true) {
-    attrs.set("disabled", "true")
+    attrs.set_bool("disabled", true)
+  }
+  if checked is Some(checked) {
+    attrs.set_bool("checked", checked)
   }
   if on_click is Some(on_click) {
     event.set(Click, on_click)
@@ -661,7 +667,7 @@ pub fn button(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -671,7 +677,7 @@ pub fn button(
     attrs.set("type", button_type)
   }
   if disabled is Some(true) {
-    attrs.set("disabled", "true")
+    attrs.set_bool("disabled", true)
   }
   if on_click is Some(on_click) {
     event.set(Click, on_click)
@@ -718,7 +724,7 @@ pub fn textarea(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if value is Some(value) {
@@ -728,13 +734,13 @@ pub fn textarea(
     attrs.set("placeholder", placeholder)
   }
   if rows is Some(rows) {
-    attrs.set("rows", rows.to_string())
+    attrs.set_int("rows", rows)
   }
   if cols is Some(cols) {
-    attrs.set("cols", cols.to_string())
+    attrs.set_int("cols", cols)
   }
   if disabled is Some(true) {
-    attrs.set("disabled", "true")
+    attrs.set_bool("disabled", true)
   }
   if on_change is Some(on_change) {
     event.set(Change, on_change)
@@ -780,17 +786,17 @@ pub fn select(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if value is Some(value) {
     attrs.set("value", value)
   }
   if disabled is Some(true) {
-    attrs.set("disabled", "true")
+    attrs.set_bool("disabled", true)
   }
   if multiple is Some(true) {
-    attrs.set("multiple", "true")
+    attrs.set_bool("multiple", true)
   }
   if on_change is Some(on_change) {
     event.set(Change, on_change)
@@ -832,7 +838,7 @@ pub fn option(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -842,10 +848,10 @@ pub fn option(
     attrs.set("value", value)
   }
   if selected is Some(true) {
-    attrs.set("selected", "true")
+    attrs.set_bool("selected", true)
   }
   if disabled is Some(true) {
-    attrs.set("disabled", "true")
+    attrs.set_bool("disabled", true)
   }
   Element({ name: "option", attrs, event, style, children })
 }
@@ -881,7 +887,7 @@ pub fn section(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -924,7 +930,7 @@ pub fn article(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -967,7 +973,7 @@ pub fn header(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -1010,7 +1016,7 @@ pub fn footer(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -1053,7 +1059,7 @@ pub fn nav(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -1096,7 +1102,7 @@ pub fn aside(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -1139,7 +1145,7 @@ pub fn ul(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -1182,7 +1188,7 @@ pub fn ol(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -1225,7 +1231,7 @@ pub fn li(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -1276,7 +1282,7 @@ pub fn img(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if src is Some(src) {
@@ -1350,23 +1356,23 @@ pub fn video(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if src is Some(src) {
     attrs.set("src", src)
   }
   if controls is Some(true) {
-    attrs.set("controls", "true")
+    attrs.set_bool("controls", true)
   }
   if autoplay is Some(true) {
-    attrs.set("autoPlay", "true")
+    attrs.set_bool("autoPlay", true)
   }
   if loop_enabled is Some(true) {
-    attrs.set("loop", "true")
+    attrs.set_bool("loop", true)
   }
   if muted is Some(true) {
-    attrs.set("muted", "true")
+    attrs.set_bool("muted", true)
   }
   if width is Some(width) {
     attrs.set("width", width)
@@ -1427,23 +1433,23 @@ pub fn audio(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if src is Some(src) {
     attrs.set("src", src)
   }
   if controls is Some(true) {
-    attrs.set("controls", "true")
+    attrs.set_bool("controls", true)
   }
   if autoplay is Some(true) {
-    attrs.set("autoPlay", "true")
+    attrs.set_bool("autoPlay", true)
   }
   if loop_enabled is Some(true) {
-    attrs.set("loop", "true")
+    attrs.set_bool("loop", true)
   }
   if muted is Some(true) {
-    attrs.set("muted", "true")
+    attrs.set_bool("muted", true)
   }
   if on_play is Some(on_play) {
     event.set(Play, on_play)
