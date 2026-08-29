@@ -280,7 +280,6 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
     }
     items
   }
-  println("rerender triggered")
   @react.section(class_name="todoapp", [
     // 头部标题
     @react.header(class_name="header", [

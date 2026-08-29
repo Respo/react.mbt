@@ -27,6 +27,7 @@
   React setup, and the required component lifecycle wrapper.
 - Updated the Quick Start snippet to current MoonBit default, float, and CSS
   constructor syntax.
+- Removed unconditional browser-entry and TodoMVC rerender debug logs.
 - Updated JavaScript FFI array boundaries to MoonBit's `FixedArray` ABI while
   preserving the public `Array`-based hook API.
 - Added regression coverage for React element conversion, roots, components,
