@@ -19,10 +19,7 @@ fn comp_hooks_demo(_props : HooksDemoProps) -> VirtualNode {
   )
 
   // 演示 use_effect_once - 仅在组件挂载时执行一次
-  @react.use_effect_once(fn() {
-    println("🎯 Hooks Demo 组件已挂载！")
-    set_message("组件已成功挂载")
-  })
+  @react.use_effect_once(fn() { set_message("组件已成功挂载") })
 
   // 演示 use_effect_event：读取最新状态但不使 effect 因回调身份变化重订阅
   let update_count_message = @react.use_effect_event(fn() {
@@ -32,23 +29,14 @@ fn comp_hooks_demo(_props : HooksDemoProps) -> VirtualNode {
   })
 
   // 演示 use_effect_deps - 依赖于 count 变化
-  @react.use_effect_deps(
-    fn() {
-      println("📊 计数器变化: \{count}")
-      update_count_message()
-    },
-    [count |> obscure],
-  )
+  @react.use_effect_deps(fn() { update_count_message() }, [count |> obscure])
 
   // 演示 use_ref - 创建一个可变引用
   let timer_ref = @react.use_ref(0)
 
   // 演示 use_memo_deps - 计算昂贵的值
   let expensive_value = @react.use_memo_deps(
-    fn() {
-      println("🧮 重新计算昂贵的值...")
-      count * count + count * 10
-    },
+    fn() { count * count + count * 10 },
     [count |> obscure],
   )
 
@@ -61,9 +49,8 @@ fn comp_hooks_demo(_props : HooksDemoProps) -> VirtualNode {
   // 定时器效果 - 演示更复杂的 useEffect 用法
   @react.use_effect_deps(
     fn() {
-      if timer_count < 10 {
-        // 模拟定时器效果
-        println("⏰ 定时器: \{timer_count}")
+      if timer_count > 0 {
+        set_message("定时器已更新到: \{timer_count}")
       }
     },
     [timer_count |> obscure],
@@ -168,9 +155,7 @@ fn comp_hooks_demo(_props : HooksDemoProps) -> VirtualNode {
           @react.h3([Text("📚 功能说明")]),
           @react.ul([
             li([
-              Text(
-                "🎯 use_effect_once: 组件挂载时执行一次，查看控制台日志",
-              ),
+              Text("🎯 use_effect_once: 组件挂载时初始化状态消息"),
             ]),
             li([
               Text(

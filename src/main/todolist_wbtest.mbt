@@ -224,11 +224,18 @@ test "Hooks demo reflects state after a rerender" {
   let initial_tree = comp_hooks_demo(Default::default()).to_js_obscure()
   let controls = main_react_element_child(initial_tree, 2)
   main_react_trigger_handler(main_react_element_child(controls, 1), "onClick")
+  main_react_trigger_handler(main_react_element_child(controls, 3), "onClick")
 
   reset_main_hooks()
   let updated_tree = comp_hooks_demo(Default::default()).to_js_obscure()
   inspect(
     main_react_tree_contains(updated_tree, "当前计数: 1"),
+    content="true",
+  )
+  reset_main_hooks()
+  let effect_tree = comp_hooks_demo(Default::default()).to_js_obscure()
+  inspect(
+    main_react_tree_contains(effect_tree, "消息: 定时器已更新到: 1"),
     content="true",
   )
 }
