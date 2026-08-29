@@ -165,12 +165,119 @@ test "DOM events use React handler names" {
 }
 
 ///|
+test "all DOM event types map to native and React names" {
+  let cases : Array[(DOMEventType, String, String)] = [
+    (DOMEventType::Click, "click", "onClick"),
+    (DOMEventType::DoubleClick, "dblclick", "onDoubleClick"),
+    (DOMEventType::MouseDown, "mousedown", "onMouseDown"),
+    (DOMEventType::MouseUp, "mouseup", "onMouseUp"),
+    (DOMEventType::MouseMove, "mousemove", "onMouseMove"),
+    (DOMEventType::MouseEnter, "mouseenter", "onMouseEnter"),
+    (DOMEventType::MouseLeave, "mouseleave", "onMouseLeave"),
+    (DOMEventType::MouseOver, "mouseover", "onMouseOver"),
+    (DOMEventType::MouseOut, "mouseout", "onMouseOut"),
+    (DOMEventType::ContextMenu, "contextmenu", "onContextMenu"),
+    (DOMEventType::KeyDown, "keydown", "onKeyDown"),
+    (DOMEventType::KeyUp, "keyup", "onKeyUp"),
+    (DOMEventType::KeyPress, "keypress", "onKeyPress"),
+    (DOMEventType::Input, "input", "onInput"),
+    (DOMEventType::Change, "change", "onChange"),
+    (DOMEventType::Submit, "submit", "onSubmit"),
+    (DOMEventType::Reset, "reset", "onReset"),
+    (DOMEventType::Focus, "focus", "onFocus"),
+    (DOMEventType::Blur, "blur", "onBlur"),
+    (DOMEventType::Select, "select", "onSelect"),
+    (DOMEventType::Load, "load", "onLoad"),
+    (DOMEventType::Unload, "unload", "onUnload"),
+    (DOMEventType::Resize, "resize", "onResize"),
+    (DOMEventType::Scroll, "scroll", "onScroll"),
+    (DOMEventType::Drag, "drag", "onDrag"),
+    (DOMEventType::DragStart, "dragstart", "onDragStart"),
+    (DOMEventType::DragEnd, "dragend", "onDragEnd"),
+    (DOMEventType::DragEnter, "dragenter", "onDragEnter"),
+    (DOMEventType::DragLeave, "dragleave", "onDragLeave"),
+    (DOMEventType::DragOver, "dragover", "onDragOver"),
+    (DOMEventType::Drop, "drop", "onDrop"),
+    (DOMEventType::TouchStart, "touchstart", "onTouchStart"),
+    (DOMEventType::TouchMove, "touchmove", "onTouchMove"),
+    (DOMEventType::TouchEnd, "touchend", "onTouchEnd"),
+    (DOMEventType::TouchCancel, "touchcancel", "onTouchCancel"),
+    (DOMEventType::Error, "error", "onError"),
+    (DOMEventType::Abort, "abort", "onAbort"),
+    (DOMEventType::CanPlay, "canplay", "onCanPlay"),
+    (DOMEventType::CanPlayThrough, "canplaythrough", "onCanPlayThrough"),
+    (DOMEventType::DurationChange, "durationchange", "onDurationChange"),
+    (DOMEventType::Ended, "ended", "onEnded"),
+    (DOMEventType::LoadedData, "loadeddata", "onLoadedData"),
+    (DOMEventType::LoadedMetadata, "loadedmetadata", "onLoadedMetadata"),
+    (DOMEventType::LoadStart, "loadstart", "onLoadStart"),
+    (DOMEventType::Pause, "pause", "onPause"),
+    (DOMEventType::Play, "play", "onPlay"),
+    (DOMEventType::Playing, "playing", "onPlaying"),
+    (DOMEventType::Progress, "progress", "onProgress"),
+    (DOMEventType::RateChange, "ratechange", "onRateChange"),
+    (DOMEventType::Seeked, "seeked", "onSeeked"),
+    (DOMEventType::Seeking, "seeking", "onSeeking"),
+    (DOMEventType::Stalled, "stalled", "onStalled"),
+    (DOMEventType::Suspend, "suspend", "onSuspend"),
+    (DOMEventType::TimeUpdate, "timeupdate", "onTimeUpdate"),
+    (DOMEventType::VolumeChange, "volumechange", "onVolumeChange"),
+    (DOMEventType::Waiting, "waiting", "onWaiting"),
+  ]
+  for case in cases {
+    let (event_type, native_name, react_name) = case
+    assert_eq(event_type.to_string(), native_name)
+    assert_eq(dom_event_to_react_handler(event_type), react_name)
+  }
+  inspect(DOMEventType::Click, content="click")
+}
+
+///|
 test "ElementEvents serializes React handler property names" {
   let events = ElementEvents::new().add(Click, fn(_event) {  })
   inspect(
     js_value_has_function_prop(events.to_js_value(), "onClick"),
     content="true",
   )
+}
+
+///|
+test "all built-in element helpers emit their HTML tag" {
+  install_test_react()
+  let cases : Array[(VirtualNode, String)] = [
+    (span([]), "span"),
+    (p([]), "p"),
+    (label([]), "label"),
+    (h1([]), "h1"),
+    (h2([]), "h2"),
+    (h3([]), "h3"),
+    (h4([]), "h4"),
+    (h5([]), "h5"),
+    (h6([]), "h6"),
+    (a([]), "a"),
+    (div([]), "div"),
+    (input(), "input"),
+    (button([]), "button"),
+    (textarea(), "textarea"),
+    (select([]), "select"),
+    (option([]), "option"),
+    (section([]), "section"),
+    (article([]), "article"),
+    (header([]), "header"),
+    (footer([]), "footer"),
+    (nav([]), "nav"),
+    (aside([]), "aside"),
+    (ul([]), "ul"),
+    (ol([]), "ol"),
+    (li([]), "li"),
+    (img(), "img"),
+    (video([]), "video"),
+    (audio([]), "audio"),
+  ]
+  for case in cases {
+    let (node, tag) = case
+    assert_eq(react_element_tag(node.to_js_obscure()), tag)
+  }
 }
 
 ///|
