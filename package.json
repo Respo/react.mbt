@@ -8,11 +8,13 @@
     "build:moon": "moon build --target js --debug",
     "check": "moon check --target js",
     "test": "moon test",
+    "test:browser": "moon build --target js --debug && playwright test",
     "build": "moon build --target js --debug && vite build --base=./",
     "dev": "vite",
     "watch-mbt": "moon build --target js --debug --watch"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "vite": "^8.2.2"
   },
   "dependencies": {

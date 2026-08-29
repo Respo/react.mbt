@@ -38,6 +38,12 @@ jobs:
       - name: moon test
         run: moon test
 
+      - name: Install Chromium for browser tests
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser smoke test
+        run: yarn test:browser
+
       - name: Check formatting
         run: |
           moon fmt
