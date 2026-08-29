@@ -44,6 +44,13 @@ extern "js" fn react_element_inner_html(node : @dom.JsObscure) -> String =
   #| (node) => node.props.dangerouslySetInnerHTML?.__html || ""
 
 ///|
+extern "js" fn js_value_has_function_prop(
+  value : @dom.JsObscure,
+  key : String,
+) -> Bool =
+  #| (value, key) => typeof value[key] === "function"
+
+///|
 extern "js" fn install_test_react_dom() -> Unit =
   #| () => {
   #|   let createRootCalls = 0;
@@ -139,6 +146,15 @@ test "DOM events use React handler names" {
   inspect(dom_event_to_react_handler(KeyDown), content="onKeyDown")
   inspect(dom_event_to_react_handler(TouchCancel), content="onTouchCancel")
   inspect(DOMEventType::Click.to_string(), content="click")
+}
+
+///|
+test "ElementEvents serializes React handler property names" {
+  let events = ElementEvents::new().add(Click, fn(_event) {  })
+  inspect(
+    js_value_has_function_prop(events.to_js_value(), "onClick"),
+    content="true",
+  )
 }
 
 ///|

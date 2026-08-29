@@ -396,7 +396,7 @@ pub fn ElementEvents::set(
 pub fn ElementEvents::to_js_value(self : ElementEvents) -> JsObscure {
   let obj = @dom.JsObjectObscure::new()
   for event_type, value in self.0 {
-    obj.set(event_type.to_string(), value.to_js_func())
+    obj.set(dom_event_to_react_handler(event_type), value.to_js_func())
   }
   obj.to_js_obscure()
 }
