@@ -20,6 +20,8 @@ This is an experimental hobby project exploring MoonBit bindings for React. The 
 - `use_state[T](initial: T) -> (T, (T) -> Unit)` - State management hook
 - `use_reducer[S: Default, A](initial?: S, reducer: (S, A) -> S) -> (S, (A) -> Unit)` - Reducer hook
 - `use_effect_once(effect: () -> Unit) -> Unit` - Effect hook that runs only once
+- `use_effect_cleanup_deps(effect: () -> () -> Unit, deps: Array[JsObscure]) -> Unit` - Effect hook with a cleanup function
+- `use_effect_once_with_cleanup(effect: () -> () -> Unit) -> Unit` - One-time effect with a cleanup function
 - `use_effect_deps(effect: () -> Unit, deps: Array[JsObscure]) -> Unit` - Effect hook with dependencies
 - `use_layout_effect_deps(effect: () -> Unit, deps: Array[JsObscure]) -> Unit` - Layout effect hook
 - `use_memo_deps[A](factory: () -> A, deps: Array[JsObscure]) -> A` - Memoization hook
@@ -136,6 +138,23 @@ fn main {
 ## Project Status
 
 This is an early project exploring MoonBit bindings for React. The API is subject to frequent changes and breaking updates. Use at your own risk!
+
+## Development
+
+The package follows the current MoonBit manifest format (`moon.mod` and
+`moon.pkg`). To run the checks locally:
+
+```sh
+moon check
+moon test
+moon info
+corepack yarn install --frozen-lockfile
+corepack yarn build
+```
+
+The browser entry point loads React and ReactDOMClient before the generated
+MoonBit application. `render` can be called again for the same parent element;
+the binding reuses its React root rather than creating a second one.
 
 ### License
 

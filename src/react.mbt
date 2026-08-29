@@ -4,7 +4,12 @@ using @css {respo_style, type RespoStyle}
 ///|
 extern "js" fn react_render(vdom : @dom.JsObscure, parent : @dom.Node) -> Unit =
   #| (vdom, parent) => {
-  #|   const root = window.ReactDOMClient.createRoot(parent);
+  #|   const roots = globalThis.__moonbitReactRoots ??= new WeakMap();
+  #|   let root = roots.get(parent);
+  #|   if (!root) {
+  #|     root = window.ReactDOMClient.createRoot(parent);
+  #|     roots.set(parent, root);
+  #|   }
   #|   root.render(vdom);
   #| }
 
@@ -13,7 +18,7 @@ extern "js" fn react_render(vdom : @dom.JsObscure, parent : @dom.Node) -> Unit =
 ///
 /// This function takes a virtual DOM node and a parent DOM element, then uses
 /// the React rendering engine to render the virtual node as a real DOM element
-/// within the parent.
+/// within the parent. Repeated calls for the same parent reuse its React root.
 ///
 /// # Parameters
 /// - `vdom`: The virtual DOM node to render.

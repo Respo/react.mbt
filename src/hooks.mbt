@@ -89,6 +89,21 @@ pub fn use_effect_once(effect : () -> Unit) -> Unit {
 }
 
 ///|
+/// Runs an effect with dependencies and registers its returned cleanup function.
+pub fn use_effect_cleanup_deps(
+  effect : () -> () -> Unit,
+  deps : Array[@dom.JsObscure],
+) -> Unit {
+  react_use_effect(@dom.v_to_js_obscure(effect), deps)
+}
+
+///|
+/// Runs an effect once and registers its returned cleanup function.
+pub fn use_effect_once_with_cleanup(effect : () -> () -> Unit) -> Unit {
+  use_effect_cleanup_deps(effect, [])
+}
+
+///|
 /// a short hand to turn value into JsObscure in hook deps
 pub fn[T] obscure(v : T) -> @dom.JsObscure = "%identity"
 
@@ -98,6 +113,16 @@ pub fn use_effect_deps(
   deps : Array[@dom.JsObscure],
 ) -> Unit {
   react_use_effect(fn0_to_js_obscure(effect), deps)
+}
+
+///|
+/// Runs a layout effect with dependencies and registers its returned cleanup
+/// function. Prefer this only when the effect must run before the browser paints.
+pub fn use_layout_effect_cleanup_deps(
+  effect : () -> () -> Unit,
+  deps : Array[@dom.JsObscure],
+) -> Unit {
+  react_use_layout_effect(@dom.v_to_js_obscure(effect), deps)
 }
 
 ///|

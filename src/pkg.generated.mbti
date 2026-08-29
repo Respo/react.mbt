@@ -97,9 +97,15 @@ pub fn use_callback0_deps(() -> Unit, Array[@dom-ffi.JsObscure]) -> () -> Unit
 
 pub fn[F] use_callback_deps(F, Array[@dom-ffi.JsObscure]) -> F
 
+pub fn use_effect_cleanup_deps(() -> () -> Unit, Array[@dom-ffi.JsObscure]) -> Unit
+
 pub fn use_effect_deps(() -> Unit, Array[@dom-ffi.JsObscure]) -> Unit
 
 pub fn use_effect_once(() -> Unit) -> Unit
+
+pub fn use_effect_once_with_cleanup(() -> () -> Unit) -> Unit
+
+pub fn use_layout_effect_cleanup_deps(() -> () -> Unit, Array[@dom-ffi.JsObscure]) -> Unit
 
 pub fn use_layout_effect_deps(() -> Unit, Array[@dom-ffi.JsObscure]) -> Unit
 
