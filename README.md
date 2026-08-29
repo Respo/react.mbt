@@ -133,14 +133,14 @@ struct ContainerProps {} derive(Default)
 
 // Create a functional component
 fn comp_container(_v : ContainerProps) -> @react.VirtualNode {
-  let (counter, set_counter) = @react.use_state(0.0.to_float())
+  let (counter, set_counter) = @react.use_state(Float::from_double(0.0))
 
   @react.div(
     id="container",
     style=@css.respo_style(
-      color=Blue,
+      color=@css.CssColor::Blue,
       font_family="Arial",
-      padding=10.0 |> Px
+      padding=@css.CssSize::Px(10.0),
     ),
     on_click=fn(_) {
       println("clicked \{counter}")
@@ -158,7 +158,7 @@ fn main {
   let window = @dom.window()
   let doc = window.document()
   let body = doc.body()
-  let props = ContainerProps::default()
+  let props : ContainerProps = Default::default()
 
   @react.render(
     @react.component(comp_container, props, []),
