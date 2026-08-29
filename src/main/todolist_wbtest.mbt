@@ -50,6 +50,7 @@ extern "js" fn install_main_test_react() -> Unit =
   #|       useLayoutEffect: runEffect,
   #|       useMemo: (factory) => factory(),
   #|       useCallback: (callback) => callback,
+  #|       useEffectEvent: (callback) => callback,
   #|       useRef: (initial) => ({ current: initial }),
   #|     },
   #|     ReactDOMClient: {

@@ -109,6 +109,8 @@ pub fn use_effect_cleanup_deps(() -> () -> Unit, Array[@dom-ffi.JsObscure]) -> U
 
 pub fn use_effect_deps(() -> Unit, Array[@dom-ffi.JsObscure]) -> Unit
 
+pub fn[F] use_effect_event(F) -> F
+
 pub fn use_effect_once(() -> Unit) -> Unit
 
 pub fn use_effect_once_with_cleanup(() -> () -> Unit) -> Unit

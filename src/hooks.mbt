@@ -32,6 +32,10 @@ extern "js" fn react_use_callback(
   #| (callback, deps) => window.React.useCallback(callback, deps)
 
 ///|
+extern "js" fn react_use_effect_event(callback : JsObscure) -> JsObscure =
+  #| (callback) => window.React.useEffectEvent(callback)
+
+///|
 extern "js" fn react_use_ref(initial : @dom.JsObscure) -> @dom.JsObscure =
   #| (initial) => window.React.useRef(initial)
 
@@ -104,6 +108,15 @@ pub fn[F] use_callback_deps(callback : F, deps : Array[@dom.JsObscure]) -> F {
     @dom.v_to_js_obscure(callback),
     FixedArray::from_array(deps),
   )
+  @dom.js_obscure_to_v(v)
+}
+
+///|
+/// Creates a non-reactive callback for use from an effect. The callback always
+/// observes the latest props and state without becoming an effect dependency.
+/// React requires effect events to be invoked only from effects.
+pub fn[F] use_effect_event(callback : F) -> F {
+  let v = react_use_effect_event(@dom.v_to_js_obscure(callback))
   @dom.js_obscure_to_v(v)
 }
 

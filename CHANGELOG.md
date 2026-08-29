@@ -9,6 +9,8 @@
   test in CI.
 - Completed the demo's controlled toggle-all flow and made its filters real,
   keyboard-accessible links without changing client-side navigation.
+- Added the React 19.2 `use_effect_event` binding for non-reactive callbacks
+  invoked from effects.
 
 ## 0.1.0
 

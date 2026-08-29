@@ -55,6 +55,7 @@ For example, use `component(my_component, props, [])`, never
 - `use_layout_effect_deps(effect: () -> Unit, deps: Array[JsObscure]) -> Unit` - Layout effect hook
 - `use_memo_deps[A](factory: () -> A, deps: Array[JsObscure]) -> A` - Memoization hook
 - `use_callback_deps[F](callback: F, deps: Array[JsObscure]) -> F` - Callback memoization hook
+- `use_effect_event[F](callback: F) -> F` - React 19.2 effect-only callback that reads latest state without re-subscribing an effect
 - `use_callback0_deps(f: () -> Unit, deps: Array[JsObscure]) -> () -> Unit` - Zero-argument callback hook
 - `use_ref[T](initial: T) -> ReactRef[T]` - Reference hook
 - `use_id() -> String` - Stable component-local identifier hook

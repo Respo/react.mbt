@@ -20,13 +20,18 @@ fn comp_hooks_demo(_props : HooksDemoProps) -> VirtualNode {
     set_message("组件已成功挂载")
   })
 
+  // 演示 use_effect_event：读取最新状态但不使 effect 因回调身份变化重订阅
+  let update_count_message = @react.use_effect_event(fn() {
+    if count > 0 {
+      set_message("计数器已更新到: \{count}")
+    }
+  })
+
   // 演示 use_effect_deps - 依赖于 count 变化
   @react.use_effect_deps(
     fn() {
       println("📊 计数器变化: \{count}")
-      if count > 0 {
-        set_message("计数器已更新到: \{count}")
-      }
+      update_count_message()
     },
     [count |> obscure],
   )

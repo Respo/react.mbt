@@ -187,6 +187,7 @@ extern "js" fn install_test_react_hooks() -> Unit =
   #|       useLayoutEffect: runEffect,
   #|       useMemo: (factory) => factory(),
   #|       useCallback: (callback) => callback,
+  #|       useEffectEvent: (callback) => callback,
   #|       useRef: (initial) => ({ current: initial }),
   #|       useId: () => "moonbit-test-id",
   #|       useDeferredValue: (value) => value,
@@ -1142,6 +1143,8 @@ test "hook wrappers preserve MoonBit values and callbacks" {
   inspect(memoized, content="41")
   let callback = use_callback_deps(fn(value : Int) { value + 1 }, [])
   inspect(callback(4), content="5")
+  let effect_event = use_effect_event(fn(value : Int) { value + 2 })
+  inspect(effect_event(4), content="6")
   let mut callback0_calls = 0
   let callback0 = use_callback0_deps(
     fn() { callback0_calls = callback0_calls + 1 },
