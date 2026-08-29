@@ -8,6 +8,9 @@ test("TodoMVC supports editing, creating, filtering, and clearing todos", async 
   await expect(page.locator(".todo-list li")).toHaveCount(3);
   await expect(page.locator(".todo-count")).toHaveText("2 items left");
 
+  await page.getByRole("button", { name: "执行状态操作", exact: true }).click();
+  await expect(page.getByText("操作状态: 操作已完成（进行中: false）", { exact: true })).toBeVisible();
+
   await page.getByText("学习 MoonBit", { exact: true }).dblclick();
   const editor = page.locator(".todo-list .edit");
   await expect(editor).toBeVisible();

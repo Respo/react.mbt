@@ -46,11 +46,16 @@ extern "js" fn install_main_test_react() -> Unit =
   #|         const index = nextHookIndex(initial);
   #|         return [hookValues[index], (action) => { hookValues[index] = reducer(hookValues[index], action); }];
   #|       },
+  #|       useActionState: (action, initial) => {
+  #|         const index = nextHookIndex(initial);
+  #|         return [hookValues[index], (value) => { hookValues[index] = action(hookValues[index], value); }, false];
+  #|       },
   #|       useEffect: runEffect,
   #|       useLayoutEffect: runEffect,
   #|       useMemo: (factory) => factory(),
   #|       useCallback: (callback) => callback,
   #|       useEffectEvent: (callback) => callback,
+  #|       startTransition: (action) => action(),
   #|       useRef: (initial) => ({ current: initial }),
   #|     },
   #|     ReactDOMClient: {
@@ -209,6 +214,7 @@ test "Todo and Hooks demo components build React trees with hook runtime" {
   main_react_trigger_handler(main_react_element_child(controls, 1), "onClick")
   main_react_trigger_handler(main_react_element_child(controls, 2), "onClick")
   main_react_trigger_handler(main_react_element_child(controls, 3), "onClick")
+  main_react_trigger_handler(main_react_element_child(controls, 4), "onClick")
 }
 
 ///|

@@ -11,6 +11,8 @@
   keyboard-accessible links without changing client-side navigation.
 - Added the React 19.2 `use_effect_event` binding for non-reactive callbacks
   invoked from effects.
+- Added a typed React 19 `use_action_state` binding for stateful actions and
+  pending-state reporting.
 
 ## 0.1.0
 

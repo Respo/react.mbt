@@ -36,6 +36,13 @@ extern "js" fn react_use_effect_event(callback : JsObscure) -> JsObscure =
   #| (callback) => window.React.useEffectEvent(callback)
 
 ///|
+extern "js" fn react_use_action_state(
+  action : JsObscure,
+  initial : JsObscure,
+) -> JsObscure =
+  #| (action, initial) => window.React.useActionState(action, initial)
+
+///|
 extern "js" fn react_use_ref(initial : @dom.JsObscure) -> @dom.JsObscure =
   #| (initial) => window.React.useRef(initial)
 
@@ -118,6 +125,26 @@ pub fn[F] use_callback_deps(callback : F, deps : Array[@dom.JsObscure]) -> F {
 pub fn[F] use_effect_event(callback : F) -> F {
   let v = react_use_effect_event(@dom.v_to_js_obscure(callback))
   @dom.js_obscure_to_v(v)
+}
+
+///|
+/// Stores state managed by a React 19 action. The action receives the current
+/// MoonBit state and its dispatched value, then returns the next state.
+///
+/// React reports whether an action transition is pending in the final tuple
+/// value. Dispatch from a form action or `start_transition` when appropriate.
+pub fn[S, A] use_action_state(
+  initial : S,
+  action : (S, A) -> S,
+) -> (S, (A) -> Unit, Bool) {
+  let pair = react_use_action_state(
+    @dom.v_to_js_obscure(action),
+    any_to_js_value(initial),
+  )
+  let state : S = any_from_js_value(pair.get("0"))
+  let dispatch = fn1_from_js_obscure(pair.get("1"))
+  let is_pending : Bool = any_from_js_value(pair.get("2"))
+  (state, fn(value : A) { dispatch(any_to_js_value(value)) }, is_pending)
 }
 
 ///|

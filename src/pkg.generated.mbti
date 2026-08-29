@@ -99,6 +99,8 @@ pub fn ul(id? : String, class_name? : String, class_list? : Array[String], attrs
 
 pub fn unmount(@dom-ffi.Element) -> Unit
 
+pub fn[S, A] use_action_state(S, (S, A) -> S) -> (S, (A) -> Unit, Bool)
+
 pub fn use_callback0_deps(() -> Unit, Array[@dom-ffi.JsObscure]) -> () -> Unit
 
 pub fn[F] use_callback_deps(F, Array[@dom-ffi.JsObscure]) -> F

@@ -188,6 +188,9 @@ extern "js" fn install_test_react_hooks() -> Unit =
   #|       useMemo: (factory) => factory(),
   #|       useCallback: (callback) => callback,
   #|       useEffectEvent: (callback) => callback,
+  #|       useActionState: (action, initial) => [initial, (value) => {
+  #|         globalThis.__moonbitHookState.reduced = action(initial, value);
+  #|       }, false],
   #|       useRef: (initial) => ({ current: initial }),
   #|       useId: () => "moonbit-test-id",
   #|       useDeferredValue: (value) => value,
@@ -1185,6 +1188,15 @@ test "hook wrappers preserve MoonBit values and callbacks" {
   inspect(reduced, content="3")
   dispatch(4)
   inspect(hook_test_reduced_state(), content="7")
+
+  let (action_state, dispatch_action, is_action_pending) = use_action_state(
+    10,
+    fn(state : Int, value : Int) { state + value },
+  )
+  inspect(action_state, content="10")
+  inspect(is_action_pending, content="false")
+  dispatch_action(5)
+  inspect(hook_test_reduced_state(), content="15")
 }
 
 ///|

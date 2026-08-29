@@ -13,6 +13,10 @@ fn comp_hooks_demo(_props : HooksDemoProps) -> VirtualNode {
   let (count, set_count) = @react.use_state(0)
   let (message, set_message) = @react.use_state("初始消息")
   let (timer_count, set_timer_count) = @react.use_state(0)
+  let (action_status, dispatch_action, is_action_pending) = @react.use_action_state(
+    "未执行",
+    fn(_previous : String, action : String) { action },
+  )
 
   // 演示 use_effect_once - 仅在组件挂载时执行一次
   @react.use_effect_once(fn() {
@@ -79,6 +83,11 @@ fn comp_hooks_demo(_props : HooksDemoProps) -> VirtualNode {
         @react.p([@react.Text("当前计数: \{count}")]),
         @react.p([@react.Text("消息: \{message}")]),
         @react.p([
+          @react.Text(
+            "操作状态: \{action_status}（进行中: \{is_action_pending}）",
+          ),
+        ]),
+        @react.p([
           @react.Text("计算值 (count² + count×10): \{expensive_value}"),
         ]),
         @react.p([@react.Text("定时器计数: \{timer_count}")]),
@@ -130,6 +139,20 @@ fn comp_hooks_demo(_props : HooksDemoProps) -> VirtualNode {
             cursor=Pointer,
           ),
           [Text("启动定时器")],
+        ),
+        @react.button(
+          on_click=fn(_) {
+            @react.start_transition(fn() { dispatch_action("操作已完成") })
+          },
+          style=@css.respo_style(
+            margin_left=10.0 |> @css.Px,
+            padding=8.0 |> @css.Px,
+            background_color=@css.Hsl(280, 60, 45),
+            color=@css.White,
+            border_radius=4.0,
+            cursor=Pointer,
+          ),
+          [Text("执行状态操作")],
         ),
       ]),
 
