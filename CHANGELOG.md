@@ -13,6 +13,8 @@
   invoked from effects.
 - Added a typed React 19 `use_action_state` binding for stateful actions and
   pending-state reporting.
+- Added `use_reducer_with_initial`, removing the unnecessary `Default`
+  constraint for reducer state in new code.
 
 ## 0.1.0
 

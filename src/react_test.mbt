@@ -11,6 +11,12 @@ extern "js" fn install_test_react() -> Unit =
   #| }
 
 ///|
+enum NonDefaultReducerState {
+  Initial
+  Updated
+} derive(Eq)
+
+///|
 extern "js" fn react_element_child_count(node : @dom.JsObscure) -> Int =
   #| (node) => node.children.length
 
@@ -1188,6 +1194,15 @@ test "hook wrappers preserve MoonBit values and callbacks" {
   inspect(reduced, content="3")
   dispatch(4)
   inspect(hook_test_reduced_state(), content="7")
+
+  let (non_default_state, dispatch_non_default) = use_reducer_with_initial(
+    NonDefaultReducerState::Initial,
+    fn(_state : NonDefaultReducerState, _action : Unit) {
+      NonDefaultReducerState::Updated
+    },
+  )
+  inspect(non_default_state == NonDefaultReducerState::Initial, content="true")
+  dispatch_non_default(())
 
   let (action_state, dispatch_action, is_action_pending) = use_action_state(
     10,

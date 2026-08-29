@@ -127,6 +127,8 @@ pub fn[A] use_memo_deps(() -> A, Array[@dom-ffi.JsObscure]) -> A
 
 pub fn[S : Default, A] use_reducer(initial? : S, (S, A) -> S) -> (S, (A) -> Unit)
 
+pub fn[S, A] use_reducer_with_initial(S, (S, A) -> S) -> (S, (A) -> Unit)
+
 pub fn[T] use_ref(T) -> ReactRef[T]
 
 pub fn[T] use_state(T) -> (T, (T) -> Unit)

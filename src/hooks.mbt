@@ -245,18 +245,31 @@ pub fn[T] use_ref(initial : T) -> ReactRef[T] {
 }
 
 ///|
-// useReducer
-pub fn[S : Default, A] use_reducer(
-  initial? : S,
+/// Creates a reducer with an explicit initial state. Unlike the compatibility
+/// `use_reducer` overload, this accepts state types that do not implement
+/// `Default`.
+pub fn[S, A] use_reducer_with_initial(
+  initial : S,
   reducer : (S, A) -> S,
 ) -> (S, (A) -> Unit) {
   let pair = react_use_reducer(
     any_to_js_value(reducer),
-    any_to_js_value(initial.unwrap_or_default()),
+    any_to_js_value(initial),
   )
   let s0 = any_from_js_value(pair.get("0"))
   let dispatch_raw = fn1_from_js_obscure(pair.get("1"))
   (s0, fn(a : A) { dispatch_raw(any_to_js_value(a)) })
+}
+
+///|
+/// Compatibility reducer helper with an optional initial state. Prefer
+/// `use_reducer_with_initial` for new code so the state type need not derive
+/// `Default`.
+pub fn[S : Default, A] use_reducer(
+  initial? : S,
+  reducer : (S, A) -> S,
+) -> (S, (A) -> Unit) {
+  use_reducer_with_initial(initial.unwrap_or_default(), reducer)
 }
 
 ///|

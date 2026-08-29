@@ -136,9 +136,8 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
     { id: 2, text: "构建 TodoMVC", completed: false },
     { id: 3, text: "设计数据模型", completed: true },
   ]
-  let (todos, dispatch) = @react.use_reducer(
-    initial=initial_todos,
-    todo_reducer,
+  let (todos, dispatch) = @react.use_reducer_with_initial(
+    initial_todos, todo_reducer,
   )
 
   // 状态管理：当前过滤器（使用 Filter 枚举）

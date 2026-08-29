@@ -47,6 +47,7 @@ For example, use `component(my_component, props, [])`, never
 
 - `use_state[T](initial: T) -> (T, (T) -> Unit)` - State management hook
 - `use_state_with_updater[T](initial: T) -> (T, (StateUpdate[T]) -> Unit)` - State hook with direct and functional updates
+- `use_reducer_with_initial[S, A](initial: S, reducer: (S, A) -> S) -> (S, (A) -> Unit)` - Reducer hook for any explicit state type
 - `use_reducer[S: Default, A](initial?: S, reducer: (S, A) -> S) -> (S, (A) -> Unit)` - Reducer hook
 - `use_effect_once(effect: () -> Unit) -> Unit` - Effect hook that runs only once
 - `use_effect_cleanup_deps(effect: () -> () -> Unit, deps: Array[JsObscure]) -> Unit` - Effect hook with a cleanup function
