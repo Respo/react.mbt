@@ -272,6 +272,25 @@ test "Todo editing handlers update the rerendered component tree" {
   inspect(main_react_string_prop(editing_item, "className"), content="editing")
   main_react_trigger_event(
     main_react_element_child(editing_item, 0),
+    "onInput",
+    "editing todo",
+    "",
+  )
+
+  reset_main_hooks()
+  let input_tree = comp_todolist(Default::default()).to_js_obscure()
+  let input_list = main_react_element_child(
+    main_react_element_child(input_tree, 1),
+    2,
+  )
+  main_react_trigger_event(
+    main_react_element_child(main_react_element_child(input_list, 0), 0),
+    "onKeyDown",
+    "",
+    "Tab",
+  )
+  main_react_trigger_event(
+    main_react_element_child(main_react_element_child(input_list, 0), 0),
     "onChange",
     "updated todo",
     "",
@@ -293,6 +312,46 @@ test "Todo editing handlers update the rerendered component tree" {
   reset_main_hooks()
   let saved_tree = comp_todolist(Default::default()).to_js_obscure()
   inspect(main_react_tree_contains(saved_tree, "updated todo"), content="true")
+
+  let saved_list = main_react_element_child(
+    main_react_element_child(saved_tree, 1),
+    2,
+  )
+  let saved_view = main_react_element_child(
+    main_react_element_child(saved_list, 0),
+    0,
+  )
+  main_react_trigger_event(
+    main_react_element_child(saved_view, 1),
+    "onDoubleClick",
+    "",
+    "",
+  )
+  reset_main_hooks()
+  let cancel_tree = comp_todolist(Default::default()).to_js_obscure()
+  let cancel_list = main_react_element_child(
+    main_react_element_child(cancel_tree, 1),
+    2,
+  )
+  main_react_trigger_event(
+    main_react_element_child(main_react_element_child(cancel_list, 0), 0),
+    "onKeyDown",
+    "",
+    "Escape",
+  )
+  reset_main_hooks()
+  let cancelled_tree = comp_todolist(Default::default()).to_js_obscure()
+  let cancelled_list = main_react_element_child(
+    main_react_element_child(cancelled_tree, 1),
+    2,
+  )
+  inspect(
+    main_react_string_prop(
+      main_react_element_child(cancelled_list, 0),
+      "className",
+    ),
+    content="",
+  )
 }
 
 ///|
@@ -336,6 +395,22 @@ test "Todo creation and active filter update the rerendered component tree" {
     2,
   )
   inspect(main_react_element_child_count(active_list), content="3")
+
+  let active_filters = main_react_element_child(
+    main_react_element_child(active_tree, 2),
+    1,
+  )
+  main_react_trigger_handler(
+    main_react_element_child(main_react_element_child(active_filters, 2), 0),
+    "onClick",
+  )
+  reset_main_hooks()
+  let completed_tree = comp_todolist(Default::default()).to_js_obscure()
+  let completed_list = main_react_element_child(
+    main_react_element_child(completed_tree, 1),
+    2,
+  )
+  inspect(main_react_element_child_count(completed_list), content="1")
 }
 
 ///|
