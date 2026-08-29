@@ -14,6 +14,8 @@ jobs:
 
       - name: Setup Moonbit
         uses: hustcer/setup-moonbit@v1
+        with:
+          version: "0.10.4+2cc641edf"
 
       - uses: actions/setup-node@v4
         with:
@@ -27,7 +29,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: moon check
-        run: moon update && moon version && moon check --target js
+        run: moon version && moon check --target js
 
       - name: Check generated interfaces
         run: moon info
