@@ -33,8 +33,8 @@ jobs:
           moon check --target js
           moon test
           moon info
+          moon fmt
           git diff --exit-code
-          moon fmt --check
       - name: Build browser demo and MoonBit package
         run: |
           yarn build
