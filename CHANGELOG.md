@@ -15,6 +15,8 @@
   pending-state reporting.
 - Added `use_reducer_with_initial`, removing the unnecessary `Default`
   constraint for reducer state in new code.
+- Normalized TodoMVC's legacy placeholder selector during Vite builds, removing
+  the third-party LightningCSS warning without modifying the dependency.
 
 ## 0.1.0
 
