@@ -139,9 +139,7 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
   let (new_todo_text, set_new_todo_text) = @react.use_state("")
 
   // 状态管理：编辑状态
-  let (editing_state, set_editing_state) = @react.use_state(
-    EditingState::default(),
-  )
+  let (editing_state, set_editing_state) = @react.use_state(Default::default())
 
   // 计算统计数据
   let active_count = todos.filter(fn(todo) { !todo.completed }).length()
@@ -174,14 +172,14 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
         if trimmed_text != "" {
           dispatch(EditTodo(id, trimmed_text.to_owned()))
         }
-        set_editing_state(EditingState::default())
+        set_editing_state(Default::default())
       }
       None => ()
     }
   }
 
   // 取消编辑的函数
-  let cancel_editing = fn() { set_editing_state(EditingState::default()) }
+  let cancel_editing = fn() { set_editing_state(Default::default()) }
 
   // 生成 todo 项的函数
   let create_todo_item = fn(todo : Todo) {

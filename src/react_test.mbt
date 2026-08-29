@@ -22,6 +22,28 @@ extern "js" fn react_element_string_prop(
   #| (node, key) => node.props[key] || ""
 
 ///|
+extern "js" fn react_element_tag(node : @dom.JsObscure) -> String =
+  #| (node) => node.tag
+
+///|
+extern "js" fn react_element_bool_prop(
+  node : @dom.JsObscure,
+  key : String,
+) -> Bool =
+  #| (node, key) => node.props[key] === true
+
+///|
+extern "js" fn react_element_int_prop(
+  node : @dom.JsObscure,
+  key : String,
+) -> Int =
+  #| (node, key) => node.props[key]
+
+///|
+extern "js" fn react_element_inner_html(node : @dom.JsObscure) -> String =
+  #| (node) => node.props.dangerouslySetInnerHTML?.__html || ""
+
+///|
 extern "js" fn install_test_react_dom() -> Unit =
   #| () => {
   #|   let createRootCalls = 0;
@@ -94,6 +116,10 @@ extern "js" fn hook_test_reduced_state() -> Int =
 test "DOM attribute names use React property names" {
   inspect(dom_attr_to_react_prop("class"), content="className")
   inspect(dom_attr_to_react_prop("for"), content="htmlFor")
+  inspect(
+    dom_attr_to_react_prop("innerHTML"),
+    content="dangerouslySetInnerHTML",
+  )
   inspect(dom_attr_to_react_prop("data-testid"), content="data-testid")
 }
 
@@ -113,6 +139,32 @@ test "DOM events use React handler names" {
   inspect(dom_event_to_react_handler(KeyDown), content="onKeyDown")
   inspect(dom_event_to_react_handler(TouchCancel), content="onTouchCancel")
   inspect(DOMEventType::Click.to_string(), content="click")
+}
+
+///|
+test "input types use valid HTML values" {
+  inspect(InputType::Button.to_string(), content="button")
+  inspect(InputType::Checkbox.to_string(), content="checkbox")
+  inspect(InputType::Color.to_string(), content="color")
+  inspect(InputType::Date.to_string(), content="date")
+  inspect(InputType::DatetimeLocal.to_string(), content="datetime-local")
+  inspect(InputType::Email.to_string(), content="email")
+  inspect(InputType::File.to_string(), content="file")
+  inspect(InputType::Hidden.to_string(), content="hidden")
+  inspect(InputType::Image.to_string(), content="image")
+  inspect(InputType::Month.to_string(), content="month")
+  inspect(InputType::Number.to_string(), content="number")
+  inspect(InputType::Password.to_string(), content="password")
+  inspect(InputType::Radio.to_string(), content="radio")
+  inspect(InputType::Range.to_string(), content="range")
+  inspect(InputType::Reset.to_string(), content="reset")
+  inspect(InputType::Search.to_string(), content="search")
+  inspect(InputType::Submit.to_string(), content="submit")
+  inspect(InputType::Tel.to_string(), content="tel")
+  inspect(InputType::Text.to_string(), content="text")
+  inspect(InputType::Time.to_string(), content="time")
+  inspect(InputType::Url.to_string(), content="url")
+  inspect(InputType::Week.to_string(), content="week")
 }
 
 ///|
@@ -151,6 +203,55 @@ test "attributes set through ElementAttrs are converted to React props" {
     react_element_string_prop(node.to_js_obscure(), "title"),
     content="updated",
   )
+}
+
+///|
+test "innerHTML uses React's required object prop" {
+  install_test_react()
+  let node = div(innerHTML="<strong>trusted</strong>", []).to_js_obscure()
+  inspect(react_element_inner_html(node), content="<strong>trusted</strong>")
+}
+
+///|
+test "element helpers preserve form, link, and media props" {
+  install_test_react()
+
+  let label_node = label(for_="email", []).to_js_obscure()
+  inspect(react_element_tag(label_node), content="label")
+  inspect(react_element_string_prop(label_node, "htmlFor"), content="email")
+
+  let input_node = input(
+    type_=Checkbox,
+    value="accepted",
+    placeholder="accept terms",
+    disabled=true,
+  ).to_js_obscure()
+  inspect(react_element_tag(input_node), content="input")
+  inspect(react_element_string_prop(input_node, "type"), content="checkbox")
+  inspect(react_element_bool_prop(input_node, "disabled"), content="true")
+
+  let link_node = a(href="/docs", target="_blank", [Text("docs")]).to_js_obscure()
+  inspect(react_element_tag(link_node), content="a")
+  inspect(react_element_string_prop(link_node, "href"), content="/docs")
+  inspect(react_element_string_prop(link_node, "target"), content="_blank")
+
+  let media_node = video(
+    src="movie.mp4",
+    controls=true,
+    autoplay=true,
+    loop_enabled=true,
+    muted=true,
+    [],
+  ).to_js_obscure()
+  inspect(react_element_tag(media_node), content="video")
+  inspect(react_element_bool_prop(media_node, "controls"), content="true")
+  inspect(react_element_bool_prop(media_node, "autoPlay"), content="true")
+  inspect(react_element_bool_prop(media_node, "loop"), content="true")
+  inspect(react_element_bool_prop(media_node, "muted"), content="true")
+
+  let textarea_node = textarea(rows=3, cols=20).to_js_obscure()
+  inspect(react_element_int_prop(textarea_node, "rows"), content="3")
+  inspect(react_element_int_prop(textarea_node, "cols"), content="20")
 }
 
 ///|

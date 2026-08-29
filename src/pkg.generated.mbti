@@ -201,16 +201,20 @@ pub(all) enum DOMEventType {
 pub fn DOMEventType::to_string(Self) -> String
 pub impl Show for DOMEventType
 
-pub struct ElementAttrs(Map[String, String]) derive(Default)
+pub struct ElementAttrs(Map[String, ElementPropValue]) derive(Default)
 pub fn ElementAttrs::add(Self, String, String) -> Self
 pub fn ElementAttrs::new() -> Self
 pub fn ElementAttrs::set(Self, String, String) -> Unit
+pub fn ElementAttrs::set_bool(Self, String, Bool) -> Unit
+pub fn ElementAttrs::set_int(Self, String, Int) -> Unit
 
 type ElementEvents derive(Default)
 pub fn ElementEvents::add(Self, DOMEventType, (DOMEvent) -> Unit) -> Self
 pub fn ElementEvents::new() -> Self
 pub fn ElementEvents::set(Self, DOMEventType, (DOMEvent) -> Unit) -> Unit
 pub fn ElementEvents::to_js_value(Self) -> @dom-ffi.JsObscure
+
+type ElementPropValue
 
 pub(all) enum InputType {
   Button

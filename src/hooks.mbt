@@ -6,28 +6,28 @@ using @dom {type JsObscure}
 ///|
 extern "js" fn react_use_effect(
   effect : @dom.JsObscure,
-  deps : Array[@dom.JsObscure],
+  deps : FixedArray[@dom.JsObscure],
 ) -> Unit =
   #| (effect, deps) => window.React.useEffect(effect, deps)
 
 ///|
 extern "js" fn react_use_layout_effect(
   effect : @dom.JsObscure,
-  deps : Array[@dom.JsObscure],
+  deps : FixedArray[@dom.JsObscure],
 ) -> Unit =
   #| (effect, deps) => window.React.useLayoutEffect(effect, deps)
 
 ///|
 extern "js" fn react_use_memo(
   factory : @dom.JsObscure,
-  deps : Array[@dom.JsObscure],
+  deps : FixedArray[@dom.JsObscure],
 ) -> @dom.JsObscure =
   #| (factory, deps) => window.React.useMemo(factory, deps)
 
 ///|
 extern "js" fn react_use_callback(
   callback : @dom.JsObscure,
-  deps : Array[@dom.JsObscure],
+  deps : FixedArray[@dom.JsObscure],
 ) -> JsObscure =
   #| (callback, deps) => window.React.useCallback(callback, deps)
 
@@ -65,27 +65,36 @@ pub fn use_layout_effect_deps(
   effect : () -> Unit,
   deps : Array[@dom.JsObscure],
 ) -> Unit {
-  react_use_layout_effect(fn0_to_js_obscure(effect), deps)
+  react_use_layout_effect(
+    fn0_to_js_obscure(effect),
+    FixedArray::from_array(deps),
+  )
 }
 
 ///|
 // useMemo
 pub fn[A] use_memo_deps(factory : () -> A, deps : Array[@dom.JsObscure]) -> A {
-  let v = react_use_memo(@dom.v_to_js_obscure(factory), deps)
+  let v = react_use_memo(
+    @dom.v_to_js_obscure(factory),
+    FixedArray::from_array(deps),
+  )
   @dom.js_obscure_to_v(v)
 }
 
 ///|
 // useCallback
 pub fn[F] use_callback_deps(callback : F, deps : Array[@dom.JsObscure]) -> F {
-  let v = react_use_callback(@dom.v_to_js_obscure(callback), deps)
+  let v = react_use_callback(
+    @dom.v_to_js_obscure(callback),
+    FixedArray::from_array(deps),
+  )
   @dom.js_obscure_to_v(v)
 }
 
 ///|
 // useEffect
 pub fn use_effect_once(effect : () -> Unit) -> Unit {
-  react_use_effect(fn0_to_js_obscure(effect), [])
+  react_use_effect(fn0_to_js_obscure(effect), FixedArray::from_array([]))
 }
 
 ///|
@@ -94,7 +103,7 @@ pub fn use_effect_cleanup_deps(
   effect : () -> () -> Unit,
   deps : Array[@dom.JsObscure],
 ) -> Unit {
-  react_use_effect(@dom.v_to_js_obscure(effect), deps)
+  react_use_effect(@dom.v_to_js_obscure(effect), FixedArray::from_array(deps))
 }
 
 ///|
@@ -112,7 +121,7 @@ pub fn use_effect_deps(
   effect : () -> Unit,
   deps : Array[@dom.JsObscure],
 ) -> Unit {
-  react_use_effect(fn0_to_js_obscure(effect), deps)
+  react_use_effect(fn0_to_js_obscure(effect), FixedArray::from_array(deps))
 }
 
 ///|
@@ -122,7 +131,10 @@ pub fn use_layout_effect_cleanup_deps(
   effect : () -> () -> Unit,
   deps : Array[@dom.JsObscure],
 ) -> Unit {
-  react_use_layout_effect(@dom.v_to_js_obscure(effect), deps)
+  react_use_layout_effect(
+    @dom.v_to_js_obscure(effect),
+    FixedArray::from_array(deps),
+  )
 }
 
 ///|
@@ -131,7 +143,10 @@ pub fn use_callback0_deps(
   f : () -> Unit,
   deps : Array[@dom.JsObscure],
 ) -> () -> Unit {
-  let raw = react_use_callback(@dom.v_to_js_obscure(f), deps)
+  let raw = react_use_callback(
+    @dom.v_to_js_obscure(f),
+    FixedArray::from_array(deps),
+  )
   @dom.js_obscure_to_v(raw)
 }
 

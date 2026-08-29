@@ -52,10 +52,13 @@ This is an experimental hobby project exploring MoonBit bindings for React. The 
 
 ### Styles and Attributes
 
-- `ElementAttrs` - HTML attribute management
+- `ElementAttrs` - HTML attribute management, including typed boolean and integer setters
 - `ElementEvents` - Event handler management
 - `RespoStyle` - CSS styles (from `@css` module)
 - `InputType` enum - Support for all HTML input types
+
+`innerHTML` parameters are converted to React's `dangerouslySetInnerHTML` API.
+Only pass trusted, sanitized HTML through this escape hatch.
 
 ### Virtual DOM Types
 

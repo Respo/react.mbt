@@ -612,7 +612,7 @@ pub fn input(
     attrs.set("placeholder", placeholder)
   }
   if disabled is Some(true) {
-    attrs.set("disabled", "true")
+    attrs.set_bool("disabled", true)
   }
   if on_click is Some(on_click) {
     event.set(Click, on_click)
@@ -671,7 +671,7 @@ pub fn button(
     attrs.set("type", button_type)
   }
   if disabled is Some(true) {
-    attrs.set("disabled", "true")
+    attrs.set_bool("disabled", true)
   }
   if on_click is Some(on_click) {
     event.set(Click, on_click)
@@ -728,13 +728,13 @@ pub fn textarea(
     attrs.set("placeholder", placeholder)
   }
   if rows is Some(rows) {
-    attrs.set("rows", rows.to_string())
+    attrs.set_int("rows", rows)
   }
   if cols is Some(cols) {
-    attrs.set("cols", cols.to_string())
+    attrs.set_int("cols", cols)
   }
   if disabled is Some(true) {
-    attrs.set("disabled", "true")
+    attrs.set_bool("disabled", true)
   }
   if on_change is Some(on_change) {
     event.set(Change, on_change)
@@ -787,10 +787,10 @@ pub fn select(
     attrs.set("value", value)
   }
   if disabled is Some(true) {
-    attrs.set("disabled", "true")
+    attrs.set_bool("disabled", true)
   }
   if multiple is Some(true) {
-    attrs.set("multiple", "true")
+    attrs.set_bool("multiple", true)
   }
   if on_change is Some(on_change) {
     event.set(Change, on_change)
@@ -842,10 +842,10 @@ pub fn option(
     attrs.set("value", value)
   }
   if selected is Some(true) {
-    attrs.set("selected", "true")
+    attrs.set_bool("selected", true)
   }
   if disabled is Some(true) {
-    attrs.set("disabled", "true")
+    attrs.set_bool("disabled", true)
   }
   Element({ name: "option", attrs, event, style, children })
 }
@@ -1357,16 +1357,16 @@ pub fn video(
     attrs.set("src", src)
   }
   if controls is Some(true) {
-    attrs.set("controls", "true")
+    attrs.set_bool("controls", true)
   }
   if autoplay is Some(true) {
-    attrs.set("autoPlay", "true")
+    attrs.set_bool("autoPlay", true)
   }
   if loop_enabled is Some(true) {
-    attrs.set("loop", "true")
+    attrs.set_bool("loop", true)
   }
   if muted is Some(true) {
-    attrs.set("muted", "true")
+    attrs.set_bool("muted", true)
   }
   if width is Some(width) {
     attrs.set("width", width)
@@ -1434,16 +1434,16 @@ pub fn audio(
     attrs.set("src", src)
   }
   if controls is Some(true) {
-    attrs.set("controls", "true")
+    attrs.set_bool("controls", true)
   }
   if autoplay is Some(true) {
-    attrs.set("autoPlay", "true")
+    attrs.set_bool("autoPlay", true)
   }
   if loop_enabled is Some(true) {
-    attrs.set("loop", "true")
+    attrs.set_bool("loop", true)
   }
   if muted is Some(true) {
-    attrs.set("muted", "true")
+    attrs.set_bool("muted", true)
   }
   if on_play is Some(on_play) {
     event.set(Play, on_play)

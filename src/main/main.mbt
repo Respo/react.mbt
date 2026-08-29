@@ -17,8 +17,8 @@ fn comp_container(_v : ContainerProps) -> VirtualNode {
         class_list=[style_counter],
         [Fragment([Text("Demo: ")]), Text("Counter \{counter}")],
       ),
-      @react.component(comp_todolist, TodoListProps::default(), []),
-      @react.component(comp_hooks_demo, HooksDemoProps::default(), []),
+      @react.component(comp_todolist, Default::default(), []),
+      @react.component(comp_hooks_demo, Default::default(), []),
     ],
   )
 }
@@ -28,7 +28,7 @@ fn main {
   let window = @dom.window()
   let doc = window.document()
   let body = doc.body()
-  let props = ContainerProps::default()
+  let props : ContainerProps = Default::default()
   @react.render(@react.component(comp_container, props, []), body)
   println("loaded")
 }

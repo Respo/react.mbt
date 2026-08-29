@@ -62,14 +62,14 @@ pub fn unmount(parent : @dom.Element) -> Unit {
 extern "js" fn react_create_element(
   tag : String,
   props : @dom.JsObjectObscure,
-  children : Array[@dom.JsObscure],
+  children : FixedArray[@dom.JsObscure],
 ) -> @dom.JsObscure =
   #| (tag, props, children) => window.React.createElement(tag, props, ...children)
 
 ///|
 extern "js" fn react_fragment(
   props : @dom.JsObjectObscure,
-  children : Array[@dom.JsObscure],
+  children : FixedArray[@dom.JsObscure],
 ) -> @dom.JsObscure =
   #| (props, children) => window.React.createElement(window.React.Fragment, props, ...children)
 
@@ -95,7 +95,14 @@ pub fn[T] use_state(initial : T) -> (T, (T) -> Unit) {
 }
 
 ///|
-pub struct ElementAttrs(Map[String, String]) derive(Default)
+enum ElementPropValue {
+  StringProp(String)
+  BoolProp(Bool)
+  IntProp(Int)
+}
+
+///|
+pub struct ElementAttrs(Map[String, ElementPropValue]) derive(Default)
 
 ///|
 pub fn ElementAttrs::new() -> ElementAttrs {
@@ -108,7 +115,7 @@ pub fn ElementAttrs::add(
   key : String,
   value : String,
 ) -> ElementAttrs {
-  self.0.set(key, value)
+  self.0.set(key, StringProp(value))
   self
 }
 
@@ -118,7 +125,27 @@ pub fn ElementAttrs::set(
   key : String,
   value : String,
 ) -> Unit {
-  self.0.set(key, value)
+  self.0.set(key, StringProp(value))
+}
+
+///|
+/// Sets a boolean React property without converting it to a string.
+pub fn ElementAttrs::set_bool(
+  self : ElementAttrs,
+  key : String,
+  value : Bool,
+) -> Unit {
+  self.0.set(key, BoolProp(value))
+}
+
+///|
+/// Sets an integer React property without converting it to a string.
+pub fn ElementAttrs::set_int(
+  self : ElementAttrs,
+  key : String,
+  value : Int,
+) -> Unit {
+  self.0.set(key, IntProp(value))
 }
 
 ///|
@@ -400,7 +427,7 @@ pub fn VirtualNode::to_js_obscure(self : VirtualNode) -> @dom.JsObscure {
       for child in children {
         v.push(child.to_js_obscure())
       }
-      react_fragment(@dom.JsObjectObscure::new(), v)
+      react_fragment(@dom.JsObjectObscure::new(), FixedArray::from_array(v))
     }
     Text(t) => JsObscure::from_string(t)
     JsNode(v) => v
@@ -414,7 +441,7 @@ pub fn VirtualNode::to_js_obscure(self : VirtualNode) -> @dom.JsObscure {
 /// Most attributes should use the correct React property names directly in element definitions.
 ///
 /// # Parameters
-/// - `attr_name`: HTML attribute name such as "class", "for", etc.
+/// - `attr_name`: HTML attribute name such as "class", "for", or "innerHTML".
 ///
 /// # Returns
 /// `String` - React-compatible property name.
@@ -422,6 +449,7 @@ pub fn VirtualNode::to_js_obscure(self : VirtualNode) -> @dom.JsObscure {
 /// ```
 /// inspect(dom_attr_to_react_prop("class"), content="className")
 /// inspect(dom_attr_to_react_prop("for"), content="htmlFor")
+/// inspect(dom_attr_to_react_prop("innerHTML"), content="dangerouslySetInnerHTML")
 /// inspect(dom_attr_to_react_prop("id"), content="id")
 /// inspect(dom_attr_to_react_prop("data-test"), content="data-test")
 /// ```
@@ -430,6 +458,7 @@ pub fn dom_attr_to_react_prop(attr_name : String) -> String {
     // 保留向后兼容性，支持传统的 HTML 属性名
     "class" => "className"
     "for" => "htmlFor"
+    "innerHTML" => "dangerouslySetInnerHTML"
     // 其他属性名应该在元素定义时就使用正确的 React 属性名
     _ => attr_name
   }
@@ -535,7 +564,11 @@ fn VirtualElement::to_js_value(self : VirtualElement) -> @dom.JsObscure {
   let props = @dom.JsObjectObscure::new()
   for key, value in self.attrs.0 {
     let react_prop_name = dom_attr_to_react_prop(key)
-    let prop_value = convert_prop_value(react_prop_name, value)
+    let prop_value = match value {
+      StringProp(value) => convert_prop_value(react_prop_name, value)
+      BoolProp(value) => @dom.v_to_js_obscure(value)
+      IntProp(value) => @dom.v_to_js_obscure(value)
+    }
     props.set(react_prop_name, prop_value)
   }
   let style = convert_style_to_js_object(self.style)
@@ -548,7 +581,7 @@ fn VirtualElement::to_js_value(self : VirtualElement) -> @dom.JsObscure {
     let event_name = dom_event_to_react_handler(event_type)
     props.set(event_name, @dom.v_to_js_obscure(value))
   }
-  react_create_element(self.name, props, children)
+  react_create_element(self.name, props, FixedArray::from_array(children))
 }
 
 ///|
@@ -589,7 +622,7 @@ pub fn create_element(
 extern "js" fn create_factory(
   f : (@dom.JsObscure) -> @dom.JsObscure,
   props : @dom.JsObscure,
-  children : Array[@dom.JsObscure],
+  children : FixedArray[@dom.JsObscure],
 ) -> @dom.JsObscure =
   #| (f, props, children) => {
   #|   let h0 = window.React.createElement(f, props, ...children);
@@ -629,7 +662,7 @@ pub fn[T] component(
     // TODO maybe better to use { value: PROPS} instead of props.to_value()
     // need future refactor to explore it
     @dom.v_to_js_obscure(props),
-    children_js,
+    FixedArray::from_array(children_js),
   )
   JsNode(r)
 }
@@ -651,7 +684,7 @@ pub fn[T] component_with_children(
   let r = create_factory(
     fn(p) { f(@dom.js_obscure_to_v(p), children).to_js_obscure() },
     @dom.v_to_js_obscure(props),
-    children_js,
+    FixedArray::from_array(children_js),
   )
   JsNode(r)
 }
@@ -789,6 +822,8 @@ pub fn is_boolean_prop(prop_name : String) -> Bool {
 ///|
 /// Converts string values to appropriate JavaScript values for React props.
 /// Handles boolean attributes by converting "true"/"false" strings to actual booleans.
+/// The internal `innerHTML` attribute is converted to React's
+/// `dangerouslySetInnerHTML` object; only provide trusted HTML to that API.
 ///
 /// # Parameters
 /// - `prop_name`: React property name.
@@ -801,7 +836,11 @@ pub fn is_boolean_prop(prop_name : String) -> Bool {
 /// inspect(convert_prop_value("checked", "true"), content="JsObscure::from_bool(true)")
 /// inspect(convert_prop_value("className", "my-class"), content="JsObscure::from_string(\"my-class\")")
 pub fn convert_prop_value(prop_name : String, value : String) -> @dom.JsObscure {
-  if is_boolean_prop(prop_name) {
+  if prop_name == "dangerouslySetInnerHTML" {
+    let html = @dom.JsObjectObscure::new()
+    html.set("__html", JsObscure::from_string(value))
+    html.to_js_obscure()
+  } else if is_boolean_prop(prop_name) {
     match value {
       "true" => JsObscure::from_bool(true)
       "false" => JsObscure::from_bool(false)
