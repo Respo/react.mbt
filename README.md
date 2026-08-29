@@ -67,6 +67,8 @@ Only pass trusted, sanitized HTML through this escape hatch.
 Use `ElementAttrs::set` for string attributes, `set_bool` for React boolean
 properties such as `disabled`, and `set_int` for numeric properties such as
 `rows`. The built-in element helpers use these typed conversions automatically.
+For controlled checkbox or radio inputs, use `input(checked=value)` so both
+`true` and `false` reach React as booleans.
 
 `declare_contained_style` is deprecated; use `contained_static_style` instead.
 

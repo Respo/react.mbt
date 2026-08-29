@@ -62,7 +62,7 @@ pub fn header(id? : String, class_name? : String, class_list? : Array[String], a
 
 pub fn img(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, src? : String, alt? : String, width? : String, height? : String, on_click? : (DOMEvent) -> Unit, on_load? : (DOMEvent) -> Unit, on_error? : (DOMEvent) -> Unit) -> VirtualNode
 
-pub fn input(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, type_? : InputType, value? : String, placeholder? : String, disabled? : Bool, on_click? : (DOMEvent) -> Unit, on_change? : (DOMEvent) -> Unit, on_input? : (DOMEvent) -> Unit) -> VirtualNode
+pub fn input(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, type_? : InputType, value? : String, placeholder? : String, disabled? : Bool, checked? : Bool, on_click? : (DOMEvent) -> Unit, on_change? : (DOMEvent) -> Unit, on_input? : (DOMEvent) -> Unit) -> VirtualNode
 
 pub fn is_boolean_prop(String) -> Bool
 

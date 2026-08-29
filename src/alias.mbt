@@ -587,6 +587,9 @@ pub fn input(
   placeholder? : String,
   /// Whether the input is disabled.
   disabled? : Bool,
+  /// Controlled checked value for checkbox and radio inputs. Unlike `disabled`,
+  /// this is emitted for both true and false values.
+  checked? : Bool,
   /// Click event handler.
   on_click? : (DOMEvent) -> Unit,
   /// Change event handler (fired when value changes and input loses focus).
@@ -613,6 +616,9 @@ pub fn input(
   }
   if disabled is Some(true) {
     attrs.set_bool("disabled", true)
+  }
+  if checked is Some(checked) {
+    attrs.set_bool("checked", checked)
   }
   if on_click is Some(on_click) {
     event.set(Click, on_click)

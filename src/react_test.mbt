@@ -566,10 +566,13 @@ test "element helpers preserve form, link, and media props" {
     value="accepted",
     placeholder="accept terms",
     disabled=true,
+    checked=false,
   ).to_js_obscure()
   inspect(react_element_tag(input_node), content="input")
   inspect(react_element_string_prop(input_node, "type"), content="checkbox")
   inspect(react_element_bool_prop(input_node, "disabled"), content="true")
+  inspect(react_element_has_prop(input_node, "checked"), content="true")
+  inspect(react_element_bool_prop(input_node, "checked"), content="false")
 
   let link_node = a(href="/docs", target="_blank", [Text("docs")]).to_js_obscure()
   inspect(react_element_tag(link_node), content="a")

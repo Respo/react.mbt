@@ -187,9 +187,7 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
       Some(editing_id) => editing_id == todo.id
       None => false
     }
-    let checkbox_attrs = @react.ElementAttrs::new()
     // Keep the controlled checkbox value as a React boolean, including false.
-    checkbox_attrs.set_bool("checked", todo.completed)
     let li_class = {
       let classes = []
       if todo.completed {
@@ -241,7 +239,7 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
           @react.input(
             class_name="toggle",
             type_=Checkbox,
-            attrs=checkbox_attrs,
+            checked=todo.completed,
             on_change=fn(_event) { toggle_todo(todo.id) },
           ),
           @react.label(
