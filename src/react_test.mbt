@@ -19,14 +19,19 @@ extern "js" fn install_test_react_dom() -> Unit =
   #| () => {
   #|   let createRootCalls = 0;
   #|   let renderCalls = 0;
+  #|   let unmountCalls = 0;
   #|   globalThis.window.ReactDOMClient = {
   #|     createRoot: () => {
   #|       createRootCalls += 1;
-  #|       return { render: () => { renderCalls += 1; } };
+  #|       return {
+  #|         render: () => { renderCalls += 1; },
+  #|         unmount: () => { unmountCalls += 1; },
+  #|       };
   #|     },
   #|   };
   #|   globalThis.__moonbitReactRoots = new WeakMap();
-  #|   globalThis.__moonbitReactRenderCounts = () => [createRootCalls, renderCalls];
+  #|   globalThis.__moonbitReactRenderCounts = () =>
+  #|     [createRootCalls, renderCalls, unmountCalls];
   #| }
 
 ///|
@@ -40,6 +45,10 @@ extern "js" fn react_render_create_root_count() -> Int =
 ///|
 extern "js" fn react_render_call_count() -> Int =
   #| () => globalThis.__moonbitReactRenderCounts()[1]
+
+///|
+extern "js" fn react_unmount_call_count() -> Int =
+  #| () => globalThis.__moonbitReactRenderCounts()[2]
 
 ///|
 test "DOM attribute names use React property names" {
@@ -93,6 +102,17 @@ test "render reuses the React root for a parent element" {
   render(Text("second"), parent)
   inspect(react_render_create_root_count(), content="1")
   inspect(react_render_call_count(), content="2")
+}
+
+///|
+test "unmount releases the React root for a parent element" {
+  install_test_react_dom()
+  let parent = test_parent_element()
+  render(Text("first"), parent)
+  unmount(parent)
+  render(Text("second"), parent)
+  inspect(react_render_create_root_count(), content="2")
+  inspect(react_unmount_call_count(), content="1")
 }
 
 ///|

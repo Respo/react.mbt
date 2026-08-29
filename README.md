@@ -13,6 +13,7 @@ This is an experimental hobby project exploring MoonBit bindings for React. The 
 ### Core Rendering API
 
 - `render(vdom: VirtualNode, parent: @dom.Element) -> Unit` - Render virtual DOM to specified parent element
+- `unmount(parent: @dom.Element) -> Unit` - Unmount the React root for an element
 - `component[T](f: (T) -> VirtualNode, props: T, children: Array[VirtualNode]) -> VirtualNode` - Create a leaf component
 - `component_with_children[T](f: (T, Array[VirtualNode]) -> VirtualNode, props: T, children: Array[VirtualNode]) -> VirtualNode` - Create a component that places its children
 

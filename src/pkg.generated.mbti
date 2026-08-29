@@ -95,6 +95,8 @@ pub fn textarea(id? : String, class_name? : String, class_list? : Array[String],
 
 pub fn ul(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
+pub fn unmount(@dom-ffi.Element) -> Unit
+
 pub fn use_callback0_deps(() -> Unit, Array[@dom-ffi.JsObscure]) -> () -> Unit
 
 pub fn[F] use_callback_deps(F, Array[@dom-ffi.JsObscure]) -> F

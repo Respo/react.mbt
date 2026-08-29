@@ -14,6 +14,17 @@ extern "js" fn react_render(vdom : @dom.JsObscure, parent : @dom.Node) -> Unit =
   #| }
 
 ///|
+extern "js" fn react_unmount(parent : @dom.Node) -> Unit =
+  #| (parent) => {
+  #|   const roots = globalThis.__moonbitReactRoots;
+  #|   const root = roots?.get(parent);
+  #|   if (root) {
+  #|     root.unmount();
+  #|     roots.delete(parent);
+  #|   }
+  #| }
+
+///|
 /// Renders a virtual DOM node to the specified parent element.
 ///
 /// This function takes a virtual DOM node and a parent DOM element, then uses
@@ -38,6 +49,13 @@ extern "js" fn react_render(vdom : @dom.JsObscure, parent : @dom.Node) -> Unit =
 /// ```
 pub fn render(vdom : VirtualNode, parent : @dom.Element) -> Unit {
   react_render(vdom.to_js_obscure(), parent.reinterpret_as_node())
+}
+
+///|
+/// Unmounts the React root associated with a parent element, if one exists.
+/// A later call to `render` for the same parent creates a fresh root.
+pub fn unmount(parent : @dom.Element) -> Unit {
+  react_unmount(parent.reinterpret_as_node())
 }
 
 ///|
