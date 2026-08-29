@@ -145,6 +145,7 @@ pub fn DOMEvent::meta_key(Self) -> Bool
 pub fn DOMEvent::prevent_default(Self) -> Unit
 pub fn DOMEvent::shift_key(Self) -> Bool
 pub fn DOMEvent::stop_propagation(Self) -> Unit
+pub fn DOMEvent::target_checked(Self) -> Bool
 pub fn DOMEvent::target_value(Self) -> String
 pub fn DOMEvent::to_js_obscure(Self) -> @dom-ffi.JsObscure
 

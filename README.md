@@ -49,6 +49,7 @@ This is an experimental hobby project exploring MoonBit bindings for React. The 
 
 - `DOMEvent` type and its methods:
   - `target_value() -> String` - Get form element value
+  - `target_checked() -> Bool` - Get checkbox or radio checked state
   - `key() -> String`, `key_code() -> Int` - Keyboard events
   - `client_x() -> Int`, `client_y() -> Int` - Mouse coordinates
   - `prevent_default()`, `stop_propagation()` - Event control

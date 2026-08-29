@@ -82,7 +82,7 @@ extern "js" fn js_value_string(value : @dom.JsObscure) -> String =
 ///|
 extern "js" fn test_dom_event() -> DOMEvent =
   #| () => ({
-  #|   target: { value: "updated value" },
+  #|   target: { value: "updated value", checked: true },
   #|   key: "Enter",
   #|   keyCode: 13,
   #|   clientX: 24,
@@ -532,6 +532,7 @@ test "form handlers receive DOM event values through React props" {
 test "DOMEvent exposes keyboard, pointer, modifier, and control APIs" {
   let event = test_dom_event()
   inspect(event.target_value(), content="updated value")
+  inspect(event.target_checked(), content="true")
   inspect(event.key(), content="Enter")
   inspect(event.key_code(), content="13")
   inspect(event.client_x(), content="24")

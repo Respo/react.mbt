@@ -15,6 +15,8 @@
   event-handler conversion for React.
 - Added `input(checked=...)` for controlled checkbox and radio inputs, keeping
   both boolean values intact.
+- Added `DOMEvent::target_checked()` for reading controlled checkbox and radio
+  state from form handlers.
 - Updated JavaScript FFI array boundaries to MoonBit's `FixedArray` ABI while
   preserving the public `Array`-based hook API.
 - Added regression coverage for React element conversion, roots, components,

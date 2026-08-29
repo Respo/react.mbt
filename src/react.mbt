@@ -162,6 +162,12 @@ pub extern "js" fn DOMEvent::target_value(self : DOMEvent) -> String =
   #| (event) => event.target ? event.target.value || "" : ""
 
 ///|
+/// Returns whether the event target is checked. This is intended for controlled
+/// checkbox and radio inputs; non-checkable targets return false.
+pub extern "js" fn DOMEvent::target_checked(self : DOMEvent) -> Bool =
+  #| (event) => event.target?.checked === true
+
+///|
 /// 获取键盘事件的键值
 pub extern "js" fn DOMEvent::key(self : DOMEvent) -> String =
   #| (event) => event.key || ""
