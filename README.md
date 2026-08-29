@@ -30,6 +30,10 @@ This is an experimental hobby project exploring MoonBit bindings for React. The 
 - `use_callback_deps[F](callback: F, deps: Array[JsObscure]) -> F` - Callback memoization hook
 - `use_callback0_deps(f: () -> Unit, deps: Array[JsObscure]) -> () -> Unit` - Zero-argument callback hook
 - `use_ref[T](initial: T) -> ReactRef[T]` - Reference hook
+- `use_id() -> String` - Stable component-local identifier hook
+- `use_deferred_value[T](value: T) -> T` - Deferred-value hook for non-urgent rendering
+- `use_transition() -> (Bool, (() -> Unit) -> Unit)` - Transition state and starter hook
+- `start_transition(action: () -> Unit) -> Unit` - Start a transition when pending state is not needed
 - `obscure[T](v: T) -> JsObscure` - Dependency conversion helper function
 
 ### HTML Element Bindings

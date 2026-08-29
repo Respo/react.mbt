@@ -88,6 +88,8 @@ pub fn select(id? : String, class_name? : String, class_list? : Array[String], a
 
 pub fn span(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
+pub fn start_transition(() -> Unit) -> Unit
+
 #callsite(autofill(loc))
 pub fn[U : Show] static_style(Array[(U, @respo_css.RespoStyle)], loc~ : SourceLoc) -> String
 
@@ -101,6 +103,8 @@ pub fn use_callback0_deps(() -> Unit, Array[@dom-ffi.JsObscure]) -> () -> Unit
 
 pub fn[F] use_callback_deps(F, Array[@dom-ffi.JsObscure]) -> F
 
+pub fn[T] use_deferred_value(T) -> T
+
 pub fn use_effect_cleanup_deps(() -> () -> Unit, Array[@dom-ffi.JsObscure]) -> Unit
 
 pub fn use_effect_deps(() -> Unit, Array[@dom-ffi.JsObscure]) -> Unit
@@ -108,6 +112,8 @@ pub fn use_effect_deps(() -> Unit, Array[@dom-ffi.JsObscure]) -> Unit
 pub fn use_effect_once(() -> Unit) -> Unit
 
 pub fn use_effect_once_with_cleanup(() -> () -> Unit) -> Unit
+
+pub fn use_id() -> String
 
 pub fn use_layout_effect_cleanup_deps(() -> () -> Unit, Array[@dom-ffi.JsObscure]) -> Unit
 
@@ -120,6 +126,8 @@ pub fn[S : Default, A] use_reducer(initial? : S, (S, A) -> S) -> (S, (A) -> Unit
 pub fn[T] use_ref(T) -> ReactRef[T]
 
 pub fn[T] use_state(T) -> (T, (T) -> Unit)
+
+pub fn use_transition() -> (Bool, (() -> Unit) -> Unit)
 
 pub fn video(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], src? : String, controls? : Bool, autoplay? : Bool, loop_enabled? : Bool, muted? : Bool, width? : String, height? : String, on_click? : (DOMEvent) -> Unit, on_play? : (DOMEvent) -> Unit, on_pause? : (DOMEvent) -> Unit) -> VirtualNode
 

@@ -7,6 +7,8 @@
 - Added `component_with_children` for components that need to place caller
   children in their rendered tree.
 - Added cleanup-capable effect bindings.
+- Added React 19-compatible `use_id`, `use_deferred_value`, and transition
+  bindings with regression coverage.
 - Added typed boolean and integer element attributes and corrected raw HTML and
   event-handler conversion for React.
 - Updated JavaScript FFI array boundaries to MoonBit's `FixedArray` ABI while

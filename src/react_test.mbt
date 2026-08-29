@@ -143,7 +143,15 @@ extern "js" fn react_unmount_call_count() -> Int =
 ///|
 extern "js" fn install_test_react_hooks() -> Unit =
   #| () => {
-  #|   globalThis.__moonbitHookState = { state: null, reduced: null };
+  #|   globalThis.__moonbitHookState = {
+  #|     state: null,
+  #|     reduced: null,
+  #|     transitionActions: 0,
+  #|   };
+  #|   const runTransition = (action) => {
+  #|     globalThis.__moonbitHookState.transitionActions += 1;
+  #|     action();
+  #|   };
   #|   const runEffect = (effect) => {
   #|     const cleanup = effect();
   #|     if (typeof cleanup === "function") cleanup();
@@ -158,6 +166,10 @@ extern "js" fn install_test_react_hooks() -> Unit =
   #|       useMemo: (factory) => factory(),
   #|       useCallback: (callback) => callback,
   #|       useRef: (initial) => ({ current: initial }),
+  #|       useId: () => "moonbit-test-id",
+  #|       useDeferredValue: (value) => value,
+  #|       useTransition: () => [false, runTransition],
+  #|       startTransition: runTransition,
   #|       useReducer: (reducer, initial) => [initial, (action) => {
   #|         globalThis.__moonbitHookState.reduced = reducer(initial, action);
   #|       }],
@@ -172,6 +184,10 @@ extern "js" fn hook_test_state() -> Int =
 ///|
 extern "js" fn hook_test_reduced_state() -> Int =
   #| () => globalThis.__moonbitHookState.reduced
+
+///|
+extern "js" fn hook_test_transition_action_count() -> Int =
+  #| () => globalThis.__moonbitHookState.transitionActions
 
 ///|
 extern "js" fn install_test_style_document() -> Unit =
@@ -662,6 +678,21 @@ test "hook wrappers preserve MoonBit values and callbacks" {
   inspect(reduced, content="3")
   dispatch(4)
   inspect(hook_test_reduced_state(), content="7")
+}
+
+///|
+test "concurrent hook wrappers preserve values and run transitions" {
+  install_test_react_hooks()
+  inspect(use_id(), content="moonbit-test-id")
+  inspect(use_deferred_value("deferred"), content="deferred")
+
+  let (is_pending, start) = use_transition()
+  inspect(is_pending, content="false")
+  let mut transition_effects = 0
+  start(fn() { transition_effects = transition_effects + 1 })
+  start_transition(fn() { transition_effects = transition_effects + 1 })
+  inspect(transition_effects, content="2")
+  inspect(hook_test_transition_action_count(), content="2")
 }
 
 ///|

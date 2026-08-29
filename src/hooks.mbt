@@ -54,6 +54,22 @@ extern "js" fn react_use_reducer(
   #| (reducer, initial) => window.React.useReducer(reducer, initial)
 
 ///|
+extern "js" fn react_use_id() -> String =
+  #| () => window.React.useId()
+
+///|
+extern "js" fn react_use_deferred_value(value : JsObscure) -> JsObscure =
+  #| (value) => window.React.useDeferredValue(value)
+
+///|
+extern "js" fn react_use_transition() -> JsObscure =
+  #| () => window.React.useTransition()
+
+///|
+extern "js" fn react_start_transition(action : JsObscure) -> Unit =
+  #| (action) => window.React.startTransition(action)
+
+///|
 fn fn0_to_js_obscure(f : () -> Unit) -> @dom.JsObscure = "%identity"
 
 ///|
@@ -194,4 +210,35 @@ pub fn[S : Default, A] use_reducer(
   let s0 = any_from_js_value(pair.get("0"))
   let dispatch_raw = fn1_from_js_obscure(pair.get("1"))
   (s0, fn(a : A) { dispatch_raw(any_to_js_value(a)) })
+}
+
+///|
+/// Returns a stable identifier suitable for associating component-local DOM
+/// elements, such as a label and its input.
+pub fn use_id() -> String {
+  react_use_id()
+}
+
+///|
+/// Defers a value so that urgent updates can render before expensive consumers
+/// of that value. The returned value keeps the original MoonBit type.
+pub fn[T] use_deferred_value(value : T) -> T {
+  react_use_deferred_value(any_to_js_value(value)) |> any_from_js_value
+}
+
+///|
+/// Marks state updates made by `action` as non-urgent. The returned boolean is
+/// true while React is rendering the transition.
+pub fn use_transition() -> (Bool, (() -> Unit) -> Unit) {
+  let pair = react_use_transition()
+  let is_pending : Bool = any_from_js_value(pair.get("0"))
+  let start_raw = fn1_from_js_obscure(pair.get("1"))
+  (is_pending, fn(action) { start_raw(fn0_to_js_obscure(action)) })
+}
+
+///|
+/// Marks updates made by `action` as non-urgent without reading transition
+/// state. Use `use_transition` when the component also needs `is_pending`.
+pub fn start_transition(action : () -> Unit) -> Unit {
+  react_start_transition(fn0_to_js_obscure(action))
 }
