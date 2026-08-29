@@ -40,6 +40,13 @@ extern "js" fn react_element_bool_prop(
   #| (node, key) => node.props[key] === true
 
 ///|
+extern "js" fn react_element_has_prop(
+  node : @dom.JsObscure,
+  key : String,
+) -> Bool =
+  #| (node, key) => Object.hasOwn(node.props, key)
+
+///|
 extern "js" fn react_element_has_function_prop(
   node : @dom.JsObscure,
   key : String,
@@ -488,6 +495,8 @@ test "attributes set through ElementAttrs are converted to React props" {
   install_test_react()
   let attrs = ElementAttrs::new().add("title", "first")
   attrs.set("title", "updated")
+  attrs.set_bool("checked", false)
+  attrs.set_int("tabIndex", 3)
   let node = create_element(
     "div",
     attrs,
@@ -499,6 +508,15 @@ test "attributes set through ElementAttrs are converted to React props" {
     react_element_string_prop(node.to_js_obscure(), "title"),
     content="updated",
   )
+  inspect(
+    react_element_has_prop(node.to_js_obscure(), "checked"),
+    content="true",
+  )
+  inspect(
+    react_element_bool_prop(node.to_js_obscure(), "checked"),
+    content="false",
+  )
+  inspect(react_element_int_prop(node.to_js_obscure(), "tabIndex"), content="3")
 }
 
 ///|

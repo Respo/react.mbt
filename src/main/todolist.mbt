@@ -188,8 +188,8 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
       None => false
     }
     let checkbox_attrs = @react.ElementAttrs::new()
-    // 修复受控组件问题：始终设置 checked 属性
-    checkbox_attrs.set("checked", if todo.completed { "true" } else { "false" })
+    // Keep the controlled checkbox value as a React boolean, including false.
+    checkbox_attrs.set_bool("checked", todo.completed)
     let li_class = {
       let classes = []
       if todo.completed {
