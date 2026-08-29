@@ -95,7 +95,10 @@ extern "js" fn main_react_trigger_handler(
   node : @dom.JsObscure,
   handler_name : String,
 ) -> Unit =
-  #| (node, handlerName) => node.props[handlerName]({})
+  #| (node, handlerName) => node.props[handlerName]({
+  #|   preventDefault() {},
+  #|   stopPropagation() {},
+  #| })
 
 ///|
 extern "js" fn main_react_trigger_event(
@@ -175,6 +178,14 @@ test "todo reducer preserves IDs and applies every action" {
   let deleted = todo_reducer(initial, DeleteTodo(3))
   inspect(deleted.length(), content="1")
   inspect(deleted[0].id, content="8")
+
+  let all_completed = todo_reducer(initial, SetAllCompleted(true))
+  inspect(all_completed[0].completed, content="true")
+  inspect(all_completed[1].completed, content="true")
+
+  let all_active = todo_reducer(initial, SetAllCompleted(false))
+  inspect(all_active[0].completed, content="false")
+  inspect(all_active[1].completed, content="false")
 
   let active = todo_reducer(initial, ClearCompleted)
   inspect(active.length(), content="1")

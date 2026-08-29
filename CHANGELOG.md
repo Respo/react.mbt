@@ -7,6 +7,8 @@
 - Added stateful MoonBit component regressions for Todo editing, creation,
   filtering, hooks, and application bootstrap, plus a Chromium TodoMVC smoke
   test in CI.
+- Completed the demo's controlled toggle-all flow and made its filters real,
+  keyboard-accessible links without changing client-side navigation.
 
 ## 0.1.0
 
