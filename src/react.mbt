@@ -617,6 +617,28 @@ pub fn[T] component(
 }
 
 ///|
+/// Creates a component virtual node whose function receives the child nodes.
+///
+/// Use this when a component needs to decide where to place its children. The
+/// existing `component` function remains the concise choice for leaf components.
+pub fn[T] component_with_children(
+  /// Component function that receives props and the original MoonBit child nodes.
+  f : (T, Array[VirtualNode]) -> VirtualNode,
+  /// Props to pass to the component function.
+  props : T,
+  /// Child nodes supplied by the component's caller.
+  children : Array[VirtualNode],
+) -> VirtualNode {
+  let children_js = children.map(fn(child) { child.to_js_obscure() })
+  let r = create_factory(
+    fn(p) { f(@dom.js_obscure_to_v(p), children).to_js_obscure() },
+    @dom.v_to_js_obscure(props),
+    children_js,
+  )
+  JsNode(r)
+}
+
+///|
 fn first_letter_to_uppercase(s : String) -> String {
   match s.get_char(0) {
     Some(first) => first.to_string().to_upper() + s[1:].to_owned()

@@ -13,7 +13,8 @@ This is an experimental hobby project exploring MoonBit bindings for React. The 
 ### Core Rendering API
 
 - `render(vdom: VirtualNode, parent: @dom.Element) -> Unit` - Render virtual DOM to specified parent element
-- `component[T: JsValueTrait](f: (T) -> VirtualNode, props: T, children: Array[VirtualNode]) -> VirtualNode` - Create component
+- `component[T](f: (T) -> VirtualNode, props: T, children: Array[VirtualNode]) -> VirtualNode` - Create a leaf component
+- `component_with_children[T](f: (T, Array[VirtualNode]) -> VirtualNode, props: T, children: Array[VirtualNode]) -> VirtualNode` - Create a component that places its children
 
 ### Hooks API
 
@@ -27,7 +28,7 @@ This is an experimental hobby project exploring MoonBit bindings for React. The 
 - `use_memo_deps[A](factory: () -> A, deps: Array[JsObscure]) -> A` - Memoization hook
 - `use_callback_deps[F](callback: F, deps: Array[JsObscure]) -> F` - Callback memoization hook
 - `use_callback0_deps(f: () -> Unit, deps: Array[JsObscure]) -> () -> Unit` - Zero-argument callback hook
-- `use_ref[T: JsValueTrait](initial: T) -> ReactRef[T]` - Reference hook
+- `use_ref[T](initial: T) -> ReactRef[T]` - Reference hook
 - `obscure[T](v: T) -> JsObscure` - Dependency conversion helper function
 
 ### HTML Element Bindings
@@ -78,17 +79,6 @@ Here's a simple example of how to use this library:
 ```moonbit
 // Define your component props
 struct ContainerProps {} derive(Default)
-
-// Implement JsValueTrait for props
-impl @react.JsValueTrait for ContainerProps with to_value(_self) -> @dom.JsObscure {
-  @react.JsObject::new().to_value()
-}
-
-impl @react.JsValueTrait for ContainerProps with from_value(
-  _value : @dom.JsObscure,
-) -> ContainerProps {
-  ContainerProps::default()
-}
 
 // Create a functional component
 fn comp_container(_v : ContainerProps) -> @react.VirtualNode {

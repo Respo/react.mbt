@@ -4,7 +4,8 @@ extern "js" fn install_test_react() -> Unit =
   #|   globalThis.window = {
   #|     React: {
   #|       Fragment: Symbol("Fragment"),
-  #|       createElement: (tag, props, ...children) => ({ tag, props, children }),
+  #|       createElement: (tag, props, ...children) =>
+  #|         typeof tag === "function" ? tag(props) : ({ tag, props, children }),
   #|     },
   #|   };
   #| }
@@ -92,4 +93,23 @@ test "render reuses the React root for a parent element" {
   render(Text("second"), parent)
   inspect(react_render_create_root_count(), content="1")
   inspect(react_render_call_count(), content="2")
+}
+
+///|
+test "components can render their supplied MoonBit children" {
+  install_test_react()
+  let node = component_with_children(
+    fn(_props : String, children) {
+      create_element(
+        "section",
+        ElementAttrs::new(),
+        ElementEvents::new(),
+        style=@css.respo_style(),
+        children,
+      ).to_node()
+    },
+    "test",
+    [Text("visible child")],
+  )
+  inspect(react_element_child_count(node.to_js_obscure()), content="1")
 }

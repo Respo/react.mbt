@@ -19,6 +19,8 @@ pub fn button(id? : String, class_name? : String, class_list? : Array[String], a
 
 pub fn[T] component((T) -> VirtualNode, T, Array[VirtualNode]) -> VirtualNode
 
+pub fn[T] component_with_children((T, Array[VirtualNode]) -> VirtualNode, T, Array[VirtualNode]) -> VirtualNode
+
 pub fn console_log2(String, @dom-ffi.JsObscure) -> Unit
 
 #callsite(autofill(loc))
