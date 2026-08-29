@@ -477,6 +477,182 @@ test "all built-in element helpers emit their HTML tag" {
 }
 
 ///|
+test "text, structure, and list helpers preserve common optional props" {
+  install_test_react()
+  let nodes : Array[VirtualNode] = [
+    p(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    h1(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    h2(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    h3(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    h4(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    h5(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    h6(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    a(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    div(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    section(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    article(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    header(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    footer(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    nav(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    aside(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    ul(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    ol(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+    li(
+      id="common-id",
+      class_name="base",
+      class_list=["extra-class"],
+      innerHTML="<em>trusted</em>",
+      on_click=fn(_event) {  },
+      [],
+    ),
+  ]
+  for node in nodes {
+    let value = node.to_js_obscure()
+    assert_eq(react_element_string_prop(value, "id"), "common-id")
+    assert_eq(react_element_string_prop(value, "className"), "base extra-class")
+    assert_eq(react_element_inner_html(value), "<em>trusted</em>")
+    assert_eq(react_element_has_function_prop(value, "onClick"), true)
+  }
+
+  let label_node = label(
+    id="common-id",
+    class_name="base",
+    class_list=["extra-class"],
+    innerHTML="<em>trusted</em>",
+    on_click=fn(_event) {  },
+    for_="input-id",
+    [],
+  ).to_js_obscure()
+  assert_eq(react_element_string_prop(label_node, "id"), "common-id")
+  assert_eq(
+    react_element_string_prop(label_node, "className"),
+    "base extra-class",
+  )
+  assert_eq(react_element_inner_html(label_node), "<em>trusted</em>")
+  assert_eq(react_element_has_function_prop(label_node, "onClick"), true)
+  inspect(react_element_string_prop(label_node, "htmlFor"), content="input-id")
+}
+
+///|
 test "input types use valid HTML values" {
   inspect(InputType::Button.to_string(), content="button")
   inspect(InputType::Checkbox.to_string(), content="checkbox")
@@ -618,17 +794,58 @@ test "element helpers preserve form, link, and media props" {
   inspect(react_element_string_prop(label_node, "htmlFor"), content="email")
 
   let input_node = input(
+    id="terms",
+    class_name="field",
+    class_list=["controlled"],
     type_=Checkbox,
     value="accepted",
     placeholder="accept terms",
     disabled=true,
     checked=false,
+    on_click=fn(_event) {  },
+    on_input=fn(_event) {  },
   ).to_js_obscure()
   inspect(react_element_tag(input_node), content="input")
+  inspect(react_element_string_prop(input_node, "id"), content="terms")
+  inspect(
+    react_element_string_prop(input_node, "className"),
+    content="field controlled",
+  )
   inspect(react_element_string_prop(input_node, "type"), content="checkbox")
   inspect(react_element_bool_prop(input_node, "disabled"), content="true")
   inspect(react_element_has_prop(input_node, "checked"), content="true")
   inspect(react_element_bool_prop(input_node, "checked"), content="false")
+  inspect(
+    react_element_has_function_prop(input_node, "onClick"),
+    content="true",
+  )
+  inspect(
+    react_element_has_function_prop(input_node, "onInput"),
+    content="true",
+  )
+
+  let button_node = button(
+    id="submit",
+    class_name="action",
+    class_list=["primary"],
+    innerHTML="<b>Submit</b>",
+    button_type="submit",
+    disabled=true,
+    on_click=fn(_event) {  },
+    [],
+  ).to_js_obscure()
+  inspect(react_element_string_prop(button_node, "id"), content="submit")
+  inspect(
+    react_element_string_prop(button_node, "className"),
+    content="action primary",
+  )
+  inspect(react_element_inner_html(button_node), content="<b>Submit</b>")
+  inspect(react_element_string_prop(button_node, "type"), content="submit")
+  inspect(react_element_bool_prop(button_node, "disabled"), content="true")
+  inspect(
+    react_element_has_function_prop(button_node, "onClick"),
+    content="true",
+  )
 
   let link_node = a(href="/docs", target="_blank", [Text("docs")]).to_js_obscure()
   inspect(react_element_tag(link_node), content="a")
@@ -636,46 +853,179 @@ test "element helpers preserve form, link, and media props" {
   inspect(react_element_string_prop(link_node, "target"), content="_blank")
 
   let media_node = video(
+    id="video",
+    class_name="media",
+    class_list=["wide"],
     src="movie.mp4",
     controls=true,
     autoplay=true,
     loop_enabled=true,
     muted=true,
+    width="640",
+    height="360",
+    on_click=fn(_event) {  },
+    on_play=fn(_event) {  },
+    on_pause=fn(_event) {  },
     [],
   ).to_js_obscure()
   inspect(react_element_tag(media_node), content="video")
+  inspect(react_element_string_prop(media_node, "id"), content="video")
+  inspect(
+    react_element_string_prop(media_node, "className"),
+    content="media wide",
+  )
   inspect(react_element_bool_prop(media_node, "controls"), content="true")
   inspect(react_element_bool_prop(media_node, "autoPlay"), content="true")
   inspect(react_element_bool_prop(media_node, "loop"), content="true")
   inspect(react_element_bool_prop(media_node, "muted"), content="true")
+  inspect(react_element_string_prop(media_node, "width"), content="640")
+  inspect(react_element_string_prop(media_node, "height"), content="360")
+  inspect(
+    react_element_has_function_prop(media_node, "onClick"),
+    content="true",
+  )
+  inspect(react_element_has_function_prop(media_node, "onPlay"), content="true")
+  inspect(
+    react_element_has_function_prop(media_node, "onPause"),
+    content="true",
+  )
 
   let audio_node = audio(
+    id="audio",
+    class_name="media",
+    class_list=["sound"],
     src="sound.mp3",
     controls=true,
     autoplay=true,
     loop_enabled=true,
     muted=true,
+    on_play=fn(_event) {  },
+    on_pause=fn(_event) {  },
     [],
   ).to_js_obscure()
   inspect(react_element_tag(audio_node), content="audio")
+  inspect(react_element_string_prop(audio_node, "id"), content="audio")
+  inspect(
+    react_element_string_prop(audio_node, "className"),
+    content="media sound",
+  )
   inspect(react_element_bool_prop(audio_node, "controls"), content="true")
   inspect(react_element_bool_prop(audio_node, "autoPlay"), content="true")
   inspect(react_element_bool_prop(audio_node, "loop"), content="true")
   inspect(react_element_bool_prop(audio_node, "muted"), content="true")
+  inspect(react_element_has_function_prop(audio_node, "onPlay"), content="true")
+  inspect(
+    react_element_has_function_prop(audio_node, "onPause"),
+    content="true",
+  )
 
-  let select_node = select(value="second", disabled=true, multiple=true, []).to_js_obscure()
+  let select_node = select(
+    id="choices",
+    class_name="field",
+    class_list=["multiple"],
+    value="second",
+    disabled=true,
+    multiple=true,
+    on_change=fn(_event) {  },
+    [],
+  ).to_js_obscure()
+  inspect(react_element_string_prop(select_node, "id"), content="choices")
+  inspect(
+    react_element_string_prop(select_node, "className"),
+    content="field multiple",
+  )
   inspect(react_element_string_prop(select_node, "value"), content="second")
   inspect(react_element_bool_prop(select_node, "disabled"), content="true")
   inspect(react_element_bool_prop(select_node, "multiple"), content="true")
+  inspect(
+    react_element_has_function_prop(select_node, "onChange"),
+    content="true",
+  )
 
-  let option_node = option(value="second", selected=true, disabled=true, []).to_js_obscure()
+  let option_node = option(
+    id="second",
+    class_name="choice",
+    class_list=["selected"],
+    innerHTML="<i>Second</i>",
+    value="second",
+    selected=true,
+    disabled=true,
+    [],
+  ).to_js_obscure()
+  inspect(react_element_string_prop(option_node, "id"), content="second")
+  inspect(
+    react_element_string_prop(option_node, "className"),
+    content="choice selected",
+  )
+  inspect(react_element_inner_html(option_node), content="<i>Second</i>")
   inspect(react_element_string_prop(option_node, "value"), content="second")
   inspect(react_element_bool_prop(option_node, "selected"), content="true")
   inspect(react_element_bool_prop(option_node, "disabled"), content="true")
 
-  let textarea_node = textarea(rows=3, cols=20).to_js_obscure()
+  let textarea_node = textarea(
+    id="notes",
+    class_name="field",
+    class_list=["large"],
+    value="hello",
+    placeholder="notes",
+    rows=3,
+    cols=20,
+    disabled=true,
+    on_change=fn(_event) {  },
+    on_input=fn(_event) {  },
+  ).to_js_obscure()
+  inspect(react_element_string_prop(textarea_node, "id"), content="notes")
+  inspect(
+    react_element_string_prop(textarea_node, "className"),
+    content="field large",
+  )
+  inspect(react_element_string_prop(textarea_node, "value"), content="hello")
+  inspect(
+    react_element_string_prop(textarea_node, "placeholder"),
+    content="notes",
+  )
   inspect(react_element_int_prop(textarea_node, "rows"), content="3")
   inspect(react_element_int_prop(textarea_node, "cols"), content="20")
+  inspect(react_element_bool_prop(textarea_node, "disabled"), content="true")
+  inspect(
+    react_element_has_function_prop(textarea_node, "onChange"),
+    content="true",
+  )
+  inspect(
+    react_element_has_function_prop(textarea_node, "onInput"),
+    content="true",
+  )
+
+  let image_node = img(
+    id="logo",
+    class_name="image",
+    class_list=["responsive"],
+    src="logo.svg",
+    alt="Logo",
+    width="120",
+    height="40",
+    on_click=fn(_event) {  },
+    on_load=fn(_event) {  },
+    on_error=fn(_event) {  },
+  ).to_js_obscure()
+  inspect(react_element_string_prop(image_node, "id"), content="logo")
+  inspect(
+    react_element_string_prop(image_node, "className"),
+    content="image responsive",
+  )
+  inspect(react_element_string_prop(image_node, "src"), content="logo.svg")
+  inspect(react_element_string_prop(image_node, "alt"), content="Logo")
+  inspect(react_element_string_prop(image_node, "width"), content="120")
+  inspect(react_element_string_prop(image_node, "height"), content="40")
+  inspect(
+    react_element_has_function_prop(image_node, "onClick"),
+    content="true",
+  )
+  inspect(react_element_has_function_prop(image_node, "onLoad"), content="true")
+  inspect(
+    react_element_has_function_prop(image_node, "onError"),
+    content="true",
+  )
 }
 
 ///|
