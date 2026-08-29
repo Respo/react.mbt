@@ -1,5 +1,5 @@
 ///|
-fnalias @react.(obscure, li)
+using @react {obscure, li}
 
 ///|
 /// Hooks Demo Component - 展示新增的 React Hooks API 功能

@@ -1,11 +1,16 @@
 {
   "name": "react.mbt",
-  "version": "0.0.2-a3",
+  "version": "0.0.3",
   "repository": "git@github.com:Respo/react.mbt.git",
   "author": "tiye <jiyinyiyong@gmail.com>",
   "license": "Apache-2.0",
   "scripts": {
-    "watch-mbt": "moon build --debug --watch"
+    "build:moon": "moon build --target js --debug",
+    "check": "moon check --target js",
+    "test": "moon test",
+    "build": "moon build --target js --debug && vite build --base=./",
+    "dev": "vite",
+    "watch-mbt": "moon build --target js --debug --watch"
   },
   "devDependencies": {
     "vite": "^5.4.8"
@@ -14,5 +19,6 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "todomvc-app-css": "^2.4.3"
-  }
+  },
+  "packageManager": "yarn@1.22.22"
 }

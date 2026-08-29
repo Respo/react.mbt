@@ -2,7 +2,7 @@
 /// The generated class name will be unique for each style declaration.
 
 ///|
-let class_name_in_tags : @hashset.HashSet[String] = @hashset.new()
+let class_name_in_tags : @hashset.HashSet[String] = HashSet([], capacity=16)
 
 ///|
 /// Declare a static style in the head of the documentm for example
@@ -26,7 +26,7 @@ pub fn[U : Show] static_style(
     .replace_all(old=".mbt", new="_")
     .replace_all(old=":", new="_")
     .replace_all(old=".", new="_")
-    .to_string()
+    .to_owned()
   if class_name_in_tags.contains(gen_name) {
     gen_name
   } else {
@@ -88,7 +88,7 @@ pub fn[U : Show] contained_static_style(
     .replace_all(old=".mbt", new="_")
     .replace_all(old=":", new="_")
     .replace_all(old=".", new="_")
-    .to_string()
+    .to_owned()
   if class_name_in_tags.contains(gen_name) {
     gen_name
   } else {

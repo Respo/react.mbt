@@ -1,6 +1,0 @@
-{
-  "import": [
-    { "path": "tiye/dom-ffi/lib", "alias": "dom" },
-    { "path": "tiye/respo_css", "alias": "css" }
-  ]
-}

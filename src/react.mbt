@@ -1,8 +1,5 @@
 ///|
-fnalias @css.respo_style
-
-///|
-typealias @css.RespoStyle
+using @css {respo_style, type RespoStyle}
 
 ///|
 extern "js" fn react_render(vdom : @dom.JsObscure, parent : @dom.Node) -> Unit =
@@ -79,7 +76,7 @@ pub struct ElementAttrs(Map[String, String]) derive(Default)
 
 ///|
 pub fn ElementAttrs::new() -> ElementAttrs {
-  {}
+  ElementAttrs(Map([]))
 }
 
 ///|
@@ -88,7 +85,7 @@ pub fn ElementAttrs::add(
   key : String,
   value : String,
 ) -> ElementAttrs {
-  self.inner().set(key, value)
+  self.0.set(key, value)
   self
 }
 
@@ -98,7 +95,7 @@ pub fn ElementAttrs::set(
   key : String,
   value : String,
 ) -> Unit {
-  self.inner().set(key, value)
+  self.0.set(key, value)
 }
 
 ///|
@@ -241,7 +238,7 @@ pub(all) enum DOMEventType {
   TimeUpdate
   VolumeChange
   Waiting
-} derive(Eq, Compare, Show, Hash)
+} derive(Eq, Compare, Hash)
 
 ///|
 /// 将 DOMEventType 转换为字符串
@@ -307,11 +304,16 @@ pub fn DOMEventType::to_string(self : DOMEventType) -> String {
 }
 
 ///|
+pub impl Show for DOMEventType with fn output(self, logger) {
+  logger.write_string(self.to_string())
+}
+
+///|
 struct ElementEvents(Map[DOMEventType, DOMEventHandler]) derive(Default)
 
 ///|
 pub fn ElementEvents::new() -> ElementEvents {
-  {}
+  ElementEvents(Map([]))
 }
 
 ///|
@@ -337,13 +339,13 @@ pub fn ElementEvents::set(
   event_type : DOMEventType,
   value : (DOMEvent) -> Unit,
 ) -> Unit {
-  self.inner().set(event_type, value)
+  self.0.set(event_type, value)
 }
 
 ///|
 pub fn ElementEvents::to_js_value(self : ElementEvents) -> JsObscure {
   let obj = @dom.JsObjectObscure::new()
-  for event_type, value in self.inner() {
+  for event_type, value in self.0 {
     obj.set(event_type.to_string(), value.to_js_func())
   }
   obj.to_js_obscure()
@@ -454,7 +456,7 @@ pub fn css_prop_to_camel_case(name : String) -> String {
   // Detect leading hyphen (e.g., -webkit-)
   let had_leading = name.has_prefix("-")
   // Trim leading/trailing hyphens (typically we only expect leading ones)
-  let s0 = name.trim("-")
+  let s0 = name.trim(chars="-")
   // Split into parts by hyphen
   let parts = s0.split("-")
   // Assemble camelCase
@@ -462,9 +464,9 @@ pub fn css_prop_to_camel_case(name : String) -> String {
   let mut idx = 0
   for part in parts {
     if idx == 0 {
-      ret = ret + part.to_string()
+      ret = ret + part.to_owned()
     } else if part.length() > 0 {
-      ret = ret + first_letter_to_uppercase(part.to_string())
+      ret = ret + first_letter_to_uppercase(part.to_owned())
     }
     idx = idx + 1
   }
@@ -508,7 +510,7 @@ pub fn convert_style_to_js_object(
 ///|
 fn VirtualElement::to_js_value(self : VirtualElement) -> @dom.JsObscure {
   let props = @dom.JsObjectObscure::new()
-  for key, value in self.attrs.inner() {
+  for key, value in self.attrs.0 {
     let react_prop_name = dom_attr_to_react_prop(key)
     let prop_value = convert_prop_value(react_prop_name, value)
     props.set(react_prop_name, prop_value)
@@ -519,7 +521,7 @@ fn VirtualElement::to_js_value(self : VirtualElement) -> @dom.JsObscure {
   for child in self.children {
     children.push(child.to_js_obscure())
   }
-  for event_type, value in self.event.inner() {
+  for event_type, value in self.event.0 {
     let event_name = dom_event_to_react_handler(event_type)
     props.set(event_name, @dom.v_to_js_obscure(value))
   }
@@ -540,14 +542,14 @@ fn VirtualElement::to_js_value(self : VirtualElement) -> @dom.JsObscure {
 /// - `children`: Child virtual nodes
 ///
 /// # Example
-/// ```moonbit
+/// ```moonbit nocheck
 /// // Create a custom element
 /// let _custom_elem = create_element(
 ///   "my-custom-element",
 ///   ElementAttrs::new(),
 ///   ElementEvents::new(),
 ///   style=@css.respo_style(),
-///   [Text("Custom content")]
+///   [Text("Custom content")],
 /// )
 /// ```
 pub fn create_element(
@@ -611,7 +613,10 @@ pub fn[T] component(
 
 ///|
 fn first_letter_to_uppercase(s : String) -> String {
-  s[0].to_char().unwrap().to_string().to_upper() + (try! s[1:]).to_string()
+  match s.get_char(0) {
+    Some(first) => first.to_string().to_upper() + s[1:].to_owned()
+    None => ""
+  }
 }
 
 ///|

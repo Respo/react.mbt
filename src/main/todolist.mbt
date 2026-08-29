@@ -1,8 +1,8 @@
 ///|
-fnalias @css.respo_style
+using @css {respo_style}
 
 ///|
-typealias @react.VirtualNode
+using @react {type VirtualNode}
 
 ///|
 // Todo 项的数据结构
@@ -75,7 +75,7 @@ fn todo_reducer(todos : Array[Todo], action : TodoAction) -> Array[Todo] {
           new_todos.push({
             id: todo.id,
             text: todo.text,
-            completed: not(todo.completed),
+            completed: !todo.completed,
           })
         } else {
           new_todos.push(todo)
@@ -110,7 +110,7 @@ fn todo_reducer(todos : Array[Todo], action : TodoAction) -> Array[Todo] {
     ClearCompleted => {
       let new_todos = Array::new()
       for todo in todos {
-        if not(todo.completed) {
+        if !todo.completed {
           new_todos.push(todo)
         }
       }
@@ -144,13 +144,13 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
   )
 
   // 计算统计数据
-  let active_count = todos.filter(fn(todo) { not(todo.completed) }).length()
+  let active_count = todos.filter(fn(todo) { !todo.completed }).length()
 
   // 添加新 todo 的函数
   let add_new_todo = fn() {
-    let trimmed_text = new_todo_text.trim(" ")
+    let trimmed_text = new_todo_text.trim(chars=" ")
     if trimmed_text != "" {
-      dispatch(AddTodo(trimmed_text.to_string()))
+      dispatch(AddTodo(trimmed_text.to_owned()))
       set_new_todo_text("") // 清空输入框
     }
   }
@@ -170,9 +170,9 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
   let finish_editing = fn() {
     match editing_state.editing_id {
       Some(id) => {
-        let trimmed_text = editing_state.edit_text.trim(" ")
+        let trimmed_text = editing_state.edit_text.trim(chars=" ")
         if trimmed_text != "" {
-          dispatch(EditTodo(id, trimmed_text.to_string()))
+          dispatch(EditTodo(id, trimmed_text.to_owned()))
         }
         set_editing_state(EditingState::default())
       }
@@ -268,7 +268,7 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
 
   // 根据 current_filter 过滤 todos
   let filtered_todos = match current_filter {
-    Active => todos.filter(fn(todo) { not(todo.completed) })
+    Active => todos.filter(fn(todo) { !todo.completed })
     Completed => todos.filter(fn(todo) { todo.completed })
     All => todos // 显示所有
   }

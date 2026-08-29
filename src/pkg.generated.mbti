@@ -1,0 +1,256 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "tiye/react"
+
+import {
+  "tiye/dom-ffi",
+  "tiye/respo_css",
+}
+
+// Values
+pub fn a(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, href? : String, target? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
+
+pub fn article(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
+
+pub fn aside(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
+
+pub fn audio(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], src? : String, controls? : Bool, autoplay? : Bool, loop_enabled? : Bool, muted? : Bool, on_play? : (DOMEvent) -> Unit, on_pause? : (DOMEvent) -> Unit) -> VirtualNode
+
+pub fn button(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, button_type? : String, disabled? : Bool, on_click? : (DOMEvent) -> Unit) -> VirtualNode
+
+pub fn[T] component((T) -> VirtualNode, T, Array[VirtualNode]) -> VirtualNode
+
+pub fn console_log2(String, @dom-ffi.JsObscure) -> Unit
+
+#callsite(autofill(loc))
+pub fn[U : Show] contained_static_style(Array[(String?, U, @respo_css.RespoStyle)], loc~ : SourceLoc) -> String
+
+pub fn convert_prop_value(String, String) -> @dom-ffi.JsObscure
+
+pub fn convert_style_to_js_object(@respo_css.RespoStyle) -> @dom-ffi.JsObjectObscure
+
+pub fn create_element(String, ElementAttrs, ElementEvents, style~ : @respo_css.RespoStyle, Array[VirtualNode]) -> VirtualElement
+
+pub fn css_prop_to_camel_case(String) -> String
+
+#deprecated
+#callsite(autofill(loc))
+pub fn[U : Show] declare_contained_style(Array[(String?, U, @respo_css.RespoStyle)], loc~ : SourceLoc) -> String
+
+pub fn div(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
+
+pub fn dom_attr_to_react_prop(String) -> String
+
+pub fn dom_event_to_react_handler(DOMEventType) -> String
+
+pub fn footer(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
+
+pub fn h1(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
+
+pub fn h2(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
+
+pub fn h3(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
+
+pub fn h4(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
+
+pub fn h5(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
+
+pub fn h6(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
+
+pub fn header(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
+
+pub fn img(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, src? : String, alt? : String, width? : String, height? : String, on_click? : (DOMEvent) -> Unit, on_load? : (DOMEvent) -> Unit, on_error? : (DOMEvent) -> Unit) -> VirtualNode
+
+pub fn input(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, type_? : InputType, value? : String, placeholder? : String, disabled? : Bool, on_click? : (DOMEvent) -> Unit, on_change? : (DOMEvent) -> Unit, on_input? : (DOMEvent) -> Unit) -> VirtualNode
+
+pub fn is_boolean_prop(String) -> Bool
+
+pub fn label(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit, for_? : String) -> VirtualNode
+
+pub fn li(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
+
+pub fn nav(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
+
+pub fn[T] obscure(T) -> @dom-ffi.JsObscure
+
+pub fn ol(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
+
+pub fn option(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, value? : String, selected? : Bool, disabled? : Bool) -> VirtualNode
+
+pub fn p(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
+
+pub fn render(VirtualNode, @dom-ffi.Element) -> Unit
+
+pub fn section(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
+
+pub fn select(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], value? : String, disabled? : Bool, multiple? : Bool, on_change? : (DOMEvent) -> Unit) -> VirtualNode
+
+pub fn span(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
+
+#callsite(autofill(loc))
+pub fn[U : Show] static_style(Array[(U, @respo_css.RespoStyle)], loc~ : SourceLoc) -> String
+
+pub fn textarea(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, value? : String, placeholder? : String, rows? : Int, cols? : Int, disabled? : Bool, on_change? : (DOMEvent) -> Unit, on_input? : (DOMEvent) -> Unit) -> VirtualNode
+
+pub fn ul(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
+
+pub fn use_callback0_deps(() -> Unit, Array[@dom-ffi.JsObscure]) -> () -> Unit
+
+pub fn[F] use_callback_deps(F, Array[@dom-ffi.JsObscure]) -> F
+
+pub fn use_effect_deps(() -> Unit, Array[@dom-ffi.JsObscure]) -> Unit
+
+pub fn use_effect_once(() -> Unit) -> Unit
+
+pub fn use_layout_effect_deps(() -> Unit, Array[@dom-ffi.JsObscure]) -> Unit
+
+pub fn[A] use_memo_deps(() -> A, Array[@dom-ffi.JsObscure]) -> A
+
+pub fn[S : Default, A] use_reducer(initial? : S, (S, A) -> S) -> (S, (A) -> Unit)
+
+pub fn[T] use_ref(T) -> ReactRef[T]
+
+pub fn[T] use_state(T) -> (T, (T) -> Unit)
+
+pub fn video(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], src? : String, controls? : Bool, autoplay? : Bool, loop_enabled? : Bool, muted? : Bool, width? : String, height? : String, on_click? : (DOMEvent) -> Unit, on_play? : (DOMEvent) -> Unit, on_pause? : (DOMEvent) -> Unit) -> VirtualNode
+
+// Errors
+
+// Types and methods
+pub type DOMEvent
+pub fn DOMEvent::alt_key(Self) -> Bool
+pub fn DOMEvent::client_x(Self) -> Int
+pub fn DOMEvent::client_y(Self) -> Int
+pub fn DOMEvent::ctrl_key(Self) -> Bool
+pub fn DOMEvent::key(Self) -> String
+pub fn DOMEvent::key_code(Self) -> Int
+pub fn DOMEvent::meta_key(Self) -> Bool
+pub fn DOMEvent::prevent_default(Self) -> Unit
+pub fn DOMEvent::shift_key(Self) -> Bool
+pub fn DOMEvent::stop_propagation(Self) -> Unit
+pub fn DOMEvent::target_value(Self) -> String
+pub fn DOMEvent::to_js_obscure(Self) -> @dom-ffi.JsObscure
+
+pub(all) enum DOMEventType {
+  Click
+  DoubleClick
+  MouseDown
+  MouseUp
+  MouseMove
+  MouseEnter
+  MouseLeave
+  MouseOver
+  MouseOut
+  ContextMenu
+  KeyDown
+  KeyUp
+  KeyPress
+  Input
+  Change
+  Submit
+  Reset
+  Focus
+  Blur
+  Select
+  Load
+  Unload
+  Resize
+  Scroll
+  Drag
+  DragStart
+  DragEnd
+  DragEnter
+  DragLeave
+  DragOver
+  Drop
+  TouchStart
+  TouchMove
+  TouchEnd
+  TouchCancel
+  Error
+  Abort
+  CanPlay
+  CanPlayThrough
+  DurationChange
+  Ended
+  LoadedData
+  LoadedMetadata
+  LoadStart
+  Pause
+  Play
+  Playing
+  Progress
+  RateChange
+  Seeked
+  Seeking
+  Stalled
+  Suspend
+  TimeUpdate
+  VolumeChange
+  Waiting
+} derive(Compare, Eq, Hash)
+pub fn DOMEventType::to_string(Self) -> String
+pub impl Show for DOMEventType
+
+pub struct ElementAttrs(Map[String, String]) derive(Default)
+pub fn ElementAttrs::add(Self, String, String) -> Self
+pub fn ElementAttrs::new() -> Self
+pub fn ElementAttrs::set(Self, String, String) -> Unit
+
+type ElementEvents derive(Default)
+pub fn ElementEvents::add(Self, DOMEventType, (DOMEvent) -> Unit) -> Self
+pub fn ElementEvents::new() -> Self
+pub fn ElementEvents::set(Self, DOMEventType, (DOMEvent) -> Unit) -> Unit
+pub fn ElementEvents::to_js_value(Self) -> @dom-ffi.JsObscure
+
+pub(all) enum InputType {
+  Button
+  Checkbox
+  Color
+  Date
+  DatetimeLocal
+  Email
+  File
+  Hidden
+  Image
+  Month
+  Number
+  Password
+  Radio
+  Range
+  Reset
+  Search
+  Submit
+  Tel
+  Text
+  Time
+  Url
+  Week
+} derive(Eq)
+pub fn InputType::to_string(Self) -> String
+
+type ReactRef[T]
+pub fn[T] ReactRef::from(T) -> Self[T]
+pub fn[T] ReactRef::get(Self[T]) -> T
+pub fn[T] ReactRef::set(Self[T], T) -> Unit
+
+pub struct VirtualElement {
+  name : String
+  attrs : ElementAttrs
+  event : ElementEvents
+  style : @respo_css.RespoStyle
+  children : Array[VirtualNode]
+}
+pub fn VirtualElement::to_node(Self) -> VirtualNode
+
+pub(all) enum VirtualNode {
+  Element(VirtualElement)
+  Fragment(Array[VirtualNode])
+  Text(String)
+  JsNode(@dom-ffi.JsObscure)
+}
+pub fn VirtualNode::to_js_obscure(Self) -> @dom-ffi.JsObscure
+
+// Type aliases
+
+// Traits
+

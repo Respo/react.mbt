@@ -1,7 +1,7 @@
 ///|
 // React Hooks wrappers, aligned with existing use_state style
 
-typealias @dom.JsObscure
+using @dom {type JsObscure}
 
 ///|
 extern "js" fn react_use_effect(
