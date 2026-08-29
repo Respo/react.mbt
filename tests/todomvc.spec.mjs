@@ -23,12 +23,12 @@ test("TodoMVC supports editing, creating, filtering, and clearing todos", async 
   await addedTodo.locator(".toggle").check();
   await expect(page.locator(".todo-count")).toHaveText("2 items left");
 
-  await page.getByRole("link", { name: "Completed", exact: true }).click();
+  await page.locator(".filters a", { hasText: "Completed" }).click();
   await expect(page.locator(".todo-list li")).toHaveCount(2);
   await page.getByRole("button", { name: "Clear completed", exact: true }).click();
   await expect(page.locator(".todo-list li")).toHaveCount(0);
 
-  await page.getByRole("link", { name: "All", exact: true }).click();
+  await page.locator(".filters a", { hasText: "All" }).click();
   await expect(page.locator(".todo-list li")).toHaveCount(2);
   expect(pageErrors).toEqual([]);
 });
