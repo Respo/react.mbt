@@ -135,6 +135,7 @@ enum ElementPropValue {
   StringProp(String)
   BoolProp(Bool)
   IntProp(Int)
+  JsProp(JsObscure)
 }
 
 ///|
@@ -184,6 +185,18 @@ pub fn ElementAttrs::set_int(
   value : Int,
 ) -> Unit {
   self.0.set(key, IntProp(value))
+}
+
+///|
+/// Sets an explicitly pre-converted JavaScript property. Use this escape hatch
+/// for React values such as `ref` that cannot be represented as strings,
+/// booleans, or integers.
+pub fn ElementAttrs::set_js_value(
+  self : ElementAttrs,
+  key : String,
+  value : JsObscure,
+) -> Unit {
+  self.0.set(key, JsProp(value))
 }
 
 ///|
@@ -671,6 +684,7 @@ fn VirtualElement::to_js_value(self : VirtualElement) -> @dom.JsObscure {
       StringProp(value) => convert_prop_value(react_prop_name, value)
       BoolProp(value) => @dom.v_to_js_obscure(value)
       IntProp(value) => @dom.v_to_js_obscure(value)
+      JsProp(value) => value
     }
     props.set(react_prop_name, prop_value)
   }

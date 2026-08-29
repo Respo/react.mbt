@@ -242,6 +242,7 @@ pub fn ElementAttrs::new() -> Self
 pub fn ElementAttrs::set(Self, String, String) -> Unit
 pub fn ElementAttrs::set_bool(Self, String, Bool) -> Unit
 pub fn ElementAttrs::set_int(Self, String, Int) -> Unit
+pub fn ElementAttrs::set_js_value(Self, String, @dom-ffi.JsObscure) -> Unit
 
 type ElementEvents derive(Default)
 pub fn ElementEvents::add(Self, DOMEventType, (DOMEvent) -> Unit) -> Self
@@ -281,6 +282,7 @@ type ReactRef[T]
 pub fn[T] ReactRef::from(T) -> Self[T]
 pub fn[T] ReactRef::get(Self[T]) -> T
 pub fn[T] ReactRef::set(Self[T], T) -> Unit
+pub fn[T] ReactRef::to_js_obscure(Self[T]) -> @dom-ffi.JsObscure
 
 pub(all) enum StateUpdate[T] {
   Set(T)

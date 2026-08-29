@@ -11,6 +11,8 @@
   bindings with regression coverage.
 - Added `use_state_with_updater` and typed `StateUpdate` values for functional
   state updates that safely derive from React's latest state.
+- Made `ReactRef` usable on virtual elements through `to_js_obscure()` and the
+  explicit `ElementAttrs::set_js_value` bridge.
 - Moved the deprecated `declare_contained_style` compatibility alias into its
   own source file and documented its replacement.
 - Added typed boolean and integer element attributes and corrected raw HTML and

@@ -183,6 +183,13 @@ pub fn[T] ReactRef::get(self : ReactRef[T]) -> T {
 }
 
 ///|
+/// Returns the underlying React ref object for an explicit JavaScript property,
+/// for example `attrs.set_js_value("ref", input_ref.to_js_obscure())`.
+pub fn[T] ReactRef::to_js_obscure(self : ReactRef[T]) -> JsObscure {
+  self.js_value
+}
+
+///|
 pub fn[T] ReactRef::set(self : ReactRef[T], value : T) -> Unit {
   react_ref_set_value(self.js_value, any_to_js_value(value))
   self._v0 = value

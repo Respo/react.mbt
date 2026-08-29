@@ -100,6 +100,8 @@ Only pass trusted, sanitized HTML through this escape hatch.
 Use `ElementAttrs::set` for string attributes, `set_bool` for React boolean
 properties such as `disabled`, and `set_int` for numeric properties such as
 `rows`. The built-in element helpers use these typed conversions automatically.
+Use `set_js_value` only for explicit React values such as a DOM ref:
+`attrs.set_js_value("ref", input_ref.to_js_obscure())`.
 For controlled checkbox or radio inputs, use `input(checked=value)` so both
 `true` and `false` reach React as booleans.
 

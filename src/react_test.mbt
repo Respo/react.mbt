@@ -47,6 +47,14 @@ extern "js" fn react_element_has_prop(
   #| (node, key) => Object.hasOwn(node.props, key)
 
 ///|
+extern "js" fn react_element_prop_equals(
+  node : @dom.JsObscure,
+  key : String,
+  value : @dom.JsObscure,
+) -> Bool =
+  #| (node, key, value) => node.props[key] === value
+
+///|
 extern "js" fn react_element_has_function_prop(
   node : @dom.JsObscure,
   key : String,
@@ -165,6 +173,9 @@ extern "js" fn install_test_react_hooks() -> Unit =
   #|   };
   #|   globalThis.window = {
   #|     React: {
+  #|       Fragment: Symbol("Fragment"),
+  #|       createElement: (tag, props, ...children) =>
+  #|         typeof tag === "function" ? tag(props) : ({ tag, props, children }),
   #|       useState: (initial) => {
   #|         let current = initial;
   #|         return [initial, (value) => {
@@ -741,6 +752,22 @@ test "hook wrappers preserve MoonBit values and callbacks" {
   inspect(react_ref.get(), content="second")
   let direct_ref = ReactRef::from("direct")
   inspect(direct_ref.get(), content="direct")
+
+  let attrs = ElementAttrs::new()
+  attrs.set_js_value("ref", direct_ref.to_js_obscure())
+  let ref_node = create_element(
+      "input",
+      attrs,
+      ElementEvents::new(),
+      style=@css.respo_style(),
+      [],
+    )
+    .to_node()
+    .to_js_obscure()
+  inspect(
+    react_element_prop_equals(ref_node, "ref", direct_ref.to_js_obscure()),
+    content="true",
+  )
 
   let (reduced, dispatch) = use_reducer(initial=3, fn(
     state : Int,
