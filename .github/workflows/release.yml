@@ -33,6 +33,7 @@ jobs:
         run: yarn install --frozen-lockfile
       - name: Verify MoonBit module
         run: |
+          moon update
           moon check --target js
           moon test
           moon info

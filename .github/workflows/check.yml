@@ -30,7 +30,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: moon check
-        run: moon version && moon check --target js
+        run: moon update && moon version && moon check --target js
 
       - name: Check generated interfaces
         run: moon info
