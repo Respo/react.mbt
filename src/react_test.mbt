@@ -65,6 +65,46 @@ extern "js" fn js_value_has_function_prop(
   #| (value, key) => typeof value[key] === "function"
 
 ///|
+extern "js" fn js_value_bool(value : @dom.JsObscure) -> Bool =
+  #| (value) => value === true
+
+///|
+extern "js" fn js_value_string(value : @dom.JsObscure) -> String =
+  #| (value) => value
+
+///|
+extern "js" fn test_dom_event() -> DOMEvent =
+  #| () => ({
+  #|   target: { value: "updated value" },
+  #|   key: "Enter",
+  #|   keyCode: 13,
+  #|   clientX: 24,
+  #|   clientY: 48,
+  #|   ctrlKey: true,
+  #|   shiftKey: true,
+  #|   altKey: true,
+  #|   metaKey: true,
+  #|   preventDefault() { this.defaultPrevented = true; },
+  #|   stopPropagation() { this.propagationStopped = true; },
+  #| })
+
+///|
+extern "js" fn test_dom_event_default_prevented(event : DOMEvent) -> Bool =
+  #| (event) => event.defaultPrevented === true
+
+///|
+extern "js" fn test_dom_event_propagation_stopped(event : DOMEvent) -> Bool =
+  #| (event) => event.propagationStopped === true
+
+///|
+extern "js" fn react_element_trigger_event(
+  node : @dom.JsObscure,
+  handler_name : String,
+  event : DOMEvent,
+) -> Unit =
+  #| (node, handlerName, event) => node.props[handlerName](event)
+
+///|
 extern "js" fn install_test_react_dom() -> Unit =
   #| () => {
   #|   let createRootCalls = 0;
@@ -194,6 +234,7 @@ test "CSS property names convert to React camel case" {
     content="WebkitLineClamp",
   )
   inspect(css_prop_to_camel_case("font"), content="font")
+  inspect(css_prop_to_camel_case(""), content="")
 }
 
 ///|
@@ -391,6 +432,19 @@ test "boolean React properties are recognized" {
 }
 
 ///|
+test "legacy boolean string props retain their React value type" {
+  inspect(js_value_bool(convert_prop_value("checked", "true")), content="true")
+  inspect(
+    js_value_bool(convert_prop_value("checked", "false")),
+    content="false",
+  )
+  inspect(
+    js_value_string(convert_prop_value("checked", "mixed")),
+    content="mixed",
+  )
+}
+
+///|
 test "virtual elements convert each child exactly once" {
   install_test_react()
   let node = create_element(
@@ -401,6 +455,16 @@ test "virtual elements convert each child exactly once" {
     [Text("first"), Text("second")],
   ).to_node()
   inspect(react_element_child_count(node.to_js_obscure()), content="2")
+}
+
+///|
+test "fragments create React fragment nodes with every child" {
+  install_test_react()
+  let fragment = VirtualNode::Fragment([
+    VirtualNode::Text("first"),
+    VirtualNode::Text("second"),
+  ]).to_js_obscure()
+  inspect(react_element_child_count(fragment), content="2")
 }
 
 ///|
@@ -419,6 +483,33 @@ test "attributes set through ElementAttrs are converted to React props" {
     react_element_string_prop(node.to_js_obscure(), "title"),
     content="updated",
   )
+}
+
+///|
+test "form handlers receive DOM event values through React props" {
+  install_test_react()
+  let mut received_value = ""
+  let node = input(on_change=fn(event) { received_value = event.target_value() }).to_js_obscure()
+  react_element_trigger_event(node, "onChange", test_dom_event())
+  inspect(received_value, content="updated value")
+}
+
+///|
+test "DOMEvent exposes keyboard, pointer, modifier, and control APIs" {
+  let event = test_dom_event()
+  inspect(event.target_value(), content="updated value")
+  inspect(event.key(), content="Enter")
+  inspect(event.key_code(), content="13")
+  inspect(event.client_x(), content="24")
+  inspect(event.client_y(), content="48")
+  inspect(event.ctrl_key(), content="true")
+  inspect(event.shift_key(), content="true")
+  inspect(event.alt_key(), content="true")
+  inspect(event.meta_key(), content="true")
+  event.prevent_default()
+  event.stop_propagation()
+  inspect(test_dom_event_default_prevented(event), content="true")
+  inspect(test_dom_event_propagation_stopped(event), content="true")
 }
 
 ///|
@@ -594,6 +685,18 @@ test "effect wrappers invoke effects and cleanup functions" {
   )
   inspect(effects, content="5")
   inspect(cleanups, content="2")
+}
+
+///|
+test "components without child access render through their React factory" {
+  install_test_react()
+  let node = component(
+    fn(_props : String) { div([Text("component body")]) },
+    "props",
+    [Text("React receives this child")],
+  ).to_js_obscure()
+  inspect(react_element_tag(node), content="div")
+  inspect(react_element_child_count(node), content="1")
 }
 
 ///|
