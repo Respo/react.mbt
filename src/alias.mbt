@@ -95,7 +95,7 @@ pub fn span(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -138,7 +138,7 @@ pub fn p(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -183,7 +183,7 @@ pub fn label(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -229,7 +229,7 @@ pub fn h1(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -272,7 +272,7 @@ pub fn h2(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -315,7 +315,7 @@ pub fn h3(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -358,7 +358,7 @@ pub fn h4(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -401,7 +401,7 @@ pub fn h5(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -444,7 +444,7 @@ pub fn h6(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -491,7 +491,7 @@ pub fn a(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -526,7 +526,7 @@ pub fn div(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -542,7 +542,7 @@ pub fn div(
 /// Combines a base class name with a list of additional class names into a
 /// single string, with class names separated by spaces. Returns `None` if both
 /// inputs are empty.
-fn combile_classes(class_name : String?, class_list : Array[String]) -> String? {
+fn combine_classes(class_name : String?, class_list : Array[String]) -> String? {
   let mut class_content = ""
   if class_name is Some(class_name) {
     class_content += " " + class_name
@@ -599,7 +599,7 @@ pub fn input(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if type_ is Some(input_type) {
@@ -661,7 +661,7 @@ pub fn button(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -718,7 +718,7 @@ pub fn textarea(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if value is Some(value) {
@@ -780,7 +780,7 @@ pub fn select(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if value is Some(value) {
@@ -832,7 +832,7 @@ pub fn option(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -881,7 +881,7 @@ pub fn section(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -924,7 +924,7 @@ pub fn article(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -967,7 +967,7 @@ pub fn header(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -1010,7 +1010,7 @@ pub fn footer(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -1053,7 +1053,7 @@ pub fn nav(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -1096,7 +1096,7 @@ pub fn aside(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -1139,7 +1139,7 @@ pub fn ul(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -1182,7 +1182,7 @@ pub fn ol(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -1225,7 +1225,7 @@ pub fn li(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if innerHTML is Some(innerHTML) {
@@ -1276,7 +1276,7 @@ pub fn img(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if src is Some(src) {
@@ -1350,7 +1350,7 @@ pub fn video(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if src is Some(src) {
@@ -1427,7 +1427,7 @@ pub fn audio(
   if id is Some(id) {
     attrs.set("id", id)
   }
-  if combile_classes(class_name, class_list) is Some(class_name) {
+  if combine_classes(class_name, class_list) is Some(class_name) {
     attrs.set("className", class_name)
   }
   if src is Some(src) {

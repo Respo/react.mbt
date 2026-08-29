@@ -110,6 +110,7 @@ pub fn ElementAttrs::new() -> ElementAttrs {
 }
 
 ///|
+/// Adds a string-valued React property and returns the same attribute map.
 pub fn ElementAttrs::add(
   self : ElementAttrs,
   key : String,
@@ -120,6 +121,7 @@ pub fn ElementAttrs::add(
 }
 
 ///|
+/// Sets a string-valued React property.
 pub fn ElementAttrs::set(
   self : ElementAttrs,
   key : String,
@@ -394,6 +396,7 @@ pub fn ElementEvents::set(
 
 ///|
 pub fn ElementEvents::to_js_value(self : ElementEvents) -> JsObscure {
+  // React consumes handler properties such as onClick, not native names like click.
   let obj = @dom.JsObjectObscure::new()
   for event_type, value in self.0 {
     obj.set(dom_event_to_react_handler(event_type), value.to_js_func())

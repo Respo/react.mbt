@@ -60,6 +60,10 @@ This is an experimental hobby project exploring MoonBit bindings for React. The 
 `innerHTML` parameters are converted to React's `dangerouslySetInnerHTML` API.
 Only pass trusted, sanitized HTML through this escape hatch.
 
+Use `ElementAttrs::set` for string attributes, `set_bool` for React boolean
+properties such as `disabled`, and `set_int` for numeric properties such as
+`rows`. The built-in element helpers use these typed conversions automatically.
+
 ### Virtual DOM Types
 
 - `VirtualNode` - Base virtual node type
