@@ -10,6 +10,14 @@ fn todos_for_test() -> Array[Todo] {
 extern "js" fn install_main_test_react() -> Unit =
   #| () => {
   #|   const styleTags = [];
+  #|   let renderCalls = 0;
+  #|   const hookValues = [];
+  #|   let hookIndex = 0;
+  #|   const nextHookIndex = (initial) => {
+  #|     const index = hookIndex++;
+  #|     if (index === hookValues.length) hookValues.push(initial);
+  #|     return index;
+  #|   };
   #|   const runEffect = (effect) => {
   #|     const cleanup = effect();
   #|     if (typeof cleanup === "function") cleanup();
@@ -17,6 +25,7 @@ extern "js" fn install_main_test_react() -> Unit =
   #|   globalThis.window = {
   #|     document: {
   #|       head: { appendChild: (tag) => styleTags.push(tag) },
+  #|       body: () => ({}),
   #|       createElement: () => {
   #|         const tag = { attributes: {} };
   #|         tag.setAttribute = (key, value) => { tag.attributes[key] = value; };
@@ -27,20 +36,48 @@ extern "js" fn install_main_test_react() -> Unit =
   #|       Fragment: Symbol("Fragment"),
   #|       createElement: (tag, props, ...children) =>
   #|         typeof tag === "function" ? tag(props) : ({ tag, props, children }),
-  #|       useState: (initial) => [initial, () => {}],
-  #|       useReducer: (_reducer, initial) => [initial, () => {}],
+  #|       useState: (initial) => {
+  #|         const index = nextHookIndex(initial);
+  #|         return [hookValues[index], (value) => {
+  #|           hookValues[index] = typeof value === "function" ? value(hookValues[index]) : value;
+  #|         }];
+  #|       },
+  #|       useReducer: (reducer, initial) => {
+  #|         const index = nextHookIndex(initial);
+  #|         return [hookValues[index], (action) => { hookValues[index] = reducer(hookValues[index], action); }];
+  #|       },
   #|       useEffect: runEffect,
   #|       useLayoutEffect: runEffect,
   #|       useMemo: (factory) => factory(),
   #|       useCallback: (callback) => callback,
   #|       useRef: (initial) => ({ current: initial }),
   #|     },
+  #|     ReactDOMClient: {
+  #|       createRoot: () => ({ render: () => { renderCalls += 1; } }),
+  #|     },
   #|   };
+  #|   globalThis.__moonbitMainRenderCalls = () => renderCalls;
+  #|   globalThis.__moonbitResetMainHooks = () => { hookIndex = 0; };
   #| }
 
 ///|
 extern "js" fn main_react_element_tag(node : @dom.JsObscure) -> String =
   #| (node) => node.tag
+
+///|
+extern "js" fn main_react_string_prop(
+  node : @dom.JsObscure,
+  key : String,
+) -> String =
+  #| (node, key) => node.props[key] || ""
+
+///|
+extern "js" fn main_render_call_count() -> Int =
+  #| () => globalThis.__moonbitMainRenderCalls()
+
+///|
+extern "js" fn reset_main_hooks() -> Unit =
+  #| () => globalThis.__moonbitResetMainHooks()
 
 ///|
 extern "js" fn main_react_element_child_count(node : @dom.JsObscure) -> Int =
@@ -59,6 +96,34 @@ extern "js" fn main_react_trigger_handler(
   handler_name : String,
 ) -> Unit =
   #| (node, handlerName) => node.props[handlerName]({})
+
+///|
+extern "js" fn main_react_trigger_event(
+  node : @dom.JsObscure,
+  handler_name : String,
+  value : String,
+  key : String,
+) -> Unit =
+  #| (node, handlerName, value, key) => node.props[handlerName]({
+  #|   target: { value, checked: true },
+  #|   key,
+  #|   preventDefault() {},
+  #|   stopPropagation() {},
+  #| })
+
+///|
+extern "js" fn main_react_tree_contains(
+  node : @dom.JsObscure,
+  text : String,
+) -> Bool =
+  #| (node, text) => {
+  #|   const contains = (current) => {
+  #|     if (current === text) return true;
+  #|     if (!current || typeof current !== "object") return false;
+  #|     return (current.children ?? []).some(contains);
+  #|   };
+  #|   return contains(node);
+  #| }
 
 ///|
 extern "js" fn main_react_trigger_all_handlers(node : @dom.JsObscure) -> Unit =
@@ -88,6 +153,15 @@ test "todo reducer preserves IDs and applies every action" {
   inspect(added[2].id, content="9")
   inspect(added[2].text, content="third")
   inspect(added[2].completed, content="false")
+
+  let added_to_unsorted = todo_reducer(
+    [
+      { id: 8, text: "last", completed: false },
+      { id: 3, text: "first", completed: false },
+    ],
+    AddTodo("new"),
+  )
+  inspect(added_to_unsorted[2].id, content="9")
 
   let toggled = todo_reducer(initial, ToggleTodo(3))
   inspect(toggled[0].completed, content="true")
@@ -126,10 +200,129 @@ test "Todo and Hooks demo components build React trees with hook runtime" {
 }
 
 ///|
+test "Hooks demo reflects state after a rerender" {
+  install_main_test_react()
+  reset_main_hooks()
+  let initial_tree = comp_hooks_demo(Default::default()).to_js_obscure()
+  let controls = main_react_element_child(initial_tree, 2)
+  main_react_trigger_handler(main_react_element_child(controls, 1), "onClick")
+
+  reset_main_hooks()
+  let updated_tree = comp_hooks_demo(Default::default()).to_js_obscure()
+  inspect(
+    main_react_tree_contains(updated_tree, "当前计数: 1"),
+    content="true",
+  )
+}
+
+///|
 test "the application container renders after server-side module evaluation" {
   install_main_test_react()
   let container_node = comp_container(Default::default()).to_js_obscure()
   inspect(main_react_element_tag(container_node), content="div")
   inspect(main_react_element_child_count(container_node), content="3")
   main_react_trigger_all_handlers(container_node)
+}
+
+///|
+test "Todo editing handlers update the rerendered component tree" {
+  install_main_test_react()
+  reset_main_hooks()
+  let initial_tree = comp_todolist(Default::default()).to_js_obscure()
+  let initial_list = main_react_element_child(
+    main_react_element_child(initial_tree, 1),
+    2,
+  )
+  let initial_view = main_react_element_child(
+    main_react_element_child(initial_list, 0),
+    0,
+  )
+  main_react_trigger_event(
+    main_react_element_child(initial_view, 1),
+    "onDoubleClick",
+    "",
+    "",
+  )
+
+  reset_main_hooks()
+  let editing_tree = comp_todolist(Default::default()).to_js_obscure()
+  let editing_list = main_react_element_child(
+    main_react_element_child(editing_tree, 1),
+    2,
+  )
+  let editing_item = main_react_element_child(editing_list, 0)
+  inspect(main_react_string_prop(editing_item, "className"), content="editing")
+  main_react_trigger_event(
+    main_react_element_child(editing_item, 0),
+    "onChange",
+    "updated todo",
+    "",
+  )
+
+  reset_main_hooks()
+  let changed_tree = comp_todolist(Default::default()).to_js_obscure()
+  let changed_list = main_react_element_child(
+    main_react_element_child(changed_tree, 1),
+    2,
+  )
+  main_react_trigger_event(
+    main_react_element_child(main_react_element_child(changed_list, 0), 0),
+    "onKeyDown",
+    "",
+    "Enter",
+  )
+
+  reset_main_hooks()
+  let saved_tree = comp_todolist(Default::default()).to_js_obscure()
+  inspect(main_react_tree_contains(saved_tree, "updated todo"), content="true")
+}
+
+///|
+test "Todo creation and active filter update the rerendered component tree" {
+  install_main_test_react()
+  reset_main_hooks()
+  let initial_tree = comp_todolist(Default::default()).to_js_obscure()
+  let header = main_react_element_child(initial_tree, 0)
+  main_react_trigger_event(
+    main_react_element_child(header, 1),
+    "onInput",
+    "new task",
+    "",
+  )
+
+  reset_main_hooks()
+  let typed_tree = comp_todolist(Default::default()).to_js_obscure()
+  main_react_trigger_event(
+    main_react_element_child(main_react_element_child(typed_tree, 0), 1),
+    "onKeyDown",
+    "",
+    "Enter",
+  )
+
+  reset_main_hooks()
+  let added_tree = comp_todolist(Default::default()).to_js_obscure()
+  inspect(main_react_tree_contains(added_tree, "new task"), content="true")
+  let filters = main_react_element_child(
+    main_react_element_child(added_tree, 2),
+    1,
+  )
+  main_react_trigger_handler(
+    main_react_element_child(main_react_element_child(filters, 1), 0),
+    "onClick",
+  )
+
+  reset_main_hooks()
+  let active_tree = comp_todolist(Default::default()).to_js_obscure()
+  let active_list = main_react_element_child(
+    main_react_element_child(active_tree, 1),
+    2,
+  )
+  inspect(main_react_element_child_count(active_list), content="3")
+}
+
+///|
+test "the application entry point renders its root" {
+  install_main_test_react()
+  run_app()
+  inspect(main_render_call_count(), content="1")
 }

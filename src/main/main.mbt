@@ -24,13 +24,18 @@ fn comp_container(_v : ContainerProps) -> VirtualNode {
 }
 
 ///|
-fn main {
+fn run_app() -> Unit {
   let window = @dom.window()
   let doc = window.document()
   let body = doc.body()
   let props : ContainerProps = Default::default()
   @react.render(@react.component(comp_container, props, []), body)
   println("loaded")
+}
+
+///|
+fn main {
+  run_app()
 }
 
 ///|
