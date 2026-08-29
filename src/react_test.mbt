@@ -254,6 +254,13 @@ fn contained_static_style_for_test() -> String {
 }
 
 ///|
+fn contained_static_style_without_container_for_test() -> String {
+  contained_static_style([
+    (None, "&:focus", @css.respo_style(color=@css.CssColor::Green)),
+  ])
+}
+
+///|
 test "DOM attribute names use React property names" {
   inspect(dom_attr_to_react_prop("class"), content="className")
   inspect(dom_attr_to_react_prop("for"), content="htmlFor")
@@ -310,6 +317,17 @@ test "contained static styles preserve their container and selector" {
     content="true",
   )
   inspect(test_style_tag_contains(0, "red"), content="true")
+}
+
+///|
+test "contained static styles cache uncontained rules per callsite" {
+  install_test_style_document()
+  let first = contained_static_style_without_container_for_test()
+  let second = contained_static_style_without_container_for_test()
+  assert_eq(first, second)
+  inspect(test_style_tag_count(), content="1")
+  inspect(test_style_tag_contains(0, "." + first + ":focus"), content="true")
+  inspect(test_style_tag_contains(0, "green"), content="true")
 }
 
 ///|
