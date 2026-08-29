@@ -78,6 +78,9 @@ extern "js" fn react_use_state(initial : JsObscure) -> JsObscure =
   #| (initial) => { return window.React.useState(initial)}
 
 ///|
+// React hook values are emitted by the MoonBit JavaScript runtime. These
+// identity bridges intentionally preserve that runtime representation instead
+// of serializing values across the JavaScript boundary.
 fn state_updater_from_value(v : JsObscure) -> (JsObscure) -> Unit = "%identity"
 
 ///|
@@ -759,8 +762,8 @@ pub fn[T] component(
   let children_js = children.map(fn(child) { child.to_js_obscure() })
   let r = create_factory(
     fn(p) { f(@dom.js_obscure_to_v(p)).to_js_obscure() },
-    // TODO maybe better to use { value: PROPS} instead of props.to_value()
-    // need future refactor to explore it
+    // Props retain their MoonBit JavaScript representation; React receives no
+    // JSON conversion or defensive clone at this boundary.
     @dom.v_to_js_obscure(props),
     FixedArray::from_array(children_js),
   )

@@ -8,6 +8,29 @@
 
 This is an experimental hobby project exploring MoonBit bindings for React. The API is unstable and may change frequently. Not recommended for production use. This project is intended for technical exploration and learning purposes only.
 
+## API Stability and JavaScript Boundary
+
+All public APIs are experimental. The virtual-node, element-helper, and basic
+hook APIs are the maintained baseline; React 19 concurrent hooks and the broad
+event catalogue are newer additions that should receive application-level
+testing before adoption. Deprecated compatibility APIs remain available only
+until the next breaking release.
+
+`JsObscure` is the explicit escape hatch at the MoonBit/JavaScript boundary.
+Use it for hook dependency values with `obscure(value)` and for intentional JS
+interoperation only. Generic hook and component values cross React using the
+MoonBit JavaScript representation, so they must be values that the generated
+MoonBit runtime can pass directly; do not assume JSON serialization or deep
+cloning occurs.
+
+The browser entry point must initialize `window.React` and
+`window.ReactDOMClient` before calling this package. The bundled demo shows the
+supported ESM integration pattern.
+
+Component functions must be placed in the virtual DOM through `component`, not
+called directly. Use `component_with_children` when the component needs to
+place caller-supplied children in its own tree.
+
 ## Bound APIs and Types
 
 ### Core Rendering API
@@ -16,6 +39,9 @@ This is an experimental hobby project exploring MoonBit bindings for React. The 
 - `unmount(parent: @dom.Element) -> Unit` - Unmount the React root for an element
 - `component[T](f: (T) -> VirtualNode, props: T, children: Array[VirtualNode]) -> VirtualNode` - Create a leaf component
 - `component_with_children[T](f: (T, Array[VirtualNode]) -> VirtualNode, props: T, children: Array[VirtualNode]) -> VirtualNode` - Create a component that places its children
+
+For example, use `component(my_component, props, [])`, never
+`my_component(props)` directly in a virtual DOM tree.
 
 ### Hooks API
 
