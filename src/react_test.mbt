@@ -22,6 +22,13 @@ extern "js" fn react_element_string_prop(
   #| (node, key) => node.props[key] || ""
 
 ///|
+extern "js" fn js_value_string_prop(
+  value : @dom.JsObscure,
+  key : String,
+) -> String =
+  #| (value, key) => value[key] || ""
+
+///|
 extern "js" fn react_element_tag(node : @dom.JsObscure) -> String =
   #| (node) => node.tag
 
@@ -138,6 +145,15 @@ test "CSS property names convert to React camel case" {
     content="WebkitLineClamp",
   )
   inspect(css_prop_to_camel_case("font"), content="font")
+}
+
+///|
+test "Respo styles convert to React style objects" {
+  let style = convert_style_to_js_object(
+    @css.respo_style(color=@css.CssColor::Blue, font_size=16),
+  ).to_js_obscure()
+  inspect(js_value_string_prop(style, "color"), content="blue")
+  inspect(js_value_string_prop(style, "fontSize"), content="16px")
 }
 
 ///|
