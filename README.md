@@ -68,6 +68,8 @@ Use `ElementAttrs::set` for string attributes, `set_bool` for React boolean
 properties such as `disabled`, and `set_int` for numeric properties such as
 `rows`. The built-in element helpers use these typed conversions automatically.
 
+`declare_contained_style` is deprecated; use `contained_static_style` instead.
+
 ### Virtual DOM Types
 
 - `VirtualNode` - Base virtual node type
@@ -153,6 +155,10 @@ moon info
 corepack yarn install --frozen-lockfile
 corepack yarn build
 ```
+
+The CI workflow tracks the current MoonBit release (`moon update`) and validates
+Node 20 with Yarn 1.22.22. This revision was verified with MoonBit
+`0.1.20260713`, MoonBit compiler `0.10.4`, React 19.1.x, and Vite 5.4.x.
 
 The browser entry point loads React and ReactDOMClient before the generated
 MoonBit application. `render` can be called again for the same parent element;

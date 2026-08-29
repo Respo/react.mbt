@@ -56,17 +56,6 @@ pub fn[U : Show] static_style(
 }
 
 ///|
-/// use `contained_static_style` instead
-#callsite(autofill(loc))
-#deprecated
-pub fn[U : Show] declare_contained_style(
-  rules : Array[(String?, U, RespoStyle)],
-  loc~ : SourceLoc,
-) -> String {
-  contained_static_style(rules, loc~)
-}
-
-///|
 /// Declares a static style in the document head, for example:
 /// ```moonbit_nocheck
 /// let style_demo : String = contained_static_style(

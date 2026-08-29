@@ -9,6 +9,8 @@
 - Added cleanup-capable effect bindings.
 - Added React 19-compatible `use_id`, `use_deferred_value`, and transition
   bindings with regression coverage.
+- Moved the deprecated `declare_contained_style` compatibility alias into its
+  own source file and documented its replacement.
 - Added typed boolean and integer element attributes and corrected raw HTML and
   event-handler conversion for React.
 - Updated JavaScript FFI array boundaries to MoonBit's `FixedArray` ABI while
