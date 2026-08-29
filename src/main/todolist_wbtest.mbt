@@ -124,3 +124,12 @@ test "Todo and Hooks demo components build React trees with hook runtime" {
   main_react_trigger_handler(main_react_element_child(controls, 2), "onClick")
   main_react_trigger_handler(main_react_element_child(controls, 3), "onClick")
 }
+
+///|
+test "the application container renders after server-side module evaluation" {
+  install_main_test_react()
+  let container_node = comp_container(Default::default()).to_js_obscure()
+  inspect(main_react_element_tag(container_node), content="div")
+  inspect(main_react_element_child_count(container_node), content="3")
+  main_react_trigger_all_handlers(container_node)
+}

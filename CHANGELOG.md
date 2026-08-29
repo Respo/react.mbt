@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Made `static_style` and `contained_static_style` safe to evaluate without a
+  browser `window`, enabling server-side and pre-rendered module imports.
+
 ## 0.1.0
 
 - Restored compatibility with the current MoonBit manifest format and toolchain.

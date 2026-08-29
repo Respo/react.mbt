@@ -107,6 +107,10 @@ For controlled checkbox or radio inputs, use `input(checked=value)` so both
 
 `declare_contained_style` is deprecated; use `contained_static_style` instead.
 
+Static-style declarations are safe during server-side rendering or pre-rendering:
+without a browser document they return their deterministic class name without
+injecting a tag. The browser's module evaluation then performs the injection.
+
 ### Virtual DOM Types
 
 - `VirtualNode` - Base virtual node type

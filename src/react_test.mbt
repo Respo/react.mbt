@@ -230,6 +230,10 @@ extern "js" fn install_test_style_document() -> Unit =
   #| }
 
 ///|
+extern "js" fn clear_test_window() -> Unit =
+  #| () => { delete globalThis.window; }
+
+///|
 extern "js" fn test_style_tag_count() -> Int =
   #| () => globalThis.__moonbitStyleTags.length
 
@@ -240,6 +244,11 @@ extern "js" fn test_style_tag_contains(index : Int, text : String) -> Bool =
 ///|
 fn static_style_for_test() -> String {
   static_style([("&", @css.respo_style(color=@css.CssColor::Blue))])
+}
+
+///|
+fn static_style_without_document_for_test() -> String {
+  static_style([("&", @css.respo_style(color=@css.CssColor::Purple))])
 }
 
 ///|
@@ -257,6 +266,13 @@ fn contained_static_style_for_test() -> String {
 fn contained_static_style_without_container_for_test() -> String {
   contained_static_style([
     (None, "&:focus", @css.respo_style(color=@css.CssColor::Green)),
+  ])
+}
+
+///|
+fn contained_static_style_without_document_for_test() -> String {
+  contained_static_style([
+    (None, "&:focus", @css.respo_style(color=@css.CssColor::Purple)),
   ])
 }
 
@@ -301,6 +317,26 @@ test "static styles inject once per callsite" {
   inspect(test_style_tag_contains(0, "." + first), content="true")
   inspect(test_style_tag_contains(0, "color"), content="true")
   inspect(test_style_tag_contains(0, "blue"), content="true")
+}
+
+///|
+test "static styles defer injection without a document" {
+  clear_test_window()
+  let static_class_name = static_style_without_document_for_test()
+  let contained_class_name = contained_static_style_without_document_for_test()
+
+  install_test_style_document()
+  assert_eq(static_style_without_document_for_test(), static_class_name)
+  assert_eq(
+    contained_static_style_without_document_for_test(),
+    contained_class_name,
+  )
+  inspect(test_style_tag_count(), content="2")
+  inspect(test_style_tag_contains(0, "." + static_class_name), content="true")
+  inspect(
+    test_style_tag_contains(1, "." + contained_class_name + ":focus"),
+    content="true",
+  )
 }
 
 ///|

@@ -5,6 +5,10 @@
 let class_name_in_tags : @hashset.HashSet[String] = HashSet([], capacity=16)
 
 ///|
+extern "js" fn has_style_document() -> Bool =
+  #| () => typeof window !== "undefined" && window.document?.head != null
+
+///|
 /// Declares a static style in the document head, for example:
 /// ```moonbit_nocheck
 /// let style_demo : String = static_style(
@@ -27,7 +31,10 @@ pub fn[U : Show] static_style(
     .replace_all(old=":", new="_")
     .replace_all(old=".", new="_")
     .to_owned()
-  if class_name_in_tags.contains(gen_name) {
+  if !has_style_document() {
+    // Do not cache this result: the browser module evaluation must still inject it.
+    gen_name
+  } else if class_name_in_tags.contains(gen_name) {
     gen_name
   } else {
     let window = @dom.window()
@@ -78,7 +85,10 @@ pub fn[U : Show] contained_static_style(
     .replace_all(old=":", new="_")
     .replace_all(old=".", new="_")
     .to_owned()
-  if class_name_in_tags.contains(gen_name) {
+  if !has_style_document() {
+    // Do not cache this result: the browser module evaluation must still inject it.
+    gen_name
+  } else if class_name_in_tags.contains(gen_name) {
     gen_name
   } else {
     let window = @dom.window()
