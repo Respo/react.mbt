@@ -20,6 +20,7 @@
 - Added regression coverage for React element conversion, roots, components,
   props, hooks, styles, events, and built-in element helpers.
 - Made browser builds and CI checks reproducible.
+- Upgraded the browser runtime to React 19.2 and the build toolchain to Vite 8.
 
 ## 0.0.3
 

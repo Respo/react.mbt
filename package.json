@@ -13,11 +13,11 @@
     "watch-mbt": "moon build --target js --debug --watch"
   },
   "devDependencies": {
-    "vite": "^5.4.8"
+    "vite": "^8.2.2"
   },
   "dependencies": {
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "todomvc-app-css": "^2.4.3"
   },
   "packageManager": "yarn@1.22.22"
