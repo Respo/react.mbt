@@ -180,10 +180,6 @@ fn main {
 - Event handling
 - Component composition
 
-## Project Status
-
-This is an early project exploring MoonBit bindings for React. The API is subject to frequent changes and breaking updates. Use at your own risk!
-
 ## Development
 
 The package follows the current MoonBit manifest format (`moon.mod` and

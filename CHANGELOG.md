@@ -4,6 +4,9 @@
 
 - Made `static_style` and `contained_static_style` safe to evaluate without a
   browser `window`, enabling server-side and pre-rendered module imports.
+- Added stateful MoonBit component regressions for Todo editing, creation,
+  filtering, hooks, and application bootstrap, plus a Chromium TodoMVC smoke
+  test in CI.
 
 ## 0.1.0
 
