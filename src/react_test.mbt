@@ -40,6 +40,13 @@ extern "js" fn react_element_bool_prop(
   #| (node, key) => node.props[key] === true
 
 ///|
+extern "js" fn react_element_has_function_prop(
+  node : @dom.JsObscure,
+  key : String,
+) -> Bool =
+  #| (node, key) => typeof node.props[key] === "function"
+
+///|
 extern "js" fn react_element_int_prop(
   node : @dom.JsObscure,
   key : String,
@@ -388,9 +395,53 @@ test "element helpers preserve form, link, and media props" {
   inspect(react_element_bool_prop(media_node, "loop"), content="true")
   inspect(react_element_bool_prop(media_node, "muted"), content="true")
 
+  let audio_node = audio(
+    src="sound.mp3",
+    controls=true,
+    autoplay=true,
+    loop_enabled=true,
+    muted=true,
+    [],
+  ).to_js_obscure()
+  inspect(react_element_tag(audio_node), content="audio")
+  inspect(react_element_bool_prop(audio_node, "controls"), content="true")
+  inspect(react_element_bool_prop(audio_node, "autoPlay"), content="true")
+  inspect(react_element_bool_prop(audio_node, "loop"), content="true")
+  inspect(react_element_bool_prop(audio_node, "muted"), content="true")
+
+  let select_node = select(value="second", disabled=true, multiple=true, []).to_js_obscure()
+  inspect(react_element_string_prop(select_node, "value"), content="second")
+  inspect(react_element_bool_prop(select_node, "disabled"), content="true")
+  inspect(react_element_bool_prop(select_node, "multiple"), content="true")
+
+  let option_node = option(value="second", selected=true, disabled=true, []).to_js_obscure()
+  inspect(react_element_string_prop(option_node, "value"), content="second")
+  inspect(react_element_bool_prop(option_node, "selected"), content="true")
+  inspect(react_element_bool_prop(option_node, "disabled"), content="true")
+
   let textarea_node = textarea(rows=3, cols=20).to_js_obscure()
   inspect(react_element_int_prop(textarea_node, "rows"), content="3")
   inspect(react_element_int_prop(textarea_node, "cols"), content="20")
+}
+
+///|
+test "text element helpers combine classes and handlers" {
+  install_test_react()
+  let node = span(
+    id="notice",
+    class_name="base",
+    class_list=["expanded", "active"],
+    innerHTML="<em>trusted</em>",
+    on_click=fn(_event) {  },
+    [],
+  ).to_js_obscure()
+  inspect(react_element_string_prop(node, "id"), content="notice")
+  inspect(
+    react_element_string_prop(node, "className"),
+    content="base expanded active",
+  )
+  inspect(react_element_inner_html(node), content="<em>trusted</em>")
+  inspect(react_element_has_function_prop(node, "onClick"), content="true")
 }
 
 ///|
