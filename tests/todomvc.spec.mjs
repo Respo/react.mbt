@@ -13,6 +13,10 @@ test("TodoMVC supports editing, creating, filtering, and clearing todos", async 
   await page.goto("/");
   await expect(page.locator(".todo-list li")).toHaveCount(3);
   await expect(page.locator(".todo-count")).toHaveText("2 items left");
+  await expect(page.getByText("无 Provider: 默认值", { exact: true })).toBeVisible();
+  await expect(page.getByText("外层 Provider: 外层值", { exact: true })).toBeVisible();
+  await expect(page.getByText("内层 Provider: 内层值", { exact: true })).toBeVisible();
+  await expect(page.getByText("恢复外层: 外层值", { exact: true })).toBeVisible();
 
   await page.getByRole("button", { name: "执行状态操作", exact: true }).click();
   await expect(page.getByText("操作状态: 操作已完成（进行中: false）", { exact: true })).toBeVisible();
