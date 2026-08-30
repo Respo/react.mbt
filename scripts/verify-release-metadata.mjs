@@ -10,6 +10,7 @@ function fail(message) {
 
 const moonMod = readFileSync("moon.mod", "utf8");
 const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
+const releaseTags = JSON.parse(readFileSync("release-tags.json", "utf8"));
 const changelog = readFileSync("CHANGELOG.md", "utf8");
 const moonVersions = [...moonMod.matchAll(/^version = "([^"]+)"$/gm)].map(
   (match) => match[1],
@@ -58,14 +59,20 @@ if (!headingVersions.includes(version)) {
   fail(`CHANGELOG.md has no dated ${version} section`);
 }
 
-const taggedVersions = execFileSync("git", ["tag", "--list"], {
-  encoding: "utf8",
-})
-  .trim()
-  .split("\n")
-  .filter(Boolean)
-  .map((tag) => tag.replace(/^v/, ""))
-  .filter((tagVersion) => semverPattern.test(tagVersion));
+if (!Array.isArray(releaseTags) || releaseTags.length === 0) {
+  fail("release-tags.json must contain the public historical tags");
+}
+if (new Set(releaseTags).size !== releaseTags.length) {
+  fail("release-tags.json contains duplicate tags");
+}
+
+const taggedVersions = releaseTags.map((tag) => {
+  const tagVersion = tag.replace(/^v/, "");
+  if (!semverPattern.test(tagVersion)) {
+    fail(`release-tags.json contains an invalid tag: ${tag}`);
+  }
+  return tagVersion;
+});
 const expectedVersions = new Set([...taggedVersions, version]);
 const missingVersions = [...expectedVersions].filter(
   (expected) => !headingVersions.includes(expected),
@@ -79,6 +86,27 @@ const unexpectedVersions = headingVersions.filter(
 );
 if (unexpectedVersions.length > 0) {
   fail(`CHANGELOG.md has untagged versions: ${unexpectedVersions.join(", ")}`);
+}
+
+if (process.env.VERIFY_GIT_TAGS === "1") {
+  const checkoutTags = execFileSync("git", ["tag", "--list"], {
+    encoding: "utf8",
+  })
+    .trim()
+    .split("\n")
+    .filter(Boolean)
+    .filter((tag) => semverPattern.test(tag.replace(/^v/, "")));
+  const missingCheckoutTags = releaseTags.filter(
+    (tag) => !checkoutTags.includes(tag),
+  );
+  const unexpectedCheckoutTags = checkoutTags.filter(
+    (tag) => !releaseTags.includes(tag) && tag !== `v${version}`,
+  );
+  if (missingCheckoutTags.length > 0 || unexpectedCheckoutTags.length > 0) {
+    fail(
+      `release-tags.json differs from checkout: missing=[${missingCheckoutTags.join(", ")}] unexpected=[${unexpectedCheckoutTags.join(", ")}]`,
+    );
+  }
 }
 
 const releaseTag = process.env.RELEASE_TAG;
@@ -99,6 +127,7 @@ console.log(
       metadataVersionsMatched: 2,
       changelogReleaseSections: releaseHeadings.length,
       historicalTagsCovered: taggedVersions.length,
+      publicTagManifestChecked: process.env.VERIFY_GIT_TAGS === "1",
       unreleasedEntries: 0,
       bilingualReleaseNotes: true,
     },

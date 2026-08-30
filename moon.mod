@@ -34,6 +34,7 @@ options(
     "package.json",
     "playwright.config.mjs",
     "release-notes",
+    "release-tags.json",
     "scripts",
     "tests",
     "vite.config.mjs",

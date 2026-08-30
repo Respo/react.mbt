@@ -38,6 +38,8 @@ jobs:
         run: moon update && moon version && moon check --target js
 
       - name: Check release metadata and package contents
+        env:
+          VERIFY_GIT_TAGS: "1"
         run: yarn check:release
 
       - name: Check generated interfaces

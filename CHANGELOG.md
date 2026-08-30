@@ -128,11 +128,3 @@ Experimental React bindings for MoonBit.
 ## 0.0.2-a1 - 2025-10-02
 
 - Updated the demos.
-
-## 0.0.1-a3 - 2025-10-01
-
-- Updated the README.
-
-## 0.0.1-a2 - 2025-10-01
-
-- Cut the second alpha release.
