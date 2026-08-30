@@ -14,6 +14,18 @@ extern "js" fn install_test_react() -> Unit =
   #| }
 
 ///|
+extern "js" fn install_component_identity_test_react() -> Unit =
+  #| () => {
+  #|   globalThis.window = {
+  #|     React: {
+  #|       Fragment: Symbol("Fragment"),
+  #|       createElement: (tag, props, ...children) => ({ tag, props, children }),
+  #|       cloneElement: (node, props) => ({ ...node, props: { ...node.props, ...props } }),
+  #|     },
+  #|   };
+  #| }
+
+///|
 enum NonDefaultReducerState {
   Initial
   Updated
@@ -47,6 +59,25 @@ extern "js" fn react_element_tag_equals(
   tag : @dom.JsObscure,
 ) -> Bool =
   #| (node, tag) => node.tag === tag
+
+///|
+extern "js" fn react_elements_have_same_tag(
+  first : @dom.JsObscure,
+  second : @dom.JsObscure,
+) -> Bool =
+  #| (first, second) => first.tag === second.tag
+
+///|
+extern "js" fn render_test_component_factory(
+  node : @dom.JsObscure,
+) -> @dom.JsObscure =
+  #| (node) => node.tag(node.props)
+
+///|
+extern "js" fn react_element_first_child_string(
+  node : @dom.JsObscure,
+) -> String =
+  #| (node) => node.children[0]
 
 ///|
 extern "js" fn react_element_bool_prop(
@@ -1295,6 +1326,83 @@ test "components without child access render through their React factory" {
   ).to_js_obscure()
   inspect(react_element_tag(node), content="div")
   inspect(react_element_child_count(node), content="1")
+}
+
+///|
+struct StableComponentProps {
+  label : String
+}
+
+///|
+fn comp_stable_factory(props : StableComponentProps) -> VirtualNode {
+  div([Text(props.label)])
+}
+
+///|
+fn comp_stable_children_factory(
+  _props : StableComponentProps,
+  children : Array[VirtualNode],
+) -> VirtualNode {
+  create_element(
+    "section",
+    ElementAttrs::new(),
+    ElementEvents::new(),
+    style=@css.respo_style(),
+    children,
+  ).to_node()
+}
+
+///|
+test "component factories keep identity across repeated renders" {
+  install_component_identity_test_react()
+  let first = component(comp_stable_factory, { label: "first" }, [])
+  let second = component(comp_stable_factory, { label: "second" }, [])
+  inspect(
+    react_elements_have_same_tag(first.to_js_obscure(), second.to_js_obscure()),
+    content="true",
+  )
+  inspect(
+    react_element_first_child_string(
+      render_test_component_factory(first.to_js_obscure()),
+    ),
+    content="first",
+  )
+  inspect(
+    react_element_first_child_string(
+      render_test_component_factory(second.to_js_obscure()),
+    ),
+    content="second",
+  )
+
+  let first_children = component_with_children(
+    comp_stable_children_factory,
+    { label: "ignored" },
+    [Text("first child")],
+  )
+  let second_children = component_with_children(
+    comp_stable_children_factory,
+    { label: "ignored" },
+    [Text("second child")],
+  )
+  inspect(
+    react_elements_have_same_tag(
+      first_children.to_js_obscure(),
+      second_children.to_js_obscure(),
+    ),
+    content="true",
+  )
+  inspect(
+    react_element_first_child_string(
+      render_test_component_factory(first_children.to_js_obscure()),
+    ),
+    content="first child",
+  )
+  inspect(
+    react_element_first_child_string(
+      render_test_component_factory(second_children.to_js_obscure()),
+    ),
+    content="second child",
+  )
 }
 
 ///|
