@@ -18,6 +18,10 @@ type EditingState derive(Default)
 
 type Filter derive(Eq)
 
+type FormActionDemoState
+
+type FormStatusProps derive(Default)
+
 type HooksDemoProps derive(Default)
 
 type Todo derive(Default)

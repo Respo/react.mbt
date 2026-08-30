@@ -13,6 +13,12 @@ const normalizeTodoMvcPlaceholder = {
 };
 
 export default defineConfig({
+  // ReactDOM Hooks and the client renderer must share the same react-dom
+  // internals. Keep Vite from resolving duplicate module instances when both
+  // `react-dom` and `react-dom/client` are imported.
+  resolve: {
+    dedupe: ["react", "react-dom"],
+  },
   // todomvc-app-css@2.4.3 contains one non-standard selector that LightningCSS
   // warns about. Normalize it at build time without modifying or vendoring the
   // CC-BY dependency.

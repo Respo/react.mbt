@@ -1,0 +1,169 @@
+///|
+/// The browser `FormData` payload supplied to React form Actions.
+#external
+pub type ReactFormData
+
+///|
+extern "js" fn ReactFormData::get_string_raw(
+  self : ReactFormData,
+  key : String,
+) -> JsObscure =
+  #| (data, key) => {
+  #|   const value = data.get(key);
+  #|   return typeof value === "string" ? value : null;
+  #| }
+
+///|
+/// Returns a string form field, or `None` when the field is absent or is a
+/// non-string value such as a File.
+pub fn ReactFormData::get_string(self : ReactFormData, key : String) -> String? {
+  let value = self.get_string_raw(key)
+  if value.is_nil() {
+    None
+  } else {
+    Some(@dom.js_obscure_to_v(value))
+  }
+}
+
+///|
+/// A typed React `action` or `formAction` property.
+struct FormAction {
+  js_value : JsObscure
+}
+
+///|
+fn FormAction::from_js_value(value : JsObscure) -> FormAction {
+  FormAction::{ js_value: value }
+}
+
+///|
+fn FormAction::to_js_value(self : FormAction) -> JsObscure {
+  self.js_value
+}
+
+///|
+/// Wraps a `use_action_state` dispatcher for a form `action` or submit-control
+/// `formAction` property.
+pub fn form_action(dispatch : (ReactFormData) -> Unit) -> FormAction {
+  FormAction::from_js_value(@dom.v_to_js_obscure(dispatch))
+}
+
+///|
+/// Converts a MoonBit async form Action into a JavaScript Promise-returning
+/// React Action. Rejections are forwarded to React by the official
+/// `moonbitlang/async/js_async` bridge.
+pub fn async_form_action(action : async (ReactFormData) -> Unit) -> FormAction {
+  let js_action = fn(data : ReactFormData) {
+    @js_async.Promise::from_async(async fn() { action(data) })
+  }
+  FormAction::from_js_value(@dom.v_to_js_obscure(js_action))
+}
+
+///|
+/// Stores state managed by an asynchronous React Action. The MoonBit async
+/// reducer is exported as a JavaScript Promise so React can keep `is_pending`
+/// true until it settles and can serialize queued Actions.
+pub fn[S, A] use_async_action_state(
+  initial : S,
+  action : async (S, A) -> S,
+) -> (S, (A) -> Unit, Bool) {
+  let js_action = fn(previous : S, payload : A) {
+    @js_async.Promise::from_async(async fn() { action(previous, payload) })
+  }
+  let pair = react_use_action_state(
+    @dom.v_to_js_obscure(js_action),
+    any_to_js_value(initial),
+  )
+  let state : S = any_from_js_value(pair.get("0"))
+  let dispatch = fn1_from_js_obscure(pair.get("1"))
+  let is_pending : Bool = any_from_js_value(pair.get("2"))
+  (state, fn(value : A) { dispatch(any_to_js_value(value)) }, is_pending)
+}
+
+///|
+extern "js" fn react_use_optimistic(
+  value : JsObscure,
+  reducer : JsObscure,
+) -> JsObscure =
+  #| (value, reducer) => window.React.useOptimistic(value, reducer)
+
+///|
+/// Returns a temporary optimistic state and a typed dispatcher. React restores
+/// the supplied base value when the surrounding Action finishes unless the
+/// owner commits a new base value.
+pub fn[S, A] use_optimistic(
+  value : S,
+  reducer : (S, A) -> S,
+) -> (S, (A) -> Unit) {
+  let pair = react_use_optimistic(
+    any_to_js_value(value),
+    any_to_js_value(reducer),
+  )
+  let state : S = any_from_js_value(pair.get("0"))
+  let dispatch = fn1_from_js_obscure(pair.get("1"))
+  (state, fn(value : A) { dispatch(any_to_js_value(value)) })
+}
+
+///|
+extern "js" fn react_use_form_status() -> JsObscure =
+  #| () => window.ReactDOM.useFormStatus()
+
+///|
+/// Status for the nearest parent React form. A component calling this Hook
+/// must be rendered below the form rather than in the same component that
+/// creates it.
+struct FormStatus {
+  js_value : JsObscure
+}
+
+///|
+pub fn use_form_status() -> FormStatus {
+  FormStatus::{ js_value: react_use_form_status() }
+}
+
+///|
+extern "js" fn form_status_pending(status : JsObscure) -> Bool =
+  #| (status) => status.pending === true
+
+///|
+pub fn FormStatus::pending(self : FormStatus) -> Bool {
+  form_status_pending(self.js_value)
+}
+
+///|
+extern "js" fn form_status_data(status : JsObscure) -> JsObscure =
+  #| (status) => status.data ?? null
+
+///|
+/// Returns the submitted data while the parent form Action is pending.
+pub fn FormStatus::data(self : FormStatus) -> ReactFormData? {
+  let value = form_status_data(self.js_value)
+  if value.is_nil() {
+    None
+  } else {
+    Some(@dom.js_obscure_to_v(value))
+  }
+}
+
+///|
+extern "js" fn form_status_method(status : JsObscure) -> String =
+  #| (status) => status.method ?? "get"
+
+///|
+pub fn FormStatus::submission_method(self : FormStatus) -> String {
+  form_status_method(self.js_value)
+}
+
+///|
+extern "js" fn form_status_action(status : JsObscure) -> JsObscure =
+  #| (status) => status.action ?? null
+
+///|
+pub fn FormStatus::action(self : FormStatus) -> FormAction? {
+  let value = form_status_action(self.js_value)
+  if value.is_nil() {
+    None
+  } else {
+    Some(FormAction::from_js_value(value))
+  }
+}

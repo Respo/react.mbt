@@ -52,6 +52,10 @@ extern "js" fn install_main_test_react() -> Unit =
   #|         const index = nextHookIndex(initial);
   #|         return [hookValues[index], (value) => { hookValues[index] = action(hookValues[index], value); }, false];
   #|       },
+  #|       useOptimistic: (initial, reducer) => {
+  #|         const index = nextHookIndex(initial);
+  #|         return [hookValues[index], (value) => { hookValues[index] = reducer(hookValues[index], value); }];
+  #|       },
   #|       useEffect: runEffect,
   #|       useLayoutEffect: runEffect,
   #|       useMemo: (factory) => factory(),
@@ -60,6 +64,14 @@ extern "js" fn install_main_test_react() -> Unit =
   #|       useEffectEvent: (callback) => callback,
   #|       startTransition: (action) => action(),
   #|       useRef: (initial) => ({ current: initial }),
+  #|     },
+  #|     ReactDOM: {
+  #|       useFormStatus: () => ({
+  #|         pending: false,
+  #|         data: null,
+  #|         method: "get",
+  #|         action: null,
+  #|       }),
   #|     },
   #|     ReactDOMClient: {
   #|       createRoot: () => ({ render: () => { renderCalls += 1; } }),
@@ -211,7 +223,11 @@ test "Todo and Hooks demo components build React trees with hook runtime" {
 
   let hooks_node = comp_hooks_demo(Default::default()).to_js_obscure()
   inspect(main_react_element_tag(hooks_node), content="div")
-  inspect(main_react_element_child_count(hooks_node), content="5")
+  inspect(main_react_element_child_count(hooks_node), content="6")
+  inspect(
+    main_react_tree_contains(hooks_node, "已保存: baseline"),
+    content="true",
+  )
 
   let controls = main_react_element_child(hooks_node, 2)
   main_react_trigger_handler(main_react_element_child(controls, 1), "onClick")

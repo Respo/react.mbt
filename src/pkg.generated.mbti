@@ -13,9 +13,11 @@ pub fn article(id? : String, class_name? : String, class_list? : Array[String], 
 
 pub fn aside(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
+pub fn async_form_action(async (ReactFormData) -> Unit) -> FormAction
+
 pub fn audio(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], src? : String, controls? : Bool, autoplay? : Bool, loop_enabled? : Bool, muted? : Bool, on_play? : (DOMEvent) -> Unit, on_pause? : (DOMEvent) -> Unit) -> VirtualNode
 
-pub fn button(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, button_type? : String, disabled? : Bool, on_click? : (DOMEvent) -> Unit) -> VirtualNode
+pub fn button(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, button_type? : String, name? : String, value? : String, disabled? : Bool, form_action? : FormAction, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
 pub fn[T] component((T) -> VirtualNode, T, Array[VirtualNode]) -> VirtualNode
 
@@ -48,6 +50,10 @@ pub fn dom_event_to_react_handler(DOMEventType) -> String
 
 pub fn footer(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
+pub fn form(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], action? : FormAction, method_? : String, on_submit? : (DOMEvent) -> Unit) -> VirtualNode
+
+pub fn form_action((ReactFormData) -> Unit) -> FormAction
+
 pub fn h1(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
 pub fn h2(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
@@ -64,7 +70,7 @@ pub fn header(id? : String, class_name? : String, class_list? : Array[String], a
 
 pub fn img(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, src? : String, alt? : String, width? : String, height? : String, on_click? : (DOMEvent) -> Unit, on_load? : (DOMEvent) -> Unit, on_error? : (DOMEvent) -> Unit) -> VirtualNode
 
-pub fn input(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, type_? : InputType, value? : String, default_value? : String, placeholder? : String, disabled? : Bool, read_only? : Bool, checked? : Bool, default_checked? : Bool, on_click? : (DOMEvent) -> Unit, on_change? : (DOMEvent) -> Unit, on_input? : (DOMEvent) -> Unit) -> VirtualNode
+pub fn input(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, type_? : InputType, name? : String, value? : String, default_value? : String, placeholder? : String, disabled? : Bool, read_only? : Bool, checked? : Bool, default_checked? : Bool, form_action? : FormAction, on_click? : (DOMEvent) -> Unit, on_change? : (DOMEvent) -> Unit, on_input? : (DOMEvent) -> Unit) -> VirtualNode
 
 pub fn is_boolean_prop(String) -> Bool
 
@@ -103,6 +109,8 @@ pub fn unmount(@dom-ffi.Element) -> Unit
 
 pub fn[S, A] use_action_state(S, (S, A) -> S) -> (S, (A) -> Unit, Bool)
 
+pub fn[S, A] use_async_action_state(S, async (S, A) -> S) -> (S, (A) -> Unit, Bool)
+
 pub fn use_callback0_deps(() -> Unit, Array[@dom-ffi.JsObscure]) -> () -> Unit
 
 pub fn[F] use_callback_deps(F, Array[@dom-ffi.JsObscure]) -> F
@@ -123,6 +131,8 @@ pub fn use_effect_once(() -> Unit) -> Unit
 
 pub fn use_effect_once_with_cleanup(() -> () -> Unit) -> Unit
 
+pub fn use_form_status() -> FormStatus
+
 pub fn use_id() -> String
 
 pub fn use_layout_effect_cleanup_deps(() -> () -> Unit, Array[@dom-ffi.JsObscure]) -> Unit
@@ -130,6 +140,8 @@ pub fn use_layout_effect_cleanup_deps(() -> () -> Unit, Array[@dom-ffi.JsObscure
 pub fn use_layout_effect_deps(() -> Unit, Array[@dom-ffi.JsObscure]) -> Unit
 
 pub fn[A] use_memo_deps(() -> A, Array[@dom-ffi.JsObscure]) -> A
+
+pub fn[S, A] use_optimistic(S, (S, A) -> S) -> (S, (A) -> Unit)
 
 pub fn[S : Default, A] use_reducer(initial? : S, (S, A) -> S) -> (S, (A) -> Unit)
 
@@ -264,6 +276,14 @@ pub fn ElementEvents::to_js_value(Self) -> @dom-ffi.JsObscure
 
 type ElementPropValue
 
+type FormAction
+
+type FormStatus
+pub fn FormStatus::action(Self) -> FormAction?
+pub fn FormStatus::data(Self) -> ReactFormData?
+pub fn FormStatus::pending(Self) -> Bool
+pub fn FormStatus::submission_method(Self) -> String
+
 pub(all) enum InputType {
   Button
   Checkbox
@@ -297,6 +317,10 @@ pub fn[T] ReactContext::to_js_obscure(Self[T]) -> @dom-ffi.JsObscure
 type ReactDomRef
 pub fn ReactDomRef::current(Self) -> @dom-ffi.Element?
 pub fn ReactDomRef::to_js_obscure(Self) -> @dom-ffi.JsObscure
+
+#external
+pub type ReactFormData
+pub fn ReactFormData::get_string(Self, String) -> String?
 
 type ReactRef[T]
 #deprecated

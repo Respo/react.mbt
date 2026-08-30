@@ -23,8 +23,9 @@ MoonBit JavaScript representation, so they must be values that the generated
 MoonBit runtime can pass directly; do not assume JSON serialization or deep
 cloning occurs.
 
-The browser entry point must initialize `window.React` and
-`window.ReactDOMClient` before calling this package. The bundled demo shows the
+The browser entry point must initialize `window.React`, `window.ReactDOM`, and
+`window.ReactDOMClient` before calling this package. `window.ReactDOM` supplies
+DOM-specific Hooks such as `use_form_status`; the bundled demo shows the
 supported ESM integration pattern.
 
 Component functions must be placed in the virtual DOM through `component`, not
@@ -65,6 +66,9 @@ For example, use `component(my_component, props, [])`, never
 - `use_callback_deps[F](callback: F, deps: Array[JsObscure]) -> F` - Callback memoization hook
 - `use_effect_event[F](callback: F) -> F` - React 19.2 effect-only callback that reads latest state without re-subscribing an effect
 - `use_action_state[S, A](initial: S, action: (S, A) -> S) -> (S, (A) -> Unit, Bool)` - React 19 action state, dispatch, and pending flag
+- `use_async_action_state[S, A](initial: S, action: async (S, A) -> S) -> (S, (A) -> Unit, Bool)` - Export a MoonBit async reducer as a Promise-returning React Action
+- `use_optimistic[S, A](value: S, reducer: (S, A) -> S) -> (S, (A) -> Unit)` - Temporary optimistic state scoped to a React Action
+- `use_form_status() -> FormStatus` - Read pending data, method, and action from the nearest parent form
 - `use_callback0_deps(f: () -> Unit, deps: Array[JsObscure]) -> () -> Unit` - Zero-argument callback hook
 - `use_ref[T](initial: T) -> ReactRef[T]` - Reference hook
 - `use_dom_ref() -> ReactDomRef` - Nullable DOM-element ref hook whose `current()` value is `None` before mount and after unmount
@@ -77,7 +81,7 @@ For example, use `component(my_component, props, [])`, never
 ### HTML Element Bindings
 
 - `div`, `span`, `p`, `h1`, `h2`, `h3` - Basic text elements
-- `button`, `input`, `textarea`, `select`, `option` - Form elements
+- `form`, `button`, `input`, `textarea`, `select`, `option` - Form elements
 - `a`, `img`, `video`, `audio` - Media and link elements
 - `ul`, `ol`, `li` - List elements
 - `section`, `article`, `header`, `footer`, `nav`, `aside` - Semantic elements
@@ -126,6 +130,15 @@ Controlled fields require `on_change`, or an explicit `read_only=true` or
 `default_values` array parameters; individual options do not accept
 `selected`.
 
+React 19 function Actions use the typed `FormAction` wrapper. Wrap the
+`ReactFormData` dispatcher returned by `use_action_state` or
+`use_async_action_state` with `form_action(dispatch)`, or convert a direct
+MoonBit async form function with `async_form_action`. Pass the result through
+`form(action=...)`, `button(form_action=...)`, or a submit/image
+`input(form_action=...)`. `use_form_status` must run in a child component below
+the form it observes. The async bridge is pinned to `moonbitlang/async@0.20.3`,
+the newest release compatible with this repository's pinned MoonBit compiler.
+
 `declare_contained_style` is deprecated; use `contained_static_style` instead.
 `ReactRef::from` is deprecated because its constructor-like name hides a Hook
 call; use `use_ref` or `use_dom_ref` at the top level of a component.
@@ -146,9 +159,11 @@ Before writing any MoonBit code, make sure to include the React bindings in your
 
 ```js
 import * as React from "react";
+import * as ReactDOM from "react-dom";
 import * as ReactDOMClient from "react-dom/client";
 
 window.React = React;
+window.ReactDOM = ReactDOM;
 window.ReactDOMClient = ReactDOMClient;
 ```
 
@@ -219,15 +234,16 @@ corepack yarn test:browser
 
 CI pins MoonBit compiler `0.10.4+2cc641edf` and validates Node 22 with Yarn
 1.22.22. `test:browser` runs deterministic TodoMVC and React runtime conformance
-flows in Chromium, including StrictMode lifecycle, batching, root reuse, and DOM
-ref cleanup; install it once locally with `yarn playwright install chromium`.
+flows in Chromium, including StrictMode lifecycle, batching, root reuse, DOM
+ref cleanup, async form Actions, form status, and optimistic rollback; install
+it once locally with `yarn playwright install chromium`.
 Update the toolchain pin only through the full check, unit-test, interface,
 browser-test, and browser-build matrix. This revision was verified with MoonBit
 `0.1.20260713`, React 19.2.8, and Vite 8.2.x.
 
-The browser entry point loads React and ReactDOMClient before the generated
-MoonBit application. `render` can be called again for the same parent element;
-the binding reuses its React root rather than creating a second one.
+The browser entry point loads React, ReactDOM, and ReactDOMClient before the
+generated MoonBit application. `render` can be called again for the same parent
+element; the binding reuses its React root rather than creating a second one.
 
 ## Release
 
