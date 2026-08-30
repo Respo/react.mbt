@@ -102,6 +102,21 @@ For example, use `component(my_component, props, [])`, never
 - `ul`, `ol`, `li` - List elements
 - `section`, `article`, `header`, `footer`, `nav`, `aside` - Semantic elements
 - `label` - Label element
+- Generated table helpers: `table`, `caption`, `colgroup`, `col`, `thead`,
+  `tbody`, `tfoot`, `tr`, `th`, and `td`
+- Generated form and interactive helpers: `fieldset`, `legend`, `datalist`,
+  `optgroup`, `output`, `progress`, `meter`, `dialog`, `details`, and `summary`
+- Generated React 19 metadata helpers: `title`, `meta`, `link`, `style_tag`, and
+  `script_tag`
+- Generated core SVG helpers include `svg`, `g`, `defs`, `symbol`, `path`,
+  `circle`, `ellipse`, `rect`, `line`, gradients, clipping/masking, text, and
+  `use_`
+
+The generated set contains 54 helpers across six categories. Every generated
+helper includes typed common `role`, `title`, `tab_index`, `hidden`,
+`aria_label`, and `data_testid` props plus the applicable tag-specific props.
+SVG and metadata names use React camel case at the JavaScript boundary, such as
+`viewBox`, `strokeWidth`, `httpEquiv`, and `xlinkHref`.
 
 ### Event Handling
 
@@ -119,7 +134,7 @@ to React's camel-cased `onXxx` property automatically.
 
 ### Styles and Attributes
 
-- `ElementAttrs` - HTML attribute management, including typed boolean and integer setters
+- `ElementAttrs` - HTML attribute management, including typed string, boolean, integer, floating-point, and JavaScript-value setters
 - `ElementEvents` - Event handler management
 - `RespoStyle` - CSS styles (from `@css` module)
 - `InputType` enum - Support for all HTML input types
@@ -130,8 +145,10 @@ Only pass trusted, sanitized HTML through this escape hatch. Combining
 `innerHTML` with children is rejected before the element reaches React.
 
 Use `ElementAttrs::set` for string attributes, `set_bool` for React boolean
-properties such as `disabled`, and `set_int` for numeric properties such as
-`rows`. The built-in element helpers use these typed conversions automatically.
+properties such as `disabled`, `set_int` for integral properties such as
+`rows`, and `set_float` for fractional numeric properties such as progress and
+meter values. The built-in element helpers use these typed conversions
+automatically.
 Use `set_js_value` only for explicit React values such as a DOM ref:
 `attrs.set_js_value("ref", input_ref.to_js_obscure())`.
 For controlled checkbox or radio inputs, use `input(checked=value)` so both
@@ -299,6 +316,8 @@ moon check
 moon test
 moon info
 corepack yarn install --frozen-lockfile
+corepack yarn generate:dom
+corepack yarn check:generated
 corepack yarn build
 corepack yarn test:browser
 ```
@@ -309,8 +328,8 @@ flows in Chromium, including StrictMode lifecycle, batching, root reuse, DOM
 ref cleanup, async form Actions, form status, optimistic rollback, portals,
 root error callbacks, synchronous server rendering, hydration, external-store
 subscription lifecycles, memo/lazy/Suspense, typed JavaScript interoperation,
-and imperative handles; install it once locally with
-`yarn playwright install chromium`.
+imperative handles, and generated HTML/SVG/metadata DOM behavior; install it
+once locally with `yarn playwright install chromium`.
 Update the toolchain pin only through the full check, unit-test, interface,
 browser-test, and browser-build matrix. This revision was verified with MoonBit
 `0.1.20260713`, React 19.2.8, and Vite 8.2.x.

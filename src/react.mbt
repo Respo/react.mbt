@@ -85,6 +85,7 @@ enum ElementPropValue {
   StringProp(String)
   BoolProp(Bool)
   IntProp(Int)
+  FloatProp(Float)
   JsProp(JsObscure)
 }
 
@@ -135,6 +136,16 @@ pub fn ElementAttrs::set_int(
   value : Int,
 ) -> Unit {
   self.0.set(key, IntProp(value))
+}
+
+///|
+/// Sets a floating-point React property without converting it to a string.
+pub fn ElementAttrs::set_float(
+  self : ElementAttrs,
+  key : String,
+  value : Float,
+) -> Unit {
+  self.0.set(key, FloatProp(value))
 }
 
 ///|
@@ -371,6 +382,8 @@ pub(all) enum DOMEventType {
   // 其他可冒泡的元素事件
   Invalid
   Toggle
+  Cancel
+  Close
 } derive(Eq, Compare, Hash)
 
 ///|
@@ -457,6 +470,8 @@ pub fn DOMEventType::to_string(self : DOMEventType) -> String {
     TransitionEnd => "transitionend"
     Invalid => "invalid"
     Toggle => "toggle"
+    Cancel => "cancel"
+    Close => "close"
   }
 }
 
@@ -778,6 +793,7 @@ fn VirtualElement::to_js_value(self : VirtualElement) -> @dom.JsObscure {
       StringProp(value) => convert_prop_value(react_prop_name, value)
       BoolProp(value) => @dom.v_to_js_obscure(value)
       IntProp(value) => @dom.v_to_js_obscure(value)
+      FloatProp(value) => @dom.v_to_js_obscure(value)
       JsProp(value) => value
     }
     props.set(react_prop_name, prop_value)
@@ -1019,6 +1035,8 @@ pub fn dom_event_to_react_handler(event_type : DOMEventType) -> String {
     TransitionEnd => "onTransitionEnd"
     Invalid => "onInvalid"
     Toggle => "onToggle"
+    Cancel => "onCancel"
+    Close => "onClose"
   }
 }
 
