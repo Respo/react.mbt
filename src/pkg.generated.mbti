@@ -30,6 +30,8 @@ pub fn convert_prop_value(String, String) -> @dom-ffi.JsObscure
 
 pub fn convert_style_to_js_object(@respo_css.RespoStyle) -> @dom-ffi.JsObjectObscure
 
+pub fn[T] create_context(T) -> ReactContext[T]
+
 pub fn create_element(String, ElementAttrs, ElementEvents, style~ : @respo_css.RespoStyle, Array[VirtualNode]) -> VirtualElement
 
 pub fn css_prop_to_camel_case(String) -> String
@@ -104,6 +106,8 @@ pub fn[S, A] use_action_state(S, (S, A) -> S) -> (S, (A) -> Unit, Bool)
 pub fn use_callback0_deps(() -> Unit, Array[@dom-ffi.JsObscure]) -> () -> Unit
 
 pub fn[F] use_callback_deps(F, Array[@dom-ffi.JsObscure]) -> F
+
+pub fn[T] use_context(ReactContext[T]) -> T
 
 pub fn[T] use_deferred_value(T) -> T
 
@@ -283,6 +287,10 @@ pub(all) enum InputType {
   Week
 } derive(Eq)
 pub fn InputType::to_string(Self) -> String
+
+type ReactContext[T]
+pub fn[T] ReactContext::provider(Self[T], T, Array[VirtualNode]) -> VirtualNode
+pub fn[T] ReactContext::to_js_obscure(Self[T]) -> @dom-ffi.JsObscure
 
 type ReactRef[T]
 pub fn[T] ReactRef::from(T) -> Self[T]

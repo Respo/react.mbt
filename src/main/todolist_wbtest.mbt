@@ -34,6 +34,7 @@ extern "js" fn install_main_test_react() -> Unit =
   #|     },
   #|     React: {
   #|       Fragment: Symbol("Fragment"),
+  #|       createContext: (defaultValue) => ({ defaultValue, currentValue: defaultValue }),
   #|       createElement: (tag, props, ...children) =>
   #|         typeof tag === "function" ? tag(props) : ({ tag, props, children }),
   #|       useState: (initial) => {
@@ -54,6 +55,7 @@ extern "js" fn install_main_test_react() -> Unit =
   #|       useLayoutEffect: runEffect,
   #|       useMemo: (factory) => factory(),
   #|       useCallback: (callback) => callback,
+  #|       useContext: (context) => context.currentValue,
   #|       useEffectEvent: (callback) => callback,
   #|       startTransition: (action) => action(),
   #|       useRef: (initial) => ({ current: initial }),

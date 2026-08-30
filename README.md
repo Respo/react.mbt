@@ -43,6 +43,8 @@ identities rather than array indexes.
 - `component[T](f: (T) -> VirtualNode, props: T, children: Array[VirtualNode]) -> VirtualNode` - Create a leaf component
 - `component_with_children[T](f: (T, Array[VirtualNode]) -> VirtualNode, props: T, children: Array[VirtualNode]) -> VirtualNode` - Create a component that places its children
 - `VirtualNode::with_key(key: String) -> VirtualNode` - Assign a stable React reconciliation key without adding a DOM wrapper
+- `create_context[T](default_value: T) -> ReactContext[T]` - Create a typed React Context
+- `ReactContext::provider(value: T, children: Array[VirtualNode]) -> VirtualNode` - Provide a value without adding a DOM wrapper
 
 For example, use `component(my_component, props, [])`, never
 `my_component(props)` directly in a virtual DOM tree.
@@ -50,6 +52,7 @@ For example, use `component(my_component, props, [])`, never
 ### Hooks API
 
 - `use_state[T](initial: T) -> (T, (T) -> Unit)` - State management hook
+- `use_context[T](context: ReactContext[T]) -> T` - Read and subscribe to the nearest typed Context provider
 - `use_state_with_updater[T](initial: T) -> (T, (StateUpdate[T]) -> Unit)` - State hook with direct and functional updates
 - `use_reducer_with_initial[S, A](initial: S, reducer: (S, A) -> S) -> (S, (A) -> Unit)` - Reducer hook for any explicit state type
 - `use_reducer[S: Default, A](initial?: S, reducer: (S, A) -> S) -> (S, (A) -> Unit)` - Reducer hook

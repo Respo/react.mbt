@@ -4,9 +4,11 @@ extern "js" fn install_test_react() -> Unit =
   #|   globalThis.window = {
   #|     React: {
   #|       Fragment: Symbol("Fragment"),
+  #|       createContext: (defaultValue) => ({ defaultValue, currentValue: defaultValue }),
   #|       createElement: (tag, props, ...children) =>
   #|         typeof tag === "function" ? tag(props) : ({ tag, props, children }),
   #|       cloneElement: (node, props) => ({ ...node, props: { ...node.props, ...props } }),
+  #|       useContext: (context) => context.currentValue,
   #|     },
   #|   };
   #| }
@@ -38,6 +40,13 @@ extern "js" fn js_value_string_prop(
 ///|
 extern "js" fn react_element_tag(node : @dom.JsObscure) -> String =
   #| (node) => node.tag
+
+///|
+extern "js" fn react_element_tag_equals(
+  node : @dom.JsObscure,
+  tag : @dom.JsObscure,
+) -> Bool =
+  #| (node, tag) => node.tag === tag
 
 ///|
 extern "js" fn react_element_bool_prop(
@@ -793,6 +802,20 @@ test "virtual nodes accept stable reconciliation keys" {
   inspect(react_element_string_prop(node, "key"), content="todo-42")
   inspect(react_element_child_count(node), content="1")
   inspect(react_element_tag(node), content="div")
+}
+
+///|
+test "contexts preserve typed defaults and provider values" {
+  install_test_react()
+  let context = create_context("fallback")
+  inspect(use_context(context), content="fallback")
+  let provider = context.provider("provided", [Text("child")]).to_js_obscure()
+  inspect(
+    react_element_tag_equals(provider, context.to_js_obscure()),
+    content="true",
+  )
+  inspect(react_element_string_prop(provider, "value"), content="provided")
+  inspect(react_element_child_count(provider), content="1")
 }
 
 ///|

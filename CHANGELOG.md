@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added typed React Context creation, provider, consumption, and JavaScript
+  interoperation with nested-provider browser coverage.
 - Added `VirtualNode::with_key` for stable reconciliation identity across
   elements, components, fragments, and text, and made browser regressions fail
   on React console warnings and errors.

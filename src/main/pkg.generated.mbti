@@ -8,6 +8,8 @@ package "tiye/react/main"
 // Types and methods
 type ContainerProps derive(Default)
 
+type ContextReaderProps
+
 type EditingState derive(Default)
 
 type Filter derive(Eq)

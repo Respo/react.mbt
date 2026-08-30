@@ -7,6 +7,18 @@ using @react {obscure, li}
 struct HooksDemoProps {} derive(Default)
 
 ///|
+struct ContextReaderProps {
+  context : @react.ReactContext[String]
+  label : String
+}
+
+///|
+fn comp_context_reader(props : ContextReaderProps) -> VirtualNode {
+  let value = @react.use_context(props.context)
+  @react.p([Text("\{props.label}: \{value}")])
+}
+
+///|
 /// 主要的 Hooks 演示组件
 fn comp_hooks_demo(_props : HooksDemoProps) -> VirtualNode {
   // 基础状态管理
@@ -16,6 +28,10 @@ fn comp_hooks_demo(_props : HooksDemoProps) -> VirtualNode {
   let (action_status, dispatch_action, is_action_pending) = @react.use_action_state(
     "未执行",
     fn(_previous : String, action : String) { action },
+  )
+  let demo_context = @react.use_memo_deps(
+    fn() { @react.create_context("默认值") },
+    [],
   )
 
   // 演示 use_effect_once - 仅在组件挂载时执行一次
@@ -78,6 +94,30 @@ fn comp_hooks_demo(_props : HooksDemoProps) -> VirtualNode {
           @react.Text("计算值 (count² + count×10): \{expensive_value}"),
         ]),
         @react.p([@react.Text("定时器计数: \{timer_count}")]),
+        @react.component(
+          comp_context_reader,
+          { context: demo_context, label: "无 Provider" },
+          [],
+        ),
+        demo_context.provider("外层值", [
+          @react.component(
+            comp_context_reader,
+            { context: demo_context, label: "外层 Provider" },
+            [],
+          ),
+          demo_context.provider("内层值", [
+            @react.component(
+              comp_context_reader,
+              { context: demo_context, label: "内层 Provider" },
+              [],
+            ),
+          ]),
+          @react.component(
+            comp_context_reader,
+            { context: demo_context, label: "恢复外层" },
+            [],
+          ),
+        ]),
       ]),
 
       // 操作按钮区域
