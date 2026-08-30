@@ -539,6 +539,52 @@ pub fn div(
 }
 
 ///|
+/// Creates a React form. A function-valued `action` runs in a React Action and
+/// receives the submitted `ReactFormData` payload.
+pub fn form(
+  /// HTML element ID.
+  id? : String,
+  /// Base CSS class name.
+  class_name? : String,
+  /// Additional CSS class names.
+  class_list? : Array[String] = [],
+  /// Additional HTML attributes.
+  attrs? : ElementAttrs,
+  /// Event handlers map.
+  event? : ElementEvents,
+  /// CSS styles.
+  style? : RespoStyle = respo_style(),
+  /// Child form controls.
+  children : Array[VirtualNode],
+  /// Typed React Action. Function actions submit with POST semantics.
+  action? : FormAction,
+  /// Native form method. React function actions use POST regardless of this
+  /// value, matching React 19 behavior.
+  method_? : String,
+  /// Conventional submit event handler for non-Action forms.
+  on_submit? : (DOMEvent) -> Unit,
+) -> VirtualNode {
+  let attrs = attrs.unwrap_or_default()
+  let event = event.unwrap_or_default()
+  if id is Some(id) {
+    attrs.set("id", id)
+  }
+  if combine_classes(class_name, class_list) is Some(class_name) {
+    attrs.set("className", class_name)
+  }
+  if action is Some(action) {
+    attrs.set_js_value("action", action.to_js_value())
+  }
+  if method_ is Some(method_) {
+    attrs.set("method", method_)
+  }
+  if on_submit is Some(on_submit) {
+    event.set(Submit, on_submit)
+  }
+  Element({ name: "form", attrs, event, style, children })
+}
+
+///|
 /// Combines a base class name with a list of additional class names into a
 /// single string, with class names separated by spaces. Returns `None` if both
 /// inputs are empty.
@@ -581,6 +627,8 @@ pub fn input(
   style? : RespoStyle = respo_style(),
   /// The type of input (e.g., Text, Password, Email).
   type_? : InputType,
+  /// Form field name.
+  name? : String,
   /// The current value of the input.
   value? : String,
   /// The initial value of an uncontrolled input. Do not combine with `value`.
@@ -597,6 +645,8 @@ pub fn input(
   /// Initial checked state for an uncontrolled checkbox or radio input. Do not
   /// combine with `checked`.
   default_checked? : Bool,
+  /// Overrides the parent form Action for submit and image inputs.
+  form_action? : FormAction,
   /// Click event handler.
   on_click? : (DOMEvent) -> Unit,
   /// Change event handler (fired when value changes and input loses focus).
@@ -606,6 +656,11 @@ pub fn input(
 ) -> VirtualNode {
   let attrs = attrs.unwrap_or_default()
   let event = event.unwrap_or_default()
+  if form_action is Some(_) &&
+    type_ != Some(InputType::Submit) &&
+    type_ != Some(InputType::Image) {
+    abort("React input formAction requires type=Submit or type=Image")
+  }
   if id is Some(id) {
     attrs.set("id", id)
   }
@@ -614,6 +669,9 @@ pub fn input(
   }
   if type_ is Some(input_type) {
     attrs.set("type", input_type.to_string())
+  }
+  if name is Some(name) {
+    attrs.set("name", name)
   }
   if value is Some(value) {
     attrs.set("value", value)
@@ -635,6 +693,9 @@ pub fn input(
   }
   if default_checked is Some(default_checked) {
     attrs.set_bool("defaultChecked", default_checked)
+  }
+  if form_action is Some(form_action) {
+    attrs.set_js_value("formAction", form_action.to_js_value())
   }
   if on_click is Some(on_click) {
     event.set(Click, on_click)
@@ -673,13 +734,24 @@ pub fn button(
   innerHTML? : String,
   /// The type of button (e.g., "button", "submit", "reset").
   button_type? : String,
+  /// Form field name for submitter payloads.
+  name? : String,
+  /// Form field value for submitter payloads.
+  value? : String,
   /// Whether the button is disabled.
   disabled? : Bool,
+  /// Overrides the parent form Action. This is valid only for submit buttons.
+  form_action? : FormAction,
   /// Click event handler.
   on_click? : (DOMEvent) -> Unit,
 ) -> VirtualNode {
   let attrs = attrs.unwrap_or_default()
   let event = event.unwrap_or_default()
+  if form_action is Some(_) &&
+    button_type is Some(button_type) &&
+    button_type != "submit" {
+    abort("React button formAction requires a submit button")
+  }
   if id is Some(id) {
     attrs.set("id", id)
   }
@@ -692,8 +764,17 @@ pub fn button(
   if button_type is Some(button_type) {
     attrs.set("type", button_type)
   }
+  if name is Some(name) {
+    attrs.set("name", name)
+  }
+  if value is Some(value) {
+    attrs.set("value", value)
+  }
   if disabled is Some(true) {
     attrs.set_bool("disabled", true)
+  }
+  if form_action is Some(form_action) {
+    attrs.set_js_value("formAction", form_action.to_js_value())
   }
   if on_click is Some(on_click) {
     event.set(Click, on_click)

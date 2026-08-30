@@ -13,9 +13,52 @@ struct ContextReaderProps {
 }
 
 ///|
+struct FormActionDemoState {
+  calls : Int
+  message : String
+}
+
+///|
+struct FormStatusProps {} derive(Default)
+
+///|
+extern "js" fn wait_for_controlled_form_result() -> @js_async.Promise[Bool] =
+  #| () => {
+  #|   if (globalThis.__moonbitFormActionResolve) {
+  #|     throw new Error("A controlled form Action is already pending");
+  #|   }
+  #|   return new Promise((resolve) => {
+  #|     globalThis.__moonbitFormActionResolve = resolve;
+  #|   });
+  #| }
+
+///|
+extern "js" fn resolve_controlled_form_result(succeeded : Bool) -> Unit =
+  #| (succeeded) => {
+  #|   const resolve = globalThis.__moonbitFormActionResolve;
+  #|   if (!resolve) return;
+  #|   delete globalThis.__moonbitFormActionResolve;
+  #|   resolve(succeeded);
+  #| }
+
+///|
 fn comp_context_reader(props : ContextReaderProps) -> VirtualNode {
   let value = @react.use_context(props.context)
   @react.p([Text("\{props.label}: \{value}")])
+}
+
+///|
+fn comp_form_status(_props : FormStatusProps) -> VirtualNode {
+  let status = @react.use_form_status()
+  let submitted = match status.data() {
+    Some(data) => data.get_string("item").unwrap_or("")
+    None => ""
+  }
+  @react.p(id="form-action-status", [
+    Text(
+      "Form 状态: pending=\{status.pending()}, method=\{status.submission_method()}, submitted=\{submitted}",
+    ),
+  ])
 }
 
 ///|
@@ -28,6 +71,25 @@ fn comp_hooks_demo(_props : HooksDemoProps) -> VirtualNode {
   let (action_status, dispatch_action, is_action_pending) = @react.use_action_state(
     "未执行",
     fn(_previous : String, action : String) { action },
+  )
+  let (saved_form_value, set_saved_form_value) = @react.use_state("baseline")
+  let (optimistic_form_value, set_optimistic_form_value) = @react.use_optimistic(
+    saved_form_value,
+    fn(_current : String, submitted : String) { submitted },
+  )
+  let (form_result, submit_form_action, is_form_action_pending) = @react.use_async_action_state(
+    { calls: 0, message: "idle" },
+    async fn(previous : FormActionDemoState, data : @react.ReactFormData) {
+      let submitted = data.get_string("item").unwrap_or("")
+      set_optimistic_form_value(submitted)
+      let succeeded = wait_for_controlled_form_result().wait()
+      if succeeded {
+        set_saved_form_value(submitted)
+        { calls: previous.calls + 1, message: "saved" }
+      } else {
+        { calls: previous.calls + 1, message: "rejected" }
+      }
+    },
   )
   let demo_context = @react.use_memo_deps(
     fn() { @react.create_context("默认值") },
@@ -185,6 +247,54 @@ fn comp_hooks_demo(_props : HooksDemoProps) -> VirtualNode {
             cursor=Pointer,
           ),
           [Text("执行状态操作")],
+        ),
+      ]),
+
+      // React 19 Forms and Actions：可控 Promise 让 pending 与回滚可确定测试
+      @react.div(style=@css.respo_style(margin_bottom=15.0 |> @css.Px), [
+        @react.h3([Text("📝 React 19 Forms and Actions")]),
+        @react.p(id="form-action-canonical", [
+          Text("已保存: \{saved_form_value}"),
+        ]),
+        @react.p(id="form-action-optimistic", [
+          Text("乐观值: \{optimistic_form_value}"),
+        ]),
+        @react.p(id="form-action-result", [
+          Text(
+            "Action 结果: \{form_result.message}, calls=\{form_result.calls}, pending=\{is_form_action_pending}",
+          ),
+        ]),
+        @react.form(
+          id="controlled-action-form",
+          action=@react.form_action(submit_form_action),
+          [
+            @react.input(
+              id="form-action-input",
+              name="item",
+              default_value="candidate",
+              disabled=is_form_action_pending,
+            ),
+            @react.component(comp_form_status, FormStatusProps::default(), []),
+            @react.button(
+              button_type="submit",
+              disabled=is_form_action_pending,
+              [Text("提交 Action")],
+            ),
+          ],
+        ),
+        @react.button(
+          id="resolve-form-success",
+          button_type="button",
+          disabled=!is_form_action_pending,
+          on_click=fn(_) { resolve_controlled_form_result(true) },
+          [Text("完成成功")],
+        ),
+        @react.button(
+          id="resolve-form-failure",
+          button_type="button",
+          disabled=!is_form_action_pending,
+          on_click=fn(_) { resolve_controlled_form_result(false) },
+          [Text("完成失败")],
         ),
       ]),
 

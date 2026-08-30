@@ -218,6 +218,7 @@ extern "js" fn install_test_react_hooks() -> Unit =
   #|   globalThis.__moonbitHookState = {
   #|     state: null,
   #|     reduced: null,
+  #|     optimistic: null,
   #|     transitionActions: 0,
   #|   };
   #|   const runTransition = (action) => {
@@ -227,6 +228,14 @@ extern "js" fn install_test_react_hooks() -> Unit =
   #|   const runEffect = (effect) => {
   #|     const cleanup = effect();
   #|     if (typeof cleanup === "function") cleanup();
+  #|   };
+  #|   const submittedFormData = new FormData();
+  #|   submittedFormData.append("field", "submitted");
+  #|   globalThis.__moonbitFormStatus = {
+  #|     pending: true,
+  #|     data: submittedFormData,
+  #|     method: "post",
+  #|     action: () => {},
   #|   };
   #|   globalThis.window = {
   #|     React: {
@@ -248,6 +257,9 @@ extern "js" fn install_test_react_hooks() -> Unit =
   #|       useActionState: (action, initial) => [initial, (value) => {
   #|         globalThis.__moonbitHookState.reduced = action(initial, value);
   #|       }, false],
+  #|       useOptimistic: (initial, reducer) => [initial, (value) => {
+  #|         globalThis.__moonbitHookState.optimistic = reducer(initial, value);
+  #|       }],
   #|       useRef: (initial) => ({ current: initial }),
   #|       useId: () => "moonbit-test-id",
   #|       useDeferredValue: (value) => value,
@@ -256,6 +268,9 @@ extern "js" fn install_test_react_hooks() -> Unit =
   #|       useReducer: (reducer, initial) => [initial, (action) => {
   #|         globalThis.__moonbitHookState.reduced = reducer(initial, action);
   #|       }],
+  #|     },
+  #|     ReactDOM: {
+  #|       useFormStatus: () => globalThis.__moonbitFormStatus,
   #|     },
   #|   };
   #| }
@@ -271,6 +286,47 @@ extern "js" fn hook_test_reduced_state() -> Int =
 ///|
 extern "js" fn hook_test_transition_action_count() -> Int =
   #| () => globalThis.__moonbitHookState.transitionActions
+
+///|
+extern "js" fn hook_test_optimistic_state() -> Int =
+  #| () => globalThis.__moonbitHookState.optimistic
+
+///|
+extern "js" fn hook_test_reduced_is_promise() -> Bool =
+  #| () => typeof globalThis.__moonbitHookState.reduced?.then === "function"
+
+///|
+extern "js" fn test_form_data() -> ReactFormData =
+  #| () => {
+  #|   const data = new FormData();
+  #|   data.append("field", "value");
+  #|   return data;
+  #| }
+
+///|
+extern "js" fn react_element_function_prop_returns_promise(
+  node : @dom.JsObscure,
+  key : String,
+  data : ReactFormData,
+) -> Bool =
+  #| (node, key, data) => {
+  #|   const result = node.props[key](data);
+  #|   return typeof result?.then === "function";
+  #| }
+
+///|
+extern "js" fn test_resolved_unit_promise() -> @js_async.Promise[Unit] =
+  #| () => Promise.resolve(undefined)
+
+///|
+extern "js" fn test_resolved_int_promise(value : Int) -> @js_async.Promise[Int] =
+  #| (value) => Promise.resolve(value)
+
+///|
+extern "js" fn set_test_form_status_action_present(present : Bool) -> Unit =
+  #| (present) => {
+  #|   globalThis.__moonbitFormStatus.action = present ? () => {} : null;
+  #| }
 
 ///|
 extern "js" fn set_test_dom_ref(
@@ -962,7 +1018,7 @@ test "invalid innerHTML and form prop combinations are rejected" {
   )
   inspect(
     test_callback_throws(fn() {
-      let _ = input(checked=true, default_checked=false).to_js_obscure()
+      let _ = input(checked=true, default_checked=false, on_change=fn(_) {  }).to_js_obscure()
     }),
     content="true",
   )
@@ -1026,6 +1082,20 @@ test "controlled forms require change handling or explicit read-only state" {
   inspect(
     react_element_has_function_prop(controlled_textarea, "onChange"),
     content="true",
+  )
+  let readonly_textarea = textarea(value="locked", read_only=true).to_js_obscure()
+  inspect(
+    react_element_bool_prop(readonly_textarea, "readOnly"),
+    content="true",
+  )
+  let legacy_readonly_attrs = ElementAttrs::new()
+  legacy_readonly_attrs.set("value", "locked")
+  legacy_readonly_attrs.set("readOnly", "true")
+  inspect(
+    test_callback_throws(fn() {
+      let _ = input(attrs=legacy_readonly_attrs).to_js_obscure()
+    }),
+    content="false",
   )
   let checkbox_value = input(type_=Checkbox, value="submitted-value").to_js_obscure()
   inspect(
@@ -1130,6 +1200,85 @@ test "multiple selects require array values" {
     content="second",
   )
   inspect(react_element_string_array_prop(uncontrolled, "value"), content="")
+}
+
+///|
+test "form Actions preserve typed payloads and valid submit controls" {
+  install_test_react()
+  let data = test_form_data()
+  inspect(data.get_string("field") == Some("value"), content="true")
+  inspect(data.get_string("missing") is None, content="true")
+  let action = form_action(fn(_data) {  })
+  let form_node = form(
+    id="action-form",
+    class_name="action",
+    class_list=["pending"],
+    action~,
+    method_="post",
+    on_submit=fn(_) {  },
+    [
+      input(type_=InputType::Submit, name="intent", form_action=action),
+      button(
+        button_type="submit",
+        name="intent",
+        value="save",
+        form_action=action,
+        [Text("Save")],
+      ),
+    ],
+  ).to_js_obscure()
+  inspect(react_element_has_function_prop(form_node, "action"), content="true")
+  inspect(
+    react_element_string_prop(form_node, "className"),
+    content="action pending",
+  )
+  inspect(react_element_string_prop(form_node, "method"), content="post")
+  inspect(
+    react_element_has_function_prop(form_node, "onSubmit"),
+    content="true",
+  )
+  let submit_input = input(
+    type_=InputType::Submit,
+    name="intent",
+    form_action=action,
+  ).to_js_obscure()
+  inspect(
+    react_element_has_function_prop(submit_input, "formAction"),
+    content="true",
+  )
+  let submit_button = button(
+    button_type="submit",
+    name="intent",
+    value="save",
+    form_action=action,
+    [Text("Save")],
+  ).to_js_obscure()
+  inspect(
+    react_element_has_function_prop(submit_button, "formAction"),
+    content="true",
+  )
+  inspect(
+    test_callback_throws(fn() {
+      let _ = input(type_=InputType::Text, form_action=action).to_js_obscure()
+    }),
+    content="true",
+  )
+  inspect(
+    test_callback_throws(fn() {
+      let _ = button(button_type="button", form_action=action, [Text("Invalid")]).to_js_obscure()
+    }),
+    content="true",
+  )
+  let async_node = form(
+    action=async_form_action(async fn(_data) {
+      test_resolved_unit_promise().wait()
+    }),
+    [],
+  ).to_js_obscure()
+  inspect(
+    react_element_function_prop_returns_promise(async_node, "action", data),
+    content="true",
+  )
 }
 
 ///|
@@ -1519,6 +1668,41 @@ test "hook wrappers preserve MoonBit values and callbacks" {
   inspect(is_action_pending, content="false")
   dispatch_action(5)
   inspect(hook_test_reduced_state(), content="15")
+
+  let (optimistic_state, dispatch_optimistic) = use_optimistic(10, fn(
+    state : Int,
+    value : Int,
+  ) {
+    state + value
+  })
+  inspect(optimistic_state, content="10")
+  dispatch_optimistic(5)
+  inspect(hook_test_optimistic_state(), content="15")
+
+  let (async_action_state, dispatch_async_action, is_async_action_pending) = use_async_action_state(
+    20,
+    async fn(state : Int, value : Int) {
+      test_resolved_int_promise(state + value).wait()
+    },
+  )
+  inspect(async_action_state, content="20")
+  inspect(is_async_action_pending, content="false")
+  dispatch_async_action(5)
+  inspect(hook_test_reduced_is_promise(), content="true")
+
+  let form_status = use_form_status()
+  inspect(form_status.pending(), content="true")
+  inspect(form_status.submission_method(), content="post")
+  inspect(
+    match form_status.data() {
+      Some(data) => data.get_string("field") == Some("submitted")
+      None => false
+    },
+    content="true",
+  )
+  inspect(form_status.action() is Some(_), content="true")
+  set_test_form_status_action_present(false)
+  inspect(form_status.action() is None, content="true")
 }
 
 ///|

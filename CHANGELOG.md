@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Added typed React 19 form `action` and submit-control `formAction` props,
+  `ReactFormData`, and MoonBit async-to-Promise Action interoperation.
+- Added `use_optimistic` and ReactDOM `use_form_status` bindings with real
+  React coverage for deterministic pending transitions, successful settle,
+  failure rollback, submitted data, and zero unhandled rejections.
+- Deduplicated React and ReactDOM resolution in Vite so DOM Hooks share the
+  renderer dispatcher during development and browser tests.
 - Stabilized `component` and `component_with_children` React factory identity so
   repeated root renders update components without remounting them.
 - Added real React 19.2.8 conformance coverage for StrictMode lifecycle,

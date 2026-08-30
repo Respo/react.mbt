@@ -3,6 +3,12 @@ import { expect, test } from "@playwright/test";
 test("TodoMVC supports editing, creating, filtering, and clearing todos", async ({ page }) => {
   const pageErrors = [];
   const consoleProblems = [];
+  await page.addInitScript(() => {
+    globalThis.__unhandledRejections = [];
+    globalThis.addEventListener("unhandledrejection", (event) => {
+      globalThis.__unhandledRejections.push(String(event.reason));
+    });
+  });
   page.on("pageerror", (error) => pageErrors.push(error.message));
   page.on("console", (message) => {
     if (["warning", "error"].includes(message.type())) {
@@ -17,6 +23,45 @@ test("TodoMVC supports editing, creating, filtering, and clearing todos", async 
   await expect(page.getByText("外层 Provider: 外层值", { exact: true })).toBeVisible();
   await expect(page.getByText("内层 Provider: 内层值", { exact: true })).toBeVisible();
   await expect(page.getByText("恢复外层: 外层值", { exact: true })).toBeVisible();
+
+  await expect(page.locator("#form-action-canonical")).toHaveText("已保存: baseline");
+  await expect(page.locator("#form-action-optimistic")).toHaveText("乐观值: baseline");
+  await expect(page.locator("#form-action-result")).toHaveText(
+    "Action 结果: idle, calls=0, pending=false",
+  );
+  await expect(page.locator("#form-action-status")).toHaveText(
+    "Form 状态: pending=false, method=get, submitted=",
+  );
+
+  const actionInput = page.locator("#form-action-input");
+  await actionInput.fill("accepted");
+  await page.getByRole("button", { name: "提交 Action", exact: true }).click();
+  await expect(page.locator("#form-action-status")).toHaveText(
+    "Form 状态: pending=true, method=get, submitted=accepted",
+  );
+  await expect(page.locator("#form-action-optimistic")).toHaveText("乐观值: accepted");
+  await expect(page.locator("#form-action-result")).toHaveText(
+    "Action 结果: idle, calls=0, pending=true",
+  );
+  await page.getByRole("button", { name: "完成成功", exact: true }).click();
+  await expect(page.locator("#form-action-result")).toHaveText(
+    "Action 结果: saved, calls=1, pending=false",
+  );
+  await expect(page.locator("#form-action-canonical")).toHaveText("已保存: accepted");
+  await expect(page.locator("#form-action-optimistic")).toHaveText("乐观值: accepted");
+
+  await actionInput.fill("rejected");
+  await page.getByRole("button", { name: "提交 Action", exact: true }).click();
+  await expect(page.locator("#form-action-status")).toHaveText(
+    "Form 状态: pending=true, method=get, submitted=rejected",
+  );
+  await expect(page.locator("#form-action-optimistic")).toHaveText("乐观值: rejected");
+  await page.getByRole("button", { name: "完成失败", exact: true }).click();
+  await expect(page.locator("#form-action-result")).toHaveText(
+    "Action 结果: rejected, calls=2, pending=false",
+  );
+  await expect(page.locator("#form-action-canonical")).toHaveText("已保存: accepted");
+  await expect(page.locator("#form-action-optimistic")).toHaveText("乐观值: accepted");
 
   await page.getByRole("button", { name: "检查 DOM ref", exact: true }).click();
   await expect(page.locator("#dom-ref-status")).toHaveText("DOM ref 状态: 已挂载");
@@ -64,4 +109,5 @@ test("TodoMVC supports editing, creating, filtering, and clearing todos", async 
   await expect(page.locator(".todo-list li")).toHaveCount(3);
   expect(pageErrors).toEqual([]);
   expect(consoleProblems).toEqual([]);
+  expect(await page.evaluate(() => globalThis.__unhandledRejections)).toEqual([]);
 });
