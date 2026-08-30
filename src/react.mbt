@@ -834,8 +834,8 @@ pub fn[T] component(
   let r = create_factory(
     @dom.v_to_js_obscure(f),
     fn(p) { f(@dom.js_obscure_to_v(p)).to_js_obscure() },
-    // Props retain their MoonBit JavaScript representation; React receives no
-    // JSON conversion or defensive clone at this boundary.
+    // Props retain their MoonBit JavaScript representation without JSON
+    // conversion or cloning, nested inside the factory's internal React props.
     @dom.v_to_js_obscure(props),
     FixedArray::from_array(children_js),
   )
