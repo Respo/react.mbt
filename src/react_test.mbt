@@ -6,6 +6,7 @@ extern "js" fn install_test_react() -> Unit =
   #|       Fragment: Symbol("Fragment"),
   #|       createElement: (tag, props, ...children) =>
   #|         typeof tag === "function" ? tag(props) : ({ tag, props, children }),
+  #|       cloneElement: (node, props) => ({ ...node, props: { ...node.props, ...props } }),
   #|     },
   #|   };
   #| }
@@ -783,6 +784,15 @@ test "fragments create React fragment nodes with every child" {
     VirtualNode::Text("second"),
   ]).to_js_obscure()
   inspect(react_element_child_count(fragment), content="2")
+}
+
+///|
+test "virtual nodes accept stable reconciliation keys" {
+  install_test_react()
+  let node = div([Text("keyed child")]).with_key("todo-42").to_js_obscure()
+  inspect(react_element_string_prop(node, "key"), content="todo-42")
+  inspect(react_element_child_count(node), content="1")
+  inspect(react_element_tag(node), content="div")
 }
 
 ///|

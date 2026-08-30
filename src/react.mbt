@@ -74,6 +74,13 @@ extern "js" fn react_fragment(
   #| (props, children) => window.React.createElement(window.React.Fragment, props, ...children)
 
 ///|
+extern "js" fn react_clone_element_with_key(
+  node : @dom.JsObscure,
+  key : String,
+) -> @dom.JsObscure =
+  #| (node, key) => window.React.cloneElement(node, { key })
+
+///|
 extern "js" fn react_use_state(initial : JsObscure) -> JsObscure =
   #| (initial) => { return window.React.useState(initial)}
 
@@ -549,6 +556,44 @@ pub fn VirtualNode::to_js_obscure(self : VirtualNode) -> @dom.JsObscure {
     JsNode(v) => v
   }
   ret
+}
+
+///|
+/// Assigns a stable React reconciliation key to a virtual node.
+///
+/// This works uniformly for elements, components, fragments, and text without
+/// adding a DOM wrapper. Use stable application identities rather than list
+/// indexes when rendering dynamic collections.
+pub fn VirtualNode::with_key(self : VirtualNode, key : String) -> VirtualNode {
+  match self {
+    Element(element) => {
+      element.attrs.set("key", key)
+      Element(element)
+    }
+    Fragment(children) => {
+      let props = @dom.JsObjectObscure::new()
+      props.set("key", JsObscure::from_string(key))
+      JsNode(
+        react_fragment(
+          props,
+          FixedArray::from_array(
+            children.map(fn(child) { child.to_js_obscure() }),
+          ),
+        ),
+      )
+    }
+    JsNode(node) => JsNode(react_clone_element_with_key(node, key))
+    Text(text) => {
+      let props = @dom.JsObjectObscure::new()
+      props.set("key", JsObscure::from_string(key))
+      JsNode(
+        react_fragment(
+          props,
+          FixedArray::from_array([JsObscure::from_string(text)]),
+        ),
+      )
+    }
+  }
 }
 
 ///|

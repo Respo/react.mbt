@@ -284,7 +284,7 @@ fn comp_todolist(_v : TodoListProps) -> VirtualNode {
     let mut i = 0
     while i < filtered_todos.length() {
       let todo = filtered_todos[i]
-      items.push(create_todo_item(todo))
+      items.push(create_todo_item(todo).with_key(todo.id.to_string()))
       i = i + 1
     }
     items
