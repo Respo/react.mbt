@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Added typed `use_sync_external_store` with optional server snapshots and real
+  React coverage for changed and unchanged publications, committed snapshots,
+  subscription cleanup, and post-unmount notifications.
+- Added reusable `ReactComponent[T]` types with typed rendering, `memo`,
+  `lazy_component`, `suspense`, and an explicit `component_from_js` bridge that
+  carries MoonBit values through one `moonbitProps` property.
+- Added nullable `ImperativeRef[T]` and `use_imperative_handle_deps` for React
+  19 ref-as-prop composition, including cleanup back to `None`; a new
+  `forwardRef` wrapper is intentionally unnecessary for the pinned React 19.
 - Added `create_portal` with real React coverage for target placement,
   React-tree event propagation, and cleanup when the owning root unmounts.
 - Added typed React 19 root options for `identifierPrefix`, caught, uncaught,

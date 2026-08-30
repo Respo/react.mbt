@@ -6,6 +6,8 @@ package "tiye/react/main"
 // Errors
 
 // Types and methods
+type ComponentIntegrationProps
+
 type ConformanceControllerProps
 
 type ConformanceProbeProps
@@ -16,6 +18,10 @@ type ContextReaderProps
 
 type EditingState derive(Default)
 
+type ExternalStoreControllerProps
+
+type ExternalStoreProbeProps
+
 type Filter derive(Eq)
 
 type FormActionDemoState
@@ -25,6 +31,10 @@ type FormStatusProps derive(Default)
 type HooksDemoProps derive(Default)
 
 type HydrationProbeProps
+
+type ImperativeProbeProps
+
+type IntegratedComponentProps
 
 type PortalControllerProps
 

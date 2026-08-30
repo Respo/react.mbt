@@ -21,6 +21,8 @@ pub fn button(id? : String, class_name? : String, class_list? : Array[String], a
 
 pub fn[T] component((T) -> VirtualNode, T, Array[VirtualNode]) -> VirtualNode
 
+pub fn[T] component_from_js(@dom-ffi.JsObscure) -> ReactComponent[T]
+
 pub fn[T] component_with_children((T, Array[VirtualNode]) -> VirtualNode, T, Array[VirtualNode]) -> VirtualNode
 
 pub fn console_log2(String, @dom-ffi.JsObscure) -> Unit
@@ -43,6 +45,8 @@ pub fn css_prop_to_camel_case(String) -> String
 #deprecated
 #callsite(autofill(loc))
 pub fn[U : Show] declare_contained_style(Array[(String?, U, @respo_css.RespoStyle)], loc~ : SourceLoc) -> String
+
+pub fn[T] define_component((T) -> VirtualNode) -> ReactComponent[T]
 
 pub fn div(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
@@ -80,6 +84,8 @@ pub fn is_boolean_prop(String) -> Bool
 
 pub fn label(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit, for_? : String) -> VirtualNode
 
+pub fn[T] lazy_component(async () -> ReactComponent[T]) -> ReactComponent[T]
+
 pub fn li(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
 pub fn nav(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
@@ -108,6 +114,8 @@ pub fn start_transition(() -> Unit) -> Unit
 
 #callsite(autofill(loc))
 pub fn[U : Show] static_style(Array[(U, @respo_css.RespoStyle)], loc~ : SourceLoc) -> String
+
+pub fn suspense(VirtualNode, Array[VirtualNode]) -> VirtualNode
 
 pub fn textarea(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, value? : String, default_value? : String, placeholder? : String, rows? : Int, cols? : Int, disabled? : Bool, read_only? : Bool, on_change? : (DOMEvent) -> Unit, on_input? : (DOMEvent) -> Unit) -> VirtualNode
 
@@ -143,6 +151,10 @@ pub fn use_form_status() -> FormStatus
 
 pub fn use_id() -> String
 
+pub fn[T] use_imperative_handle_deps(ImperativeRef[T], () -> T, Array[@dom-ffi.JsObscure]) -> Unit
+
+pub fn[T] use_imperative_ref() -> ImperativeRef[T]
+
 pub fn use_layout_effect_cleanup_deps(() -> () -> Unit, Array[@dom-ffi.JsObscure]) -> Unit
 
 pub fn use_layout_effect_deps(() -> Unit, Array[@dom-ffi.JsObscure]) -> Unit
@@ -160,6 +172,8 @@ pub fn[T] use_ref(T) -> ReactRef[T]
 pub fn[T] use_state(T) -> (T, (T) -> Unit)
 
 pub fn[T] use_state_with_updater(T) -> (T, (StateUpdate[T]) -> Unit)
+
+pub fn[T] use_sync_external_store((() -> Unit) -> () -> Unit, () -> T, get_server_snapshot? : () -> T) -> T
 
 pub fn use_transition() -> (Bool, (() -> Unit) -> Unit)
 
@@ -292,6 +306,10 @@ pub fn FormStatus::data(Self) -> ReactFormData?
 pub fn FormStatus::pending(Self) -> Bool
 pub fn FormStatus::submission_method(Self) -> String
 
+type ImperativeRef[T]
+pub fn[T] ImperativeRef::current(Self[T]) -> T?
+pub fn[T] ImperativeRef::to_js_obscure(Self[T]) -> @dom-ffi.JsObscure
+
 pub(all) enum InputType {
   Button
   Checkbox
@@ -317,6 +335,11 @@ pub(all) enum InputType {
   Week
 } derive(Eq)
 pub fn InputType::to_string(Self) -> String
+
+type ReactComponent[T]
+pub fn[T] ReactComponent::memo(Self[T], are_props_equal? : (T, T) -> Bool) -> Self[T]
+pub fn[T] ReactComponent::render(Self[T], T) -> VirtualNode
+pub fn[T] ReactComponent::to_js_obscure(Self[T]) -> @dom-ffi.JsObscure
 
 type ReactContext[T]
 pub fn[T] ReactContext::provider(Self[T], T, Array[VirtualNode]) -> VirtualNode

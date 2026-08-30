@@ -161,3 +161,135 @@ test("root options report caught, uncaught, and recoverable errors exactly once"
   expect(pageErrors).toEqual([]);
   expect(consoleProblems).toEqual([]);
 });
+
+test("external store commits each changed snapshot and unsubscribes exactly once", async ({ page }) => {
+  const pageErrors = [];
+  const consoleProblems = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  page.on("console", (message) => {
+    if (["warning", "error"].includes(message.type())) {
+      consoleProblems.push(`${message.type()}: ${message.text()}`);
+    }
+  });
+
+  const storeMetrics = () =>
+    page.evaluate(() => ({ ...globalThis.__moonbitStoreComponentConformance?.store }));
+
+  await page.goto("/");
+  await expect(page.locator("#external-store-snapshot")).toHaveText("Store snapshot: 0");
+  await expect.poll(async () => (await storeMetrics()).subscribes).toBe(1);
+  expect(await storeMetrics()).toEqual({
+    publications: 0,
+    deliveries: 0,
+    subscribes: 1,
+    unsubscribes: 0,
+    renders: 1,
+    committedSnapshots: [0],
+  });
+
+  await page.locator("#external-store-publish-one").click();
+  await expect(page.locator("#external-store-snapshot")).toHaveText("Store snapshot: 1");
+  expect(await storeMetrics()).toMatchObject({
+    publications: 1,
+    deliveries: 1,
+    renders: 2,
+    committedSnapshots: [0, 1],
+  });
+
+  await page.locator("#external-store-publish-same").click();
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  expect(await storeMetrics()).toMatchObject({
+    publications: 2,
+    deliveries: 2,
+    renders: 2,
+    committedSnapshots: [0, 1],
+  });
+
+  await page.locator("#external-store-publish-two").click();
+  await expect(page.locator("#external-store-snapshot")).toHaveText("Store snapshot: 2");
+  expect(await storeMetrics()).toMatchObject({
+    publications: 3,
+    deliveries: 3,
+    renders: 3,
+    committedSnapshots: [0, 1, 2],
+  });
+
+  await page.locator("#external-store-unmount").click();
+  await expect(page.locator("#external-store-snapshot")).toHaveCount(0);
+  await expect.poll(async () => (await storeMetrics()).unsubscribes).toBe(1);
+  await page.locator("#external-store-publish-after-unmount").click();
+  expect(await storeMetrics()).toEqual({
+    publications: 4,
+    deliveries: 3,
+    subscribes: 1,
+    unsubscribes: 1,
+    renders: 3,
+    committedSnapshots: [0, 1, 2],
+  });
+
+  expect(pageErrors).toEqual([]);
+  expect(consoleProblems).toEqual([]);
+});
+
+test("typed memo lazy JS interop and imperative handles follow React 19 semantics", async ({ page }) => {
+  const pageErrors = [];
+  const consoleProblems = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  page.on("console", (message) => {
+    if (["warning", "error"].includes(message.type())) {
+      consoleProblems.push(`${message.type()}: ${message.text()}`);
+    }
+  });
+
+  const componentMetrics = () =>
+    page.evaluate(() => ({
+      ...globalThis.__moonbitStoreComponentConformance?.components,
+    }));
+
+  await page.goto("/");
+  await expect(page.locator("#memo-component-value")).toHaveText("Memo component: stable");
+  await expect(page.locator("#js-component-value")).toHaveText("JS component: stable");
+  await expect(page.locator("#lazy-component-fallback")).toHaveText("Lazy loading");
+  await expect.poll(async () => (await componentMetrics()).lazyLoads).toBe(1);
+  expect(await componentMetrics()).toMatchObject({
+    memoRenders: 1,
+    lazyLoads: 1,
+    lazyRenders: 0,
+    jsRenders: 1,
+  });
+
+  await page.locator("#component-unrelated-update").click();
+  await expect(page.locator("#component-unrelated-value")).toHaveText("Unrelated: 1");
+  expect(await componentMetrics()).toMatchObject({ memoRenders: 1, jsRenders: 2 });
+
+  await page.locator("#component-change-label").click();
+  await expect(page.locator("#memo-component-value")).toHaveText("Memo component: changed");
+  await expect(page.locator("#js-component-value")).toHaveText("JS component: changed");
+  expect(await componentMetrics()).toMatchObject({ memoRenders: 2, jsRenders: 3 });
+
+  await page.locator("#component-resolve-lazy").click();
+  await expect(page.locator("#lazy-component-value")).toHaveText("Lazy component: changed");
+  expect(await componentMetrics()).toMatchObject({
+    memoRenders: 2,
+    lazyLoads: 1,
+    lazyRenders: 1,
+    jsRenders: 3,
+  });
+
+  await page.locator("#component-toggle-lazy").click();
+  await expect(page.locator("#lazy-component-hidden")).toBeVisible();
+  await page.locator("#component-toggle-lazy").click();
+  await expect(page.locator("#lazy-component-value")).toHaveText("Lazy component: changed");
+  expect((await componentMetrics()).lazyLoads).toBe(1);
+
+  await page.locator("#component-read-handle").click();
+  await expect(page.locator("#imperative-handle-status")).toHaveText("Handle: ready handle");
+  await page.locator("#component-toggle-imperative").click();
+  await expect(page.locator("#imperative-component-value")).toHaveCount(0);
+  await page.locator("#component-read-handle").click();
+  await expect(page.locator("#imperative-handle-status")).toHaveText("Handle: none");
+
+  expect((await componentMetrics()).markerMatches.every(Boolean)).toBe(true);
+  expect(pageErrors).toEqual([]);
+  expect(consoleProblems).toEqual([]);
+});
