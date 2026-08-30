@@ -35,7 +35,10 @@ extern "js" fn react_element_string_array_prop(
   node : @dom.JsObscure,
   key : String,
 ) -> String =
-  #| (node, key) => node.props[key].join("|")
+  #| (node, key) => {
+  #|   const value = node?.props?.[key];
+  #|   return Array.isArray(value) ? value.join("|") : "";
+  #| }
 
 ///|
 extern "js" fn js_value_string_prop(
@@ -1027,6 +1030,59 @@ test "multiple selects require array values" {
     }),
     content="true",
   )
+  let manual_multiple_value = ElementAttrs::new()
+  manual_multiple_value.set_bool("multiple", true)
+  manual_multiple_value.set("value", "first")
+  inspect(
+    test_callback_throws(fn() {
+      let _ = create_element(
+          "select",
+          manual_multiple_value,
+          ElementEvents::new(),
+          style=@css.respo_style(),
+          [],
+        )
+        .to_node()
+        .to_js_obscure()
+    }),
+    content="true",
+  )
+  let manual_multiple_default = ElementAttrs::new()
+  manual_multiple_default.set_bool("multiple", true)
+  manual_multiple_default.set("defaultValue", "first")
+  inspect(
+    test_callback_throws(fn() {
+      let _ = create_element(
+          "select",
+          manual_multiple_default,
+          ElementEvents::new(),
+          style=@css.respo_style(),
+          [],
+        )
+        .to_node()
+        .to_js_obscure()
+    }),
+    content="true",
+  )
+  let manual_single_value = ElementAttrs::new()
+  manual_single_value.set_js_value(
+    "value",
+    @dom.JsObscure::from_array([@dom.JsObscure::from_string("first")]),
+  )
+  inspect(
+    test_callback_throws(fn() {
+      let _ = create_element(
+          "select",
+          manual_single_value,
+          ElementEvents::new(),
+          style=@css.respo_style(),
+          [],
+        )
+        .to_node()
+        .to_js_obscure()
+    }),
+    content="true",
+  )
   let controlled = select(
     values=["first", "second"],
     multiple=true,
@@ -1042,6 +1098,7 @@ test "multiple selects require array values" {
     react_element_string_array_prop(uncontrolled, "defaultValue"),
     content="second",
   )
+  inspect(react_element_string_array_prop(uncontrolled, "value"), content="")
 }
 
 ///|

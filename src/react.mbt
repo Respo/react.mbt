@@ -207,6 +207,18 @@ pub fn ElementAttrs::set_js_value(
 }
 
 ///|
+extern "js" fn js_value_is_array(value : JsObscure) -> Bool =
+  #| (value) => Array.isArray(value)
+
+///|
+fn ElementAttrs::prop_is_array(self : ElementAttrs, key : String) -> Bool {
+  match self.0.get(key) {
+    Some(JsProp(value)) => js_value_is_array(value)
+    _ => false
+  }
+}
+
+///|
 fn ElementAttrs::has_true_bool(self : ElementAttrs, key : String) -> Bool {
   match self.0.get(key) {
     Some(BoolProp(value)) => value
@@ -764,6 +776,23 @@ fn VirtualElement::to_js_value(self : VirtualElement) -> @dom.JsObscure {
       abort(
         "React form elements cannot combine value with defaultValue; choose controlled or uncontrolled state",
       )
+    }
+    if self.name == "select" {
+      let is_multiple = self.attrs.has_true_bool("multiple")
+      for prop_name in ["value", "defaultValue"] {
+        if self.attrs.0.contains(prop_name) &&
+          self.attrs.prop_is_array(prop_name) != is_multiple {
+          if is_multiple {
+            abort(
+              "A multiple React select requires value and defaultValue to be arrays",
+            )
+          } else {
+            abort(
+              "A single React select requires value and defaultValue to be scalar values",
+            )
+          }
+        }
+      }
     }
     let input_type = self.attrs.string_prop("type", "text")
     if self.name == "input" &&
