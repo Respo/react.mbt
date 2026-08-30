@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.2.0 - 2026-08-31
+
 - Added a deterministic declarative generator for 54 typed DOM helpers across
   table, form, interactive, metadata, semantic HTML, and core SVG categories;
   existing handwritten helper signatures remain unchanged.
@@ -72,7 +74,7 @@
 - Normalized TodoMVC's legacy placeholder selector during Vite builds, removing
   the third-party LightningCSS warning without modifying the dependency.
 
-## 0.1.0
+## 0.1.0 - 2026-08-29
 
 - Restored compatibility with the current MoonBit manifest format and toolchain.
 - Added React root reuse and explicit `unmount` support.
@@ -107,6 +109,30 @@
 - Made browser builds and CI checks reproducible.
 - Upgraded the browser runtime to React 19.2 and the build toolchain to Vite 8.
 
-## 0.0.3
+## 0.0.3 - 2025-10-05
 
 Experimental React bindings for MoonBit.
+
+## 0.0.2 - 2025-10-03
+
+- Exposed the CSS conversion function.
+
+## 0.0.2-a3 - 2025-10-03
+
+- Upgraded `dom-ffi`.
+
+## 0.0.2-a2 - 2025-10-03
+
+- Upgraded `dom-ffi`.
+
+## 0.0.2-a1 - 2025-10-02
+
+- Updated the demos.
+
+## 0.0.1-a3 - 2025-10-01
+
+- Updated the README.
+
+## 0.0.1-a2 - 2025-10-01
+
+- Cut the second alpha release.

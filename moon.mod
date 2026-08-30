@@ -1,6 +1,6 @@
 name = "tiye/react"
 
-version = "0.1.0"
+version = "0.2.0"
 
 import {
   "tiye/dom-ffi@0.2.3",
@@ -21,3 +21,26 @@ description = "Type-safe MoonBit bindings for React with virtual DOM, hooks, and
 source = "src"
 
 preferred_target = "js"
+
+// Keep release archives focused on the consumable library. Migrate these
+// gitignore-style rules to `.moonignore` after the pinned moon supports it.
+
+options(
+  exclude: [
+    "Agents.md",
+    "CONTRIBUTING.md",
+    "compare.html",
+    "index.html",
+    "package.json",
+    "playwright.config.mjs",
+    "release-notes",
+    "scripts",
+    "tests",
+    "vite.config.mjs",
+    "yarn.lock",
+    "*_test.mbt",
+    "*_wbtest.mbt",
+    "src/demo.mjs",
+    "src/main",
+  ],
+)
