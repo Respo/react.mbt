@@ -782,12 +782,24 @@ pub fn create_element(
 
 ///|
 extern "js" fn create_factory(
-  f : (@dom.JsObscure) -> @dom.JsObscure,
+  component_key : @dom.JsObscure,
+  render_component : (@dom.JsObscure) -> @dom.JsObscure,
   props : @dom.JsObscure,
   children : FixedArray[@dom.JsObscure],
 ) -> @dom.JsObscure =
-  #| (f, props, children) => {
-  #|   let h0 = window.React.createElement(f, props, ...children);
+  #| (componentKey, renderComponent, props, children) => {
+  #|   const factories = globalThis.__moonbitReactComponentFactories ??= new WeakMap();
+  #|   let factory = factories.get(componentKey);
+  #|   if (!factory) {
+  #|     factory = (internalProps) =>
+  #|       internalProps.__moonbitRenderComponent(internalProps.__moonbitProps);
+  #|     factories.set(componentKey, factory);
+  #|   }
+  #|   const internalProps = {
+  #|     __moonbitRenderComponent: renderComponent,
+  #|     __moonbitProps: props,
+  #|   };
+  #|   let h0 = window.React.createElement(factory, internalProps, ...children);
   #|   return h0;
   #| }
 
@@ -820,6 +832,7 @@ pub fn[T] component(
 ) -> VirtualNode {
   let children_js = children.map(fn(child) { child.to_js_obscure() })
   let r = create_factory(
+    @dom.v_to_js_obscure(f),
     fn(p) { f(@dom.js_obscure_to_v(p)).to_js_obscure() },
     // Props retain their MoonBit JavaScript representation; React receives no
     // JSON conversion or defensive clone at this boundary.
@@ -844,6 +857,7 @@ pub fn[T] component_with_children(
 ) -> VirtualNode {
   let children_js = children.map(fn(child) { child.to_js_obscure() })
   let r = create_factory(
+    @dom.v_to_js_obscure(f),
     fn(p) { f(@dom.js_obscure_to_v(p), children).to_js_obscure() },
     @dom.v_to_js_obscure(props),
     FixedArray::from_array(children_js),

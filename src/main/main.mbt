@@ -27,15 +27,19 @@ fn comp_container(_v : ContainerProps) -> VirtualNode {
 fn run_app() -> Unit {
   let window = @dom.window()
   let doc = window.document()
-  let body = doc.body()
+  let root = match doc.get_element_by_id("root") {
+    Some(root) => root
+    None => doc.body()
+  }
   let props : ContainerProps = Default::default()
-  @react.render(@react.component(comp_container, props, []), body)
+  @react.render(@react.component(comp_container, props, []), root)
   println("loaded")
 }
 
 ///|
 fn main {
   run_app()
+  run_conformance()
 }
 
 ///|

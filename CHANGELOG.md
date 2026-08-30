@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Stabilized `component` and `component_with_children` React factory identity so
+  repeated root renders update components without remounting them.
+- Added real React 19.2.8 conformance coverage for StrictMode lifecycle,
+  functional state and reducer batching, root reuse and unmount, DOM ref mount
+  and cleanup, and warning-free execution.
 - Added typed React Context creation, provider, consumption, and JavaScript
   interoperation with nested-provider browser coverage.
 - Added `VirtualNode::with_key` for stable reconciliation identity across

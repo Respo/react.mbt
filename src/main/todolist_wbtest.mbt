@@ -26,6 +26,7 @@ extern "js" fn install_main_test_react() -> Unit =
   #|     document: {
   #|       head: { appendChild: (tag) => styleTags.push(tag) },
   #|       body: () => ({}),
+  #|       getElementById: () => null,
   #|       createElement: () => {
   #|         const tag = { attributes: {} };
   #|         tag.setAttribute = (key, value) => { tag.attributes[key] = value; };
