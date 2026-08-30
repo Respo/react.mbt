@@ -9,6 +9,26 @@ struct ConformanceControllerProps {
 }
 
 ///|
+struct PortalOwnerProps {
+  target : @dom.Element
+}
+
+///|
+struct PortalControllerProps {
+  owner : @dom.Element
+}
+
+///|
+struct HydrationProbeProps {}
+
+///|
+struct RootErrorControllerProps {
+  caught_target : @dom.Element
+  uncaught_target : @dom.Element
+  recoverable_target : @dom.Element
+}
+
+///|
 extern "js" fn conformance_reset_observations() -> Unit =
   #| () => {
   #|   globalThis.__moonbitReactConformance = {
@@ -43,11 +63,285 @@ extern "js" fn conformance_focus_ref(js_ref : @dom.JsObscure) -> Unit =
 extern "js" fn conformance_strict_mode(
   child : @dom.JsObscure,
 ) -> @dom.JsObscure =
-  #| (child) => window.React.createElement(window.React.StrictMode, null, child)
+  #| (child) => globalThis.React.createElement(globalThis.React.StrictMode, null, child)
+
+///|
+extern "js" fn conformance_reset_root_integrations() -> Unit =
+  #| () => {
+  #|   globalThis.__moonbitReactRootIntegration = {
+  #|     hydrationNode: null,
+  #|     errors: {
+  #|       hydration: [],
+  #|       caught: [],
+  #|       uncaught: [],
+  #|       recoverable: [],
+  #|     },
+  #|   };
+  #| }
+
+///|
+extern "js" fn conformance_prepare_hydration(
+  target : @dom.Element,
+  html : String,
+) -> Unit =
+  #| (target, html) => {
+  #|   target.innerHTML = html;
+  #|   globalThis.__moonbitReactRootIntegration.hydrationNode =
+  #|     target.firstElementChild;
+  #| }
+
+///|
+extern "js" fn conformance_prepare_recoverable_error(
+  target : @dom.Element,
+) -> Unit =
+  #| (target) => {
+  #|   target.innerHTML =
+  #|     '<button id="recoverable-error-result">server value</button>';
+  #| }
+
+///|
+extern "js" fn conformance_record_root_error(
+  kind : String,
+  message : String,
+  component_stack : String,
+) -> Unit =
+  #| (kind, message, componentStack) => {
+  #|   globalThis.__moonbitReactRootIntegration.errors[kind].push({
+  #|     message,
+  #|     componentStack,
+  #|   });
+  #| }
+
+///|
+extern "js" fn conformance_error_node(kind : String) -> @dom.JsObscure =
+  #| (kind) => {
+  #|   if (kind === "caught") {
+  #|     function MoonBitCaughtThrower() {
+  #|       throw new Error("caught root error");
+  #|     }
+  #|     class MoonBitConformanceBoundary extends globalThis.React.Component {
+  #|       constructor(props) {
+  #|         super(props);
+  #|         this.state = { failed: false };
+  #|       }
+  #|       static getDerivedStateFromError() {
+  #|         return { failed: true };
+  #|       }
+  #|       render() {
+  #|         return this.state.failed
+  #|           ? globalThis.React.createElement(
+  #|               "p",
+  #|               { id: "caught-error-result" },
+  #|               "caught fallback",
+  #|             )
+  #|           : this.props.children;
+  #|       }
+  #|     }
+  #|     return globalThis.React.createElement(
+  #|       MoonBitConformanceBoundary,
+  #|       null,
+  #|       globalThis.React.createElement(MoonBitCaughtThrower),
+  #|     );
+  #|   }
+  #|   function MoonBitUncaughtThrower() {
+  #|     throw new Error("uncaught root error");
+  #|   }
+  #|   return globalThis.React.createElement(MoonBitUncaughtThrower);
+  #| }
+
+///|
+extern "js" fn conformance_recoverable_node() -> @dom.JsObscure =
+  #| () => globalThis.React.createElement(
+  #|   "button",
+  #|   { id: "recoverable-error-result" },
+  #|   "client value",
+  #| )
 
 ///|
 fn strict_mode(child : VirtualNode) -> VirtualNode {
   JsNode(conformance_strict_mode(child.to_js_obscure()))
+}
+
+///|
+fn record_root_error(
+  kind : String,
+  error : @react.ReactError,
+  info : @react.ReactErrorInfo,
+) -> Unit {
+  conformance_record_root_error(kind, error.message(), info.component_stack())
+}
+
+///|
+fn comp_portal_owner(props : PortalOwnerProps) -> VirtualNode {
+  let (clicks, set_clicks) = @react.use_state_with_updater(0)
+  @react.div(
+    id="portal-react-owner",
+    on_click=fn(_) { set_clicks(@react.Update(fn(current) { current + 1 })) },
+    [
+      @react.p(id="portal-event-count", [Text("Portal events: \{clicks}")]),
+      @react.create_portal(
+        @react.button(id="portal-event-button", [Text("Portal event")]),
+        props.target,
+        key="conformance-portal",
+      ),
+    ],
+  )
+}
+
+///|
+fn comp_portal_controller(props : PortalControllerProps) -> VirtualNode {
+  @react.button(
+    id="portal-unmount-owner",
+    on_click=fn(_) { @react.unmount(props.owner) },
+    [Text("Unmount portal owner")],
+  )
+}
+
+///|
+fn comp_hydration_probe(_props : HydrationProbeProps) -> VirtualNode {
+  let (clicks, set_clicks) = @react.use_state_with_updater(0)
+  let generated_id = @react.use_id()
+  @react.section(id="hydration-probe", [
+    @react.p(id="hydration-generated-id", [Text(generated_id)]),
+    @react.button(
+      id="hydration-event-button",
+      on_click=fn(_) { set_clicks(@react.Update(fn(current) { current + 1 })) },
+      [Text("Hydration events: \{clicks}")],
+    ),
+  ])
+}
+
+///|
+fn hydration_probe() -> VirtualNode {
+  @react.component(comp_hydration_probe, HydrationProbeProps::{  }, [])
+}
+
+///|
+fn run_caught_error(target : @dom.Element) -> Unit {
+  @react.render_with_options(
+    JsNode(conformance_error_node("caught")),
+    target,
+    @react.RootOptions::new(on_caught_error=fn(error, info) {
+      record_root_error("caught", error, info)
+    }),
+  )
+}
+
+///|
+fn run_uncaught_error(target : @dom.Element) -> Unit {
+  @react.render_with_options(
+    JsNode(conformance_error_node("uncaught")),
+    target,
+    @react.RootOptions::new(on_uncaught_error=fn(error, info) {
+      record_root_error("uncaught", error, info)
+    }),
+  )
+}
+
+///|
+fn run_recoverable_error(target : @dom.Element) -> Unit {
+  conformance_prepare_recoverable_error(target)
+  @react.hydrate_root(
+    JsNode(conformance_recoverable_node()),
+    target,
+    options=@react.RootOptions::new(on_recoverable_error=fn(error, info) {
+      record_root_error("recoverable", error, info)
+    }),
+  )
+}
+
+///|
+fn comp_root_error_controller(props : RootErrorControllerProps) -> VirtualNode {
+  @react.div([
+    @react.button(
+      id="run-caught-root-error",
+      on_click=fn(_) { run_caught_error(props.caught_target) },
+      [Text("Run caught error")],
+    ),
+    @react.button(
+      id="run-uncaught-root-error",
+      on_click=fn(_) { run_uncaught_error(props.uncaught_target) },
+      [Text("Run uncaught error")],
+    ),
+    @react.button(
+      id="run-recoverable-root-error",
+      on_click=fn(_) { run_recoverable_error(props.recoverable_target) },
+      [Text("Run recoverable error")],
+    ),
+  ])
+}
+
+///|
+fn run_portal_conformance() -> Unit {
+  let doc = @dom.window().document()
+  match
+    (
+      doc.get_element_by_id("react-portal-controller-root"),
+      doc.get_element_by_id("react-portal-owner-root"),
+      doc.get_element_by_id("react-portal-target"),
+    ) {
+    (Some(controller), Some(owner), Some(target)) => {
+      @react.render(
+        @react.component(comp_portal_controller, { owner, }, []),
+        controller,
+      )
+      @react.render(@react.component(comp_portal_owner, { target, }, []), owner)
+    }
+    _ => ()
+  }
+}
+
+///|
+fn run_hydration_conformance() -> Unit {
+  let doc = @dom.window().document()
+  match doc.get_element_by_id("react-hydration-target") {
+    Some(target) => {
+      let prefix = "moonbit-hydration-"
+      let html = @react.render_to_string(
+        hydration_probe(),
+        identifier_prefix=prefix,
+      )
+      conformance_prepare_hydration(target, html)
+      @react.hydrate_root(
+        hydration_probe(),
+        target,
+        options=@react.RootOptions::new(identifier_prefix=prefix, on_recoverable_error=fn(
+          error,
+          info,
+        ) {
+          record_root_error("hydration", error, info)
+        }),
+      )
+    }
+    None => ()
+  }
+}
+
+///|
+fn run_root_error_conformance() -> Unit {
+  let doc = @dom.window().document()
+  match
+    (
+      doc.get_element_by_id("react-root-errors-controller"),
+      doc.get_element_by_id("react-caught-error-target"),
+      doc.get_element_by_id("react-uncaught-error-target"),
+      doc.get_element_by_id("react-recoverable-error-target"),
+    ) {
+    (Some(controller), Some(caught), Some(uncaught), Some(recoverable)) =>
+      @react.render(
+        @react.component(
+          comp_root_error_controller,
+          {
+            caught_target: caught,
+            uncaught_target: uncaught,
+            recoverable_target: recoverable,
+          },
+          [],
+        ),
+        controller,
+      )
+    _ => ()
+  }
 }
 
 ///|
@@ -178,4 +472,8 @@ fn run_conformance() -> Unit {
     }
     _ => ()
   }
+  conformance_reset_root_integrations()
+  run_portal_conformance()
+  run_hydration_conformance()
+  run_root_error_conformance()
 }

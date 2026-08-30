@@ -9,11 +9,11 @@ struct ReactContext[T] {
 extern "js" fn react_create_context(
   default_value : @dom.JsObscure,
 ) -> @dom.JsObscure =
-  #| (defaultValue) => window.React.createContext(defaultValue)
+  #| (defaultValue) => globalThis.React.createContext(defaultValue)
 
 ///|
 extern "js" fn react_use_context(context : @dom.JsObscure) -> @dom.JsObscure =
-  #| (context) => window.React.useContext(context)
+  #| (context) => globalThis.React.useContext(context)
 
 ///|
 extern "js" fn react_context_provider(
@@ -21,7 +21,7 @@ extern "js" fn react_context_provider(
   value : @dom.JsObscure,
   children : FixedArray[@dom.JsObscure],
 ) -> @dom.JsObscure =
-  #| (context, value, children) => window.React.createElement(context, { value }, ...children)
+  #| (context, value, children) => globalThis.React.createElement(context, { value }, ...children)
 
 ///|
 /// Creates a typed React Context with the value returned when no matching

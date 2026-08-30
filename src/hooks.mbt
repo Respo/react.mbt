@@ -8,43 +8,43 @@ extern "js" fn react_use_effect(
   effect : @dom.JsObscure,
   deps : FixedArray[@dom.JsObscure],
 ) -> Unit =
-  #| (effect, deps) => window.React.useEffect(effect, deps)
+  #| (effect, deps) => globalThis.React.useEffect(effect, deps)
 
 ///|
 extern "js" fn react_use_layout_effect(
   effect : @dom.JsObscure,
   deps : FixedArray[@dom.JsObscure],
 ) -> Unit =
-  #| (effect, deps) => window.React.useLayoutEffect(effect, deps)
+  #| (effect, deps) => globalThis.React.useLayoutEffect(effect, deps)
 
 ///|
 extern "js" fn react_use_memo(
   factory : @dom.JsObscure,
   deps : FixedArray[@dom.JsObscure],
 ) -> @dom.JsObscure =
-  #| (factory, deps) => window.React.useMemo(factory, deps)
+  #| (factory, deps) => globalThis.React.useMemo(factory, deps)
 
 ///|
 extern "js" fn react_use_callback(
   callback : @dom.JsObscure,
   deps : FixedArray[@dom.JsObscure],
 ) -> JsObscure =
-  #| (callback, deps) => window.React.useCallback(callback, deps)
+  #| (callback, deps) => globalThis.React.useCallback(callback, deps)
 
 ///|
 extern "js" fn react_use_effect_event(callback : JsObscure) -> JsObscure =
-  #| (callback) => window.React.useEffectEvent(callback)
+  #| (callback) => globalThis.React.useEffectEvent(callback)
 
 ///|
 extern "js" fn react_use_action_state(
   action : JsObscure,
   initial : JsObscure,
 ) -> JsObscure =
-  #| (action, initial) => window.React.useActionState(action, initial)
+  #| (action, initial) => globalThis.React.useActionState(action, initial)
 
 ///|
 extern "js" fn react_use_ref(initial : @dom.JsObscure) -> @dom.JsObscure =
-  #| (initial) => window.React.useRef(initial)
+  #| (initial) => globalThis.React.useRef(initial)
 
 ///|
 extern "js" fn react_ref_get_value(r : @dom.JsObscure) -> @dom.JsObscure =
@@ -62,23 +62,23 @@ extern "js" fn react_use_reducer(
   reducer : JsObscure,
   initial : JsObscure,
 ) -> JsObscure =
-  #| (reducer, initial) => window.React.useReducer(reducer, initial)
+  #| (reducer, initial) => globalThis.React.useReducer(reducer, initial)
 
 ///|
 extern "js" fn react_use_id() -> String =
-  #| () => window.React.useId()
+  #| () => globalThis.React.useId()
 
 ///|
 extern "js" fn react_use_deferred_value(value : JsObscure) -> JsObscure =
-  #| (value) => window.React.useDeferredValue(value)
+  #| (value) => globalThis.React.useDeferredValue(value)
 
 ///|
 extern "js" fn react_use_transition() -> JsObscure =
-  #| () => window.React.useTransition()
+  #| () => globalThis.React.useTransition()
 
 ///|
 extern "js" fn react_start_transition(action : JsObscure) -> Unit =
-  #| (action) => window.React.startTransition(action)
+  #| (action) => globalThis.React.startTransition(action)
 
 ///|
 fn fn0_to_js_obscure(f : () -> Unit) -> @dom.JsObscure = "%identity"

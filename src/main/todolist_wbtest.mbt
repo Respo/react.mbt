@@ -77,6 +77,9 @@ extern "js" fn install_main_test_react() -> Unit =
   #|       createRoot: () => ({ render: () => { renderCalls += 1; } }),
   #|     },
   #|   };
+  #|   globalThis.React = globalThis.window.React;
+  #|   globalThis.ReactDOM = globalThis.window.ReactDOM;
+  #|   globalThis.ReactDOMClient = globalThis.window.ReactDOMClient;
   #|   globalThis.__moonbitMainRenderCalls = () => renderCalls;
   #|   globalThis.__moonbitResetMainHooks = () => { hookIndex = 0; };
   #| }

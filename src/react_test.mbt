@@ -11,6 +11,7 @@ extern "js" fn install_test_react() -> Unit =
   #|       useContext: (context) => context.currentValue,
   #|     },
   #|   };
+  #|   globalThis.React = globalThis.window.React;
   #| }
 
 ///|
@@ -23,6 +24,7 @@ extern "js" fn install_component_identity_test_react() -> Unit =
   #|       cloneElement: (node, props) => ({ ...node, props: { ...node.props, ...props } }),
   #|     },
   #|   };
+  #|   globalThis.React = globalThis.window.React;
   #| }
 
 ///|
@@ -182,18 +184,50 @@ extern "js" fn install_test_react_dom() -> Unit =
   #|   let createRootCalls = 0;
   #|   let renderCalls = 0;
   #|   let unmountCalls = 0;
-  #|   globalThis.window.ReactDOMClient = {
-  #|     createRoot: () => {
+  #|   let hydrateRootCalls = 0;
+  #|   let createRootOptions = null;
+  #|   let hydrateRootOptions = null;
+  #|   let portalCall = null;
+  #|   let serverRenderPrefix = null;
+  #|   globalThis.ReactDOMClient = {
+  #|     createRoot: (_parent, options) => {
   #|       createRootCalls += 1;
+  #|       createRootOptions = options;
+  #|       return {
+  #|         render: () => { renderCalls += 1; },
+  #|         unmount: () => { unmountCalls += 1; },
+  #|       };
+  #|     },
+  #|     hydrateRoot: (_parent, _vdom, options) => {
+  #|       hydrateRootCalls += 1;
+  #|       hydrateRootOptions = options;
   #|       return {
   #|         render: () => { renderCalls += 1; },
   #|         unmount: () => { unmountCalls += 1; },
   #|       };
   #|     },
   #|   };
+  #|   globalThis.ReactDOM = {
+  #|     createPortal: (child, parent, key) => {
+  #|       portalCall = { child, parent, key };
+  #|       return { portal: true, child, parent, key };
+  #|     },
+  #|   };
+  #|   globalThis.ReactDOMServer = {
+  #|     renderToString: (_vdom, options) => {
+  #|       serverRenderPrefix = options?.identifierPrefix ?? null;
+  #|       return `<main>${serverRenderPrefix ?? "none"}</main>`;
+  #|     },
+  #|   };
   #|   globalThis.__moonbitReactRoots = new WeakMap();
   #|   globalThis.__moonbitReactRenderCounts = () =>
-  #|     [createRootCalls, renderCalls, unmountCalls];
+  #|     [createRootCalls, renderCalls, unmountCalls, hydrateRootCalls];
+  #|   globalThis.__moonbitReactRootTestValues = () => ({
+  #|     createRootOptions,
+  #|     hydrateRootOptions,
+  #|     portalCall,
+  #|     serverRenderPrefix,
+  #|   });
   #| }
 
 ///|
@@ -211,6 +245,51 @@ extern "js" fn react_render_call_count() -> Int =
 ///|
 extern "js" fn react_unmount_call_count() -> Int =
   #| () => globalThis.__moonbitReactRenderCounts()[2]
+
+///|
+extern "js" fn react_hydrate_root_call_count() -> Int =
+  #| () => globalThis.__moonbitReactRenderCounts()[3]
+
+///|
+extern "js" fn test_create_root_identifier_prefix() -> String =
+  #| () => globalThis.__moonbitReactRootTestValues()
+  #|   .createRootOptions?.identifierPrefix ?? ""
+
+///|
+extern "js" fn test_create_root_callback_count() -> Int =
+  #| () => {
+  #|   const options = globalThis.__moonbitReactRootTestValues().createRootOptions;
+  #|   return [
+  #|     options?.onCaughtError,
+  #|     options?.onUncaughtError,
+  #|     options?.onRecoverableError,
+  #|   ].filter((value) => typeof value === "function").length;
+  #| }
+
+///|
+extern "js" fn test_hydrate_root_identifier_prefix() -> String =
+  #| () => globalThis.__moonbitReactRootTestValues()
+  #|   .hydrateRootOptions?.identifierPrefix ?? ""
+
+///|
+extern "js" fn test_portal_child() -> String =
+  #| () => globalThis.__moonbitReactRootTestValues().portalCall?.child ?? ""
+
+///|
+extern "js" fn test_portal_key() -> String =
+  #| () => globalThis.__moonbitReactRootTestValues().portalCall?.key ?? ""
+
+///|
+extern "js" fn test_server_render_prefix() -> String =
+  #| () => globalThis.__moonbitReactRootTestValues().serverRenderPrefix ?? ""
+
+///|
+extern "js" fn test_react_error() -> ReactError =
+  #| () => new Error("root failed")
+
+///|
+extern "js" fn test_react_error_info() -> ReactErrorInfo =
+  #| () => ({ componentStack: "\n    at MoonBitProbe" })
 
 ///|
 extern "js" fn install_test_react_hooks() -> Unit =
@@ -273,6 +352,8 @@ extern "js" fn install_test_react_hooks() -> Unit =
   #|       useFormStatus: () => globalThis.__moonbitFormStatus,
   #|     },
   #|   };
+  #|   globalThis.React = globalThis.window.React;
+  #|   globalThis.ReactDOM = globalThis.window.ReactDOM;
   #| }
 
 ///|
@@ -1564,6 +1645,77 @@ test "unmount releases the React root for a parent element" {
   render(Text("second"), parent)
   inspect(react_render_create_root_count(), content="2")
   inspect(react_unmount_call_count(), content="1")
+}
+
+///|
+test "root options map React 19 identifiers and error callbacks" {
+  install_test_react_dom()
+  let options = RootOptions::new(
+    identifier_prefix="moonbit-",
+    on_caught_error=fn(_, _) {  },
+    on_uncaught_error=fn(_, _) {  },
+    on_recoverable_error=fn(_, _) {  },
+  )
+  render_with_options(Text("configured"), test_parent_element(), options)
+  inspect(test_create_root_identifier_prefix(), content="moonbit-")
+  inspect(test_create_root_callback_count(), content="3")
+  inspect(test_react_error().message(), content="root failed")
+  inspect(
+    test_react_error_info().component_stack(),
+    content="\n    at MoonBitProbe",
+  )
+}
+
+///|
+test "hydrate_root registers a reusable root with matching options" {
+  install_test_react_dom()
+  let parent = test_parent_element()
+  hydrate_root(
+    Text("hydrated"),
+    parent,
+    options=RootOptions::new(identifier_prefix="ssr-"),
+  )
+  render(Text("updated"), parent)
+  inspect(react_hydrate_root_call_count(), content="1")
+  inspect(react_render_create_root_count(), content="0")
+  inspect(react_render_call_count(), content="1")
+  inspect(test_hydrate_root_identifier_prefix(), content="ssr-")
+}
+
+///|
+test "portal and synchronous server renderer preserve their arguments" {
+  install_test_react_dom()
+  let portal = create_portal(
+    Text("inside portal"),
+    test_parent_element(),
+    key="modal",
+  )
+  inspect(portal is JsNode(_), content="true")
+  inspect(test_portal_child(), content="inside portal")
+  inspect(test_portal_key(), content="modal")
+  inspect(
+    render_to_string(Text("server"), identifier_prefix="ssr-"),
+    content="<main>ssr-</main>",
+  )
+  inspect(test_server_render_prefix(), content="ssr-")
+}
+
+///|
+test "root integration defaults omit optional React arguments" {
+  install_test_react_dom()
+  render_with_options(
+    Text("default options"),
+    test_parent_element(),
+    RootOptions::new(),
+  )
+  inspect(test_create_root_identifier_prefix(), content="")
+  inspect(test_create_root_callback_count(), content="0")
+  hydrate_root(Text("hydrated"), test_parent_element())
+  inspect(react_hydrate_root_call_count(), content="1")
+  let _ = create_portal(Text("unkeyed"), test_parent_element())
+  inspect(test_portal_key(), content="")
+  inspect(render_to_string(Text("server")), content="<main>none</main>")
+  inspect(test_server_render_prefix(), content="")
 }
 
 ///|
