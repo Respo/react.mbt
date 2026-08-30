@@ -31,6 +31,13 @@ extern "js" fn react_element_string_prop(
   #| (node, key) => node.props[key] || ""
 
 ///|
+extern "js" fn react_element_string_array_prop(
+  node : @dom.JsObscure,
+  key : String,
+) -> String =
+  #| (node, key) => node.props[key].join("|")
+
+///|
 extern "js" fn js_value_string_prop(
   value : @dom.JsObscure,
   key : String,
@@ -230,6 +237,26 @@ extern "js" fn hook_test_reduced_state() -> Int =
 ///|
 extern "js" fn hook_test_transition_action_count() -> Int =
   #| () => globalThis.__moonbitHookState.transitionActions
+
+///|
+extern "js" fn set_test_dom_ref(
+  js_ref : @dom.JsObscure,
+  mounted : Bool,
+) -> Unit =
+  #| (jsRef, mounted) => {
+  #|   jsRef.current = mounted ? { tagName: "INPUT" } : null;
+  #| }
+
+///|
+extern "js" fn test_callback_throws(callback : () -> Unit) -> Bool =
+  #| (callback) => {
+  #|   try {
+  #|     callback();
+  #|     return false;
+  #|   } catch (_) {
+  #|     return true;
+  #|   }
+  #| }
 
 ///|
 extern "js" fn install_test_style_document() -> Unit =
@@ -883,6 +910,141 @@ test "innerHTML uses React's required object prop" {
 }
 
 ///|
+test "invalid innerHTML and form prop combinations are rejected" {
+  install_test_react()
+  inspect(
+    test_callback_throws(fn() {
+      let _ = div(innerHTML="<strong>trusted</strong>", [
+        Text("conflicting child"),
+      ]).to_js_obscure()
+    }),
+    content="true",
+  )
+  inspect(
+    test_callback_throws(fn() {
+      let _ = input(value="controlled", default_value="initial").to_js_obscure()
+    }),
+    content="true",
+  )
+  inspect(
+    test_callback_throws(fn() {
+      let _ = input(checked=true, default_checked=false).to_js_obscure()
+    }),
+    content="true",
+  )
+  inspect(
+    test_callback_throws(fn() {
+      let _ = textarea(value="controlled", default_value="initial").to_js_obscure()
+    }),
+    content="true",
+  )
+  inspect(
+    test_callback_throws(fn() {
+      let _ = select(value="controlled", default_value="initial", []).to_js_obscure()
+    }),
+    content="true",
+  )
+  let selected_attrs = ElementAttrs::new()
+  selected_attrs.set_bool("selected", true)
+  inspect(
+    test_callback_throws(fn() {
+      let _ = option(attrs=selected_attrs, [Text("unsupported")]).to_js_obscure()
+    }),
+    content="true",
+  )
+}
+
+///|
+test "uncontrolled form defaults preserve strings and false booleans" {
+  install_test_react()
+  let input_node = input(default_value="initial", default_checked=false).to_js_obscure()
+  inspect(
+    react_element_string_prop(input_node, "defaultValue"),
+    content="initial",
+  )
+  inspect(react_element_has_prop(input_node, "defaultChecked"), content="true")
+  inspect(
+    react_element_bool_prop(input_node, "defaultChecked"),
+    content="false",
+  )
+  let textarea_node = textarea(default_value="draft").to_js_obscure()
+  inspect(
+    react_element_string_prop(textarea_node, "defaultValue"),
+    content="draft",
+  )
+  let select_node = select(default_value="second", []).to_js_obscure()
+  inspect(
+    react_element_string_prop(select_node, "defaultValue"),
+    content="second",
+  )
+}
+
+///|
+test "controlled forms require change handling or explicit read-only state" {
+  install_test_react()
+  inspect(
+    test_callback_throws(fn() { let _ = input(value="locked").to_js_obscure() }),
+    content="true",
+  )
+  let readonly_input = input(value="locked", read_only=true).to_js_obscure()
+  inspect(react_element_bool_prop(readonly_input, "readOnly"), content="true")
+  let controlled_textarea = textarea(value="editable", on_change=fn(_) {  }).to_js_obscure()
+  inspect(
+    react_element_has_function_prop(controlled_textarea, "onChange"),
+    content="true",
+  )
+  let checkbox_value = input(type_=Checkbox, value="submitted-value").to_js_obscure()
+  inspect(
+    react_element_string_prop(checkbox_value, "value"),
+    content="submitted-value",
+  )
+  inspect(
+    test_callback_throws(fn() {
+      let _ = input(type_=File, value="forbidden").to_js_obscure()
+    }),
+    content="true",
+  )
+  inspect(
+    test_callback_throws(fn() {
+      let _ = select(value="first", [option(value="first", [Text("First")])]).to_js_obscure()
+    }),
+    content="true",
+  )
+}
+
+///|
+test "multiple selects require array values" {
+  install_test_react()
+  inspect(
+    test_callback_throws(fn() {
+      let _ = select(value="first", multiple=true, []).to_js_obscure()
+    }),
+    content="true",
+  )
+  inspect(
+    test_callback_throws(fn() {
+      let _ = select(values=["first"], []).to_js_obscure()
+    }),
+    content="true",
+  )
+  let controlled = select(
+    values=["first", "second"],
+    multiple=true,
+    on_change=fn(_) {  },
+    [],
+  ).to_js_obscure()
+  inspect(
+    react_element_string_array_prop(controlled, "value"),
+    content="first|second",
+  )
+  let uncontrolled = select(default_values=["second"], multiple=true, []).to_js_obscure()
+  inspect(
+    react_element_string_array_prop(uncontrolled, "defaultValue"),
+    content="second",
+  )
+}
+
+///|
 test "element helpers preserve form, link, and media props" {
   install_test_react()
 
@@ -1020,7 +1182,7 @@ test "element helpers preserve form, link, and media props" {
     id="choices",
     class_name="field",
     class_list=["multiple"],
-    value="second",
+    values=["second"],
     disabled=true,
     multiple=true,
     on_change=fn(_event) {  },
@@ -1031,7 +1193,10 @@ test "element helpers preserve form, link, and media props" {
     react_element_string_prop(select_node, "className"),
     content="field multiple",
   )
-  inspect(react_element_string_prop(select_node, "value"), content="second")
+  inspect(
+    react_element_string_array_prop(select_node, "value"),
+    content="second",
+  )
   inspect(react_element_bool_prop(select_node, "disabled"), content="true")
   inspect(react_element_bool_prop(select_node, "multiple"), content="true")
   inspect(
@@ -1045,7 +1210,6 @@ test "element helpers preserve form, link, and media props" {
     class_list=["selected"],
     innerHTML="<i>Second</i>",
     value="second",
-    selected=true,
     disabled=true,
     [],
   ).to_js_obscure()
@@ -1056,7 +1220,6 @@ test "element helpers preserve form, link, and media props" {
   )
   inspect(react_element_inner_html(option_node), content="<i>Second</i>")
   inspect(react_element_string_prop(option_node, "value"), content="second")
-  inspect(react_element_bool_prop(option_node, "selected"), content="true")
   inspect(react_element_bool_prop(option_node, "disabled"), content="true")
 
   let textarea_node = textarea(
@@ -1199,11 +1362,9 @@ test "hook wrappers preserve MoonBit values and callbacks" {
   inspect(react_ref.get(), content="first")
   react_ref.set("second")
   inspect(react_ref.get(), content="second")
-  let direct_ref = ReactRef::from("direct")
-  inspect(direct_ref.get(), content="direct")
 
   let attrs = ElementAttrs::new()
-  attrs.set_js_value("ref", direct_ref.to_js_obscure())
+  attrs.set_js_value("ref", react_ref.to_js_obscure())
   let ref_node = create_element(
       "input",
       attrs,
@@ -1214,7 +1375,32 @@ test "hook wrappers preserve MoonBit values and callbacks" {
     .to_node()
     .to_js_obscure()
   inspect(
-    react_element_prop_equals(ref_node, "ref", direct_ref.to_js_obscure()),
+    react_element_prop_equals(ref_node, "ref", react_ref.to_js_obscure()),
+    content="true",
+  )
+
+  let dom_ref = use_dom_ref()
+  inspect(
+    match dom_ref.current() {
+      None => true
+      Some(_) => false
+    },
+    content="true",
+  )
+  set_test_dom_ref(dom_ref.to_js_obscure(), true)
+  inspect(
+    match dom_ref.current() {
+      Some(element) => element.tag_name() == "INPUT"
+      None => false
+    },
+    content="true",
+  )
+  set_test_dom_ref(dom_ref.to_js_obscure(), false)
+  inspect(
+    match dom_ref.current() {
+      None => true
+      Some(_) => false
+    },
     content="true",
   )
 

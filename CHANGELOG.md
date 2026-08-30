@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Added `use_dom_ref` and `ReactDomRef` with an explicit `Element?` lifecycle,
+  and deprecated the constructor-shaped `ReactRef::from` Hook alias.
+- Added typed uncontrolled form defaults and reject conflicting controlled and
+  uncontrolled props, controlled fields without change handling, invalid
+  scalar values for multiple selects, and children combined with `innerHTML`.
+- Removed the unsupported `selected` option helper; selection now belongs on
+  `select` through scalar or multiple-value props.
 - Added typed React Context creation, provider, consumption, and JavaScript
   interoperation with nested-provider browser coverage.
 - Added `VirtualNode::with_key` for stable reconciliation identity across

@@ -207,6 +207,36 @@ pub fn ElementAttrs::set_js_value(
 }
 
 ///|
+fn ElementAttrs::has_true_bool(self : ElementAttrs, key : String) -> Bool {
+  match self.0.get(key) {
+    Some(BoolProp(value)) => value
+    Some(StringProp("true")) => true
+    _ => false
+  }
+}
+
+///|
+fn ElementAttrs::string_prop(
+  self : ElementAttrs,
+  key : String,
+  fallback : String,
+) -> String {
+  match self.0.get(key) {
+    Some(StringProp(value)) => value
+    _ => fallback
+  }
+}
+
+///|
+fn ElementAttrs::input_value_requires_change(self : ElementAttrs) -> Bool {
+  match self.string_prop("type", "text") {
+    "button" | "checkbox" | "hidden" | "image" | "radio" | "reset" | "submit" =>
+      false
+    _ => true
+  }
+}
+
+///|
 pub type DOMEvent
 
 ///|
@@ -722,6 +752,53 @@ pub fn convert_style_to_js_object(
 
 ///|
 fn VirtualElement::to_js_value(self : VirtualElement) -> @dom.JsObscure {
+  let has_inner_html = self.attrs.0.contains("innerHTML") ||
+    self.attrs.0.contains("dangerouslySetInnerHTML")
+  if has_inner_html && !self.children.is_empty() {
+    abort(
+      "React elements cannot combine children with innerHTML; choose exactly one content source",
+    )
+  }
+  if self.name == "input" || self.name == "textarea" || self.name == "select" {
+    if self.attrs.0.contains("value") && self.attrs.0.contains("defaultValue") {
+      abort(
+        "React form elements cannot combine value with defaultValue; choose controlled or uncontrolled state",
+      )
+    }
+    let input_type = self.attrs.string_prop("type", "text")
+    if self.name == "input" &&
+      input_type == "file" &&
+      (self.attrs.0.contains("value") || self.attrs.0.contains("defaultValue")) {
+      abort("React file inputs cannot receive value or defaultValue")
+    }
+    let value_is_controlled = self.attrs.0.contains("value") &&
+      (self.name != "input" || self.attrs.input_value_requires_change())
+    let controlled = value_is_controlled ||
+      (self.name == "input" && self.attrs.0.contains("checked"))
+    let can_be_read_only = self.name == "input" || self.name == "textarea"
+    let explicitly_read_only = can_be_read_only &&
+      self.attrs.has_true_bool("readOnly")
+    if controlled &&
+      !self.event.0.contains(Change) &&
+      !self.attrs.has_true_bool("disabled") &&
+      !explicitly_read_only {
+      abort(
+        "Controlled React form elements require on_change, read_only=true, or disabled=true",
+      )
+    }
+  }
+  if self.name == "input" &&
+    self.attrs.0.contains("checked") &&
+    self.attrs.0.contains("defaultChecked") {
+    abort(
+      "React inputs cannot combine checked with defaultChecked; choose controlled or uncontrolled state",
+    )
+  }
+  if self.name == "option" && self.attrs.0.contains("selected") {
+    abort(
+      "React options do not support selected; set value or defaultValue on the parent select",
+    )
+  }
   let props = @dom.JsObjectObscure::new()
   for key, value in self.attrs.0 {
     let react_prop_name = dom_attr_to_react_prop(key)

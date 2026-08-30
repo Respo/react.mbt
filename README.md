@@ -67,6 +67,7 @@ For example, use `component(my_component, props, [])`, never
 - `use_action_state[S, A](initial: S, action: (S, A) -> S) -> (S, (A) -> Unit, Bool)` - React 19 action state, dispatch, and pending flag
 - `use_callback0_deps(f: () -> Unit, deps: Array[JsObscure]) -> () -> Unit` - Zero-argument callback hook
 - `use_ref[T](initial: T) -> ReactRef[T]` - Reference hook
+- `use_dom_ref() -> ReactDomRef` - Nullable DOM-element ref hook whose `current()` value is `None` before mount and after unmount
 - `use_id() -> String` - Stable component-local identifier hook
 - `use_deferred_value[T](value: T) -> T` - Deferred-value hook for non-urgent rendering
 - `use_transition() -> (Bool, (() -> Unit) -> Unit)` - Transition state and starter hook
@@ -105,7 +106,8 @@ to React's camel-cased `onXxx` property automatically.
 - `StateUpdate[T]` - `Set(value)` or `Update(fn(previous) { ... })` for safely deriving state from the latest React value
 
 `innerHTML` parameters are converted to React's `dangerouslySetInnerHTML` API.
-Only pass trusted, sanitized HTML through this escape hatch.
+Only pass trusted, sanitized HTML through this escape hatch. Combining
+`innerHTML` with children is rejected before the element reaches React.
 
 Use `ElementAttrs::set` for string attributes, `set_bool` for React boolean
 properties such as `disabled`, and `set_int` for numeric properties such as
@@ -114,8 +116,19 @@ Use `set_js_value` only for explicit React values such as a DOM ref:
 `attrs.set_js_value("ref", input_ref.to_js_obscure())`.
 For controlled checkbox or radio inputs, use `input(checked=value)` so both
 `true` and `false` reach React as booleans.
+Use `default_value` and `default_checked` for uncontrolled form elements;
+combining them with `value` or `checked` is rejected. For DOM elements, prefer
+`use_dom_ref()` and attach its JavaScript ref object through `set_js_value`.
+`ReactDomRef::current()` returns `Some(element)` only while the element is
+mounted.
+Controlled fields require `on_change`, or an explicit `read_only=true` or
+`disabled=true` state. A `multiple=true` select uses the `values` or
+`default_values` array parameters; individual options do not accept
+`selected`.
 
 `declare_contained_style` is deprecated; use `contained_static_style` instead.
+`ReactRef::from` is deprecated because its constructor-like name hides a Hook
+call; use `use_ref` or `use_dom_ref` at the top level of a component.
 
 Static-style declarations are safe during server-side rendering or pre-rendering:
 without a browser document they return their deterministic class name without

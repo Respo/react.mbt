@@ -64,7 +64,7 @@ pub fn header(id? : String, class_name? : String, class_list? : Array[String], a
 
 pub fn img(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, src? : String, alt? : String, width? : String, height? : String, on_click? : (DOMEvent) -> Unit, on_load? : (DOMEvent) -> Unit, on_error? : (DOMEvent) -> Unit) -> VirtualNode
 
-pub fn input(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, type_? : InputType, value? : String, placeholder? : String, disabled? : Bool, checked? : Bool, on_click? : (DOMEvent) -> Unit, on_change? : (DOMEvent) -> Unit, on_input? : (DOMEvent) -> Unit) -> VirtualNode
+pub fn input(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, type_? : InputType, value? : String, default_value? : String, placeholder? : String, disabled? : Bool, read_only? : Bool, checked? : Bool, default_checked? : Bool, on_click? : (DOMEvent) -> Unit, on_change? : (DOMEvent) -> Unit, on_input? : (DOMEvent) -> Unit) -> VirtualNode
 
 pub fn is_boolean_prop(String) -> Bool
 
@@ -78,7 +78,7 @@ pub fn[T] obscure(T) -> @dom-ffi.JsObscure
 
 pub fn ol(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
-pub fn option(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, value? : String, selected? : Bool, disabled? : Bool) -> VirtualNode
+pub fn option(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, value? : String, disabled? : Bool) -> VirtualNode
 
 pub fn p(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
@@ -86,7 +86,7 @@ pub fn render(VirtualNode, @dom-ffi.Element) -> Unit
 
 pub fn section(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
-pub fn select(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], value? : String, disabled? : Bool, multiple? : Bool, on_change? : (DOMEvent) -> Unit) -> VirtualNode
+pub fn select(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], value? : String, values? : Array[String], default_value? : String, default_values? : Array[String], disabled? : Bool, multiple? : Bool, on_change? : (DOMEvent) -> Unit) -> VirtualNode
 
 pub fn span(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
@@ -95,7 +95,7 @@ pub fn start_transition(() -> Unit) -> Unit
 #callsite(autofill(loc))
 pub fn[U : Show] static_style(Array[(U, @respo_css.RespoStyle)], loc~ : SourceLoc) -> String
 
-pub fn textarea(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, value? : String, placeholder? : String, rows? : Int, cols? : Int, disabled? : Bool, on_change? : (DOMEvent) -> Unit, on_input? : (DOMEvent) -> Unit) -> VirtualNode
+pub fn textarea(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, value? : String, default_value? : String, placeholder? : String, rows? : Int, cols? : Int, disabled? : Bool, read_only? : Bool, on_change? : (DOMEvent) -> Unit, on_input? : (DOMEvent) -> Unit) -> VirtualNode
 
 pub fn ul(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
@@ -110,6 +110,8 @@ pub fn[F] use_callback_deps(F, Array[@dom-ffi.JsObscure]) -> F
 pub fn[T] use_context(ReactContext[T]) -> T
 
 pub fn[T] use_deferred_value(T) -> T
+
+pub fn use_dom_ref() -> ReactDomRef
 
 pub fn use_effect_cleanup_deps(() -> () -> Unit, Array[@dom-ffi.JsObscure]) -> Unit
 
@@ -292,7 +294,12 @@ type ReactContext[T]
 pub fn[T] ReactContext::provider(Self[T], T, Array[VirtualNode]) -> VirtualNode
 pub fn[T] ReactContext::to_js_obscure(Self[T]) -> @dom-ffi.JsObscure
 
+type ReactDomRef
+pub fn ReactDomRef::current(Self) -> @dom-ffi.Element?
+pub fn ReactDomRef::to_js_obscure(Self) -> @dom-ffi.JsObscure
+
 type ReactRef[T]
+#deprecated
 pub fn[T] ReactRef::from(T) -> Self[T]
 pub fn[T] ReactRef::get(Self[T]) -> T
 pub fn[T] ReactRef::set(Self[T], T) -> Unit
