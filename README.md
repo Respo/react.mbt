@@ -218,11 +218,12 @@ corepack yarn test:browser
 ```
 
 CI pins MoonBit compiler `0.10.4+2cc641edf` and validates Node 22 with Yarn
-1.22.22. `test:browser` runs the deterministic TodoMVC smoke flow in Chromium;
-install it once locally with `yarn playwright install chromium`. Update the
-toolchain pin only through the full check, unit-test, interface, browser-test,
-and browser-build matrix. This revision was verified with MoonBit
-`0.1.20260713`, React 19.2.x, and Vite 8.2.x.
+1.22.22. `test:browser` runs deterministic TodoMVC and React runtime conformance
+flows in Chromium, including StrictMode lifecycle, batching, root reuse, and DOM
+ref cleanup; install it once locally with `yarn playwright install chromium`.
+Update the toolchain pin only through the full check, unit-test, interface,
+browser-test, and browser-build matrix. This revision was verified with MoonBit
+`0.1.20260713`, React 19.2.8, and Vite 8.2.x.
 
 The browser entry point loads React and ReactDOMClient before the generated
 MoonBit application. `render` can be called again for the same parent element;

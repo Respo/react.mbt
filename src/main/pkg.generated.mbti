@@ -6,6 +6,10 @@ package "tiye/react/main"
 // Errors
 
 // Types and methods
+type ConformanceControllerProps
+
+type ConformanceProbeProps
+
 type ContainerProps derive(Default)
 
 type ContextReaderProps
