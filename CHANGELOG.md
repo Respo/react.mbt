@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added `VirtualNode::with_key` for stable reconciliation identity across
+  elements, components, fragments, and text, and made browser regressions fail
+  on React console warnings and errors.
 - Made `static_style` and `contained_static_style` safe to evaluate without a
   browser `window`, enabling server-side and pre-rendered module imports.
 - Added stateful MoonBit component regressions for Todo editing, creation,

@@ -311,6 +311,7 @@ pub(all) enum VirtualNode {
   JsNode(@dom-ffi.JsObscure)
 }
 pub fn VirtualNode::to_js_obscure(Self) -> @dom-ffi.JsObscure
+pub fn VirtualNode::with_key(Self, String) -> Self
 
 // Type aliases
 

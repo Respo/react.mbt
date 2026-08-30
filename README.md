@@ -31,6 +31,9 @@ Component functions must be placed in the virtual DOM through `component`, not
 called directly. Use `component_with_children` when the component needs to
 place caller-supplied children in its own tree.
 
+Apply `with_key` to children in dynamic collections, using stable application
+identities rather than array indexes.
+
 ## Bound APIs and Types
 
 ### Core Rendering API
@@ -39,6 +42,7 @@ place caller-supplied children in its own tree.
 - `unmount(parent: @dom.Element) -> Unit` - Unmount the React root for an element
 - `component[T](f: (T) -> VirtualNode, props: T, children: Array[VirtualNode]) -> VirtualNode` - Create a leaf component
 - `component_with_children[T](f: (T, Array[VirtualNode]) -> VirtualNode, props: T, children: Array[VirtualNode]) -> VirtualNode` - Create a component that places its children
+- `VirtualNode::with_key(key: String) -> VirtualNode` - Assign a stable React reconciliation key without adding a DOM wrapper
 
 For example, use `component(my_component, props, [])`, never
 `my_component(props)` directly in a virtual DOM tree.

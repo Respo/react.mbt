@@ -2,7 +2,13 @@ import { expect, test } from "@playwright/test";
 
 test("TodoMVC supports editing, creating, filtering, and clearing todos", async ({ page }) => {
   const pageErrors = [];
+  const consoleProblems = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
+  page.on("console", (message) => {
+    if (["warning", "error"].includes(message.type())) {
+      consoleProblems.push(`${message.type()}: ${message.text()}`);
+    }
+  });
 
   await page.goto("/");
   await expect(page.locator(".todo-list li")).toHaveCount(3);
@@ -41,4 +47,5 @@ test("TodoMVC supports editing, creating, filtering, and clearing todos", async 
   await page.getByRole("link", { name: "All", exact: true }).click();
   await expect(page.locator(".todo-list li")).toHaveCount(3);
   expect(pageErrors).toEqual([]);
+  expect(consoleProblems).toEqual([]);
 });
