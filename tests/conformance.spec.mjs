@@ -293,3 +293,57 @@ test("typed memo lazy JS interop and imperative handles follow React 19 semantic
   expect(pageErrors).toEqual([]);
   expect(consoleProblems).toEqual([]);
 });
+
+test("generated HTML SVG metadata and escape-hatch props match the browser DOM", async ({ page }) => {
+  const pageErrors = [];
+  const consoleProblems = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  page.on("console", (message) => {
+    if (["warning", "error"].includes(message.type())) {
+      consoleProblems.push(`${message.type()}: ${message.text()}`);
+    }
+  });
+
+  await page.goto("/");
+
+  const table = page.locator("#generated-table");
+  await expect(table).toHaveAttribute("aria-label", "Generated scores");
+  await expect(table).toHaveAttribute("data-testid", "generated-table");
+  await expect(table.locator("th")).toHaveAttribute("scope", "col");
+  await expect(table.locator("th")).toHaveAttribute("colspan", "2");
+  await expect(table.locator("tbody td")).toHaveCount(2);
+
+  const fieldset = page.locator("#generated-fieldset");
+  await expect(fieldset).not.toBeDisabled();
+  await expect(page.locator("#generated-progress")).toHaveAttribute("value", "3.5");
+  await expect(page.locator("#generated-progress")).toHaveAttribute("max", "5");
+
+  const dialog = page.locator("#generated-dialog");
+  await expect(dialog).not.toHaveAttribute("open", "");
+  await dialog.dispatchEvent("cancel");
+  await dialog.dispatchEvent("close");
+
+  const svg = page.locator("#generated-svg");
+  await expect(svg).toHaveAttribute("viewBox", "0 0 24 24");
+  await expect(svg).toHaveAttribute("aria-label", "Generated status icon");
+  await expect(page.locator("#generated-path")).toHaveAttribute("stroke-width", "2");
+  await expect(page.locator("#generated-path")).toHaveAttribute("pathLength", "20");
+  await expect(page.locator("#generated-use")).toHaveAttribute("href", "#generated-path");
+  expect(await svg.evaluate((node) => node.namespaceURI)).toBe("http://www.w3.org/2000/svg");
+
+  const metadata = page.locator('head meta[name="react-mbt-generated-helper"]');
+  await expect(metadata).toHaveAttribute("content", "metadata-ready");
+
+  const custom = page.locator("moonbit-widget");
+  await expect(custom).toHaveAttribute("aria-live", "polite");
+  await expect(custom).toHaveAttribute("data-state", "ready");
+  await expect(custom).toHaveAttribute("customvalue", "opaque");
+
+  expect(await page.evaluate(() => globalThis.__moonbitGeneratedDomConformance)).toEqual({
+    renders: 1,
+    cancels: 1,
+    closes: 1,
+  });
+  expect(pageErrors).toEqual([]);
+  expect(consoleProblems).toEqual([]);
+});

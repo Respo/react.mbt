@@ -29,11 +29,16 @@ jobs:
       - name: Install frontend dependencies
         run: yarn install --frozen-lockfile
 
+      - name: Check generated DOM helpers
+        run: yarn check:generated
+
       - name: moon check
         run: moon update && moon version && moon check --target js
 
       - name: Check generated interfaces
-        run: moon info
+        run: |
+          moon info
+          git diff --exit-code -- src/pkg.generated.mbti src/main/pkg.generated.mbti
 
       - name: moon test
         run: moon test

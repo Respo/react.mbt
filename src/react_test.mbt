@@ -107,6 +107,13 @@ extern "js" fn react_element_child_count(node : @dom.JsObscure) -> Int =
   #| (node) => node.children.length
 
 ///|
+extern "js" fn react_element_child(
+  node : @dom.JsObscure,
+  index : Int,
+) -> @dom.JsObscure =
+  #| (node, index) => node.children[index]
+
+///|
 extern "js" fn react_element_string_prop(
   node : @dom.JsObscure,
   key : String,
@@ -195,6 +202,14 @@ extern "js" fn react_element_int_prop(
   key : String,
 ) -> Int =
   #| (node, key) => node.props[key]
+
+///|
+extern "js" fn react_element_number_prop_matches(
+  node : @dom.JsObscure,
+  key : String,
+  expected : Float,
+) -> Bool =
+  #| (node, key, expected) => node.props[key] === expected
 
 ///|
 extern "js" fn react_element_inner_html(node : @dom.JsObscure) -> String =
@@ -1133,6 +1148,153 @@ test "attributes set through ElementAttrs are converted to React props" {
     content="false",
   )
   inspect(react_element_int_prop(node.to_js_obscure(), "tabIndex"), content="3")
+}
+
+///|
+test "generated HTML helpers preserve typed props across required categories" {
+  install_test_react()
+  let table_node = table(
+    class_name="generated",
+    class_list=["striped"],
+    aria_label="Quarterly scores",
+    data_testid="scores",
+    [
+      caption([Text("Scores")]),
+      colgroup(span=2, [col(span=2)]),
+      thead([tr([th(scope="col", col_span=2, [Text("Team")])])]),
+      tbody([tr([td(headers="team", row_span=2, [Text("MoonBit")])])]),
+    ],
+  ).to_js_obscure()
+  inspect(react_element_tag(table_node), content="table")
+  inspect(
+    react_element_string_prop(table_node, "className"),
+    content="generated striped",
+  )
+  inspect(
+    react_element_string_prop(table_node, "aria-label"),
+    content="Quarterly scores",
+  )
+  inspect(
+    react_element_string_prop(table_node, "data-testid"),
+    content="scores",
+  )
+  inspect(react_element_child_count(table_node), content="4")
+  let head = react_element_child(table_node, 2)
+  let header_row = react_element_child(head, 0)
+  let header = react_element_child(header_row, 0)
+  inspect(react_element_string_prop(header, "scope"), content="col")
+  inspect(react_element_int_prop(header, "colSpan"), content="2")
+
+  let fieldset_node = fieldset(disabled=false, [legend([Text("Profile")])]).to_js_obscure()
+  inspect(react_element_has_prop(fieldset_node, "disabled"), content="true")
+  inspect(react_element_bool_prop(fieldset_node, "disabled"), content="false")
+  let output_node = output(name="result", html_for="first second", [Text("42")]).to_js_obscure()
+  inspect(
+    react_element_string_prop(output_node, "htmlFor"),
+    content="first second",
+  )
+  let progress_node = progress(value=3.5, max=5.0, []).to_js_obscure()
+  inspect(
+    react_element_number_prop_matches(progress_node, "value", 3.5),
+    content="true",
+  )
+  inspect(
+    react_element_number_prop_matches(progress_node, "max", 5.0),
+    content="true",
+  )
+
+  let dialog_node = dialog(
+    open=false,
+    on_cancel=fn(_) {  },
+    on_close=fn(_) {  },
+    [Text("Closed")],
+  ).to_js_obscure()
+  inspect(react_element_has_prop(dialog_node, "open"), content="true")
+  inspect(react_element_bool_prop(dialog_node, "open"), content="false")
+  inspect(
+    react_element_has_function_prop(dialog_node, "onCancel"),
+    content="true",
+  )
+  inspect(
+    react_element_has_function_prop(dialog_node, "onClose"),
+    content="true",
+  )
+  inspect(DOMEventType::Cancel.to_string(), content="cancel")
+  inspect(DOMEventType::Close.to_string(), content="close")
+
+  let meta_node = meta(http_equiv="content-language", content="en").to_js_obscure()
+  inspect(react_element_tag(meta_node), content="meta")
+  inspect(
+    react_element_string_prop(meta_node, "httpEquiv"),
+    content="content-language",
+  )
+  let semantic_node = time_(date_time="2026-08-31", [Text("Today")]).to_js_obscure()
+  inspect(
+    react_element_string_prop(semantic_node, "dateTime"),
+    content="2026-08-31",
+  )
+}
+
+///|
+test "generated SVG helpers use React camel-case properties" {
+  install_test_react()
+  let svg_node = svg(
+    view_box="0 0 24 24",
+    width="24",
+    height="24",
+    aria_label="Status icon",
+    [
+      defs([
+        linear_gradient(id="status-gradient", x1="0%", x2="100%", [
+          stop(offset="0%", stop_color="#fff", []),
+        ]),
+      ]),
+      path(
+        d="M2 12h20",
+        stroke="currentColor",
+        stroke_width="2",
+        path_length="20",
+        [],
+      ),
+      use_(href="#shape", xlink_href="#legacy-shape", []),
+    ],
+  ).to_js_obscure()
+  inspect(react_element_tag(svg_node), content="svg")
+  inspect(react_element_string_prop(svg_node, "viewBox"), content="0 0 24 24")
+  inspect(
+    react_element_string_prop(svg_node, "aria-label"),
+    content="Status icon",
+  )
+  let path_node = react_element_child(svg_node, 1)
+  inspect(react_element_string_prop(path_node, "strokeWidth"), content="2")
+  inspect(react_element_string_prop(path_node, "pathLength"), content="20")
+  let use_node = react_element_child(svg_node, 2)
+  inspect(
+    react_element_string_prop(use_node, "xlinkHref"),
+    content="#legacy-shape",
+  )
+}
+
+///|
+test "escape hatch preserves arbitrary aria data and custom-element attributes" {
+  install_test_react()
+  let attrs = ElementAttrs::new()
+  attrs.set("aria-live", "polite")
+  attrs.set("data-state", "ready")
+  attrs.set("customvalue", "opaque")
+  let node = create_element(
+      "moonbit-widget",
+      attrs,
+      ElementEvents::new(),
+      style=@css.respo_style(),
+      [Text("Custom")],
+    )
+    .to_node()
+    .to_js_obscure()
+  inspect(react_element_tag(node), content="moonbit-widget")
+  inspect(react_element_string_prop(node, "aria-live"), content="polite")
+  inspect(react_element_string_prop(node, "data-state"), content="ready")
+  inspect(react_element_string_prop(node, "customvalue"), content="opaque")
 }
 
 ///|

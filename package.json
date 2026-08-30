@@ -5,6 +5,8 @@
   "author": "tiye <jiyinyiyong@gmail.com>",
   "license": "Apache-2.0",
   "scripts": {
+    "generate:dom": "node scripts/generate-dom-helpers.mjs",
+    "check:generated": "node scripts/generate-dom-helpers.mjs --check",
     "build:moon": "moon build --target js --debug",
     "check": "moon check --target js",
     "test": "moon test",

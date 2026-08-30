@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Added a deterministic declarative generator for 54 typed DOM helpers across
+  table, form, interactive, metadata, semantic HTML, and core SVG categories;
+  existing handwritten helper signatures remain unchanged.
+- Added typed common accessibility/data props, React-camel-cased SVG and
+  metadata props, dialog cancel/close events, and floating-point React
+  properties for `progress` and `meter`.
+- Added generator idempotence and generated-interface CI gates, an
+  all-54-helper MoonBit smoke matrix, and real Chromium coverage for HTML/SVG
+  construction, React 19 metadata hoisting, accessibility/data attributes,
+  custom elements, and zero diagnostics.
 - Added typed `use_sync_external_store` with optional server snapshots and real
   React coverage for changed and unchanged publications, committed snapshots,
   subscription cleanup, and post-unmount notifications.

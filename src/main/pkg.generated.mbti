@@ -28,6 +28,8 @@ type FormActionDemoState
 
 type FormStatusProps derive(Default)
 
+type GeneratedDomConformanceProps
+
 type HooksDemoProps derive(Default)
 
 type HydrationProbeProps
