@@ -213,11 +213,6 @@ struct ReactRef[T] {
 }
 
 ///|
-pub fn[T] ReactRef::from(v : T) -> ReactRef[T] {
-  ReactRef::{ js_value: react_use_ref(@dom.v_to_js_obscure(v)), _v0: v }
-}
-
-///|
 pub fn[T] ReactRef::get(self : ReactRef[T]) -> T {
   @dom.js_obscure_to_v(react_ref_get_value(self.js_value))
 }
@@ -236,12 +231,47 @@ pub fn[T] ReactRef::set(self : ReactRef[T], value : T) -> Unit {
 }
 
 ///|
-// useRef
+/// Creates a React ref Hook with an explicit initial value.
+///
+/// Call this only at the top level of a React component or another Hook. For a
+/// DOM element ref with a safe empty state, prefer `use_dom_ref`.
 pub fn[T] use_ref(initial : T) -> ReactRef[T] {
   ReactRef::{
     js_value: react_use_ref(@dom.v_to_js_obscure(initial)),
     _v0: initial,
   }
+}
+
+///|
+/// A DOM element ref whose current value is absent before mount and after
+/// unmount. Attach it with `ElementAttrs::set_js_value("ref", ref.to_js_obscure())`.
+struct ReactDomRef {
+  js_value : @dom.JsObscure
+}
+
+///|
+/// Creates a nullable DOM ref Hook.
+///
+/// Call this only at the top level of a React component or another Hook.
+pub fn use_dom_ref() -> ReactDomRef {
+  ReactDomRef::{ js_value: react_use_ref(JsObscure::null()) }
+}
+
+///|
+/// Returns the mounted DOM element, or `None` before mount and after unmount.
+pub fn ReactDomRef::current(self : ReactDomRef) -> @dom.Element? {
+  let current = react_ref_get_value(self.js_value)
+  if current.is_nil() {
+    None
+  } else {
+    Some(@dom.js_obscure_to_v(current))
+  }
+}
+
+///|
+/// Returns the underlying React ref object for an explicit `ref` prop.
+pub fn ReactDomRef::to_js_obscure(self : ReactDomRef) -> JsObscure {
+  self.js_value
 }
 
 ///|

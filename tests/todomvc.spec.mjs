@@ -18,6 +18,18 @@ test("TodoMVC supports editing, creating, filtering, and clearing todos", async 
   await expect(page.getByText("内层 Provider: 内层值", { exact: true })).toBeVisible();
   await expect(page.getByText("恢复外层: 外层值", { exact: true })).toBeVisible();
 
+  await page.getByRole("button", { name: "检查 DOM ref", exact: true }).click();
+  await expect(page.locator("#dom-ref-status")).toHaveText("DOM ref 状态: 已挂载");
+  await expect(page.locator("#controlled-readonly-input")).toHaveValue("只读受控值");
+  await expect(page.locator("#uncontrolled-default-input")).toHaveValue("非受控初始值");
+  await expect(page.locator("#uncontrolled-multiple-select")).toHaveValues(["alpha", "gamma"]);
+  await page.getByRole("button", { name: "聚焦 DOM ref", exact: true }).click();
+  await expect(page.locator("#dom-ref-target")).toBeFocused();
+  await page.getByRole("button", { name: "卸载 DOM ref", exact: true }).click();
+  await expect(page.locator("#dom-ref-target")).toHaveCount(0);
+  await page.getByRole("button", { name: "检查 DOM ref", exact: true }).click();
+  await expect(page.locator("#dom-ref-status")).toHaveText("DOM ref 状态: 空");
+
   await page.getByRole("button", { name: "执行状态操作", exact: true }).click();
   await expect(page.getByText("操作状态: 操作已完成（进行中: false）", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "启动定时器", exact: true }).click();

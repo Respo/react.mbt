@@ -11,3 +11,14 @@ pub fn[U : Show] declare_contained_style(
 ) -> String {
   contained_static_style(rules, loc~)
 }
+
+///|
+/// Deprecated Hook-shaped constructor for `ReactRef`.
+///
+/// Despite its constructor-like name, this calls React `useRef` and therefore
+/// must only run at the top level of a component or another Hook. Use
+/// `use_ref(initial)` instead, or `use_dom_ref()` for nullable DOM refs.
+#deprecated
+pub fn[T] ReactRef::from(initial : T) -> ReactRef[T] {
+  use_ref(initial)
+}

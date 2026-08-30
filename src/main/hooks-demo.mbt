@@ -49,6 +49,11 @@ fn comp_hooks_demo(_props : HooksDemoProps) -> VirtualNode {
 
   // 演示 use_ref - 创建一个可变引用
   let timer_ref = @react.use_ref(0)
+  let dom_ref = @react.use_dom_ref()
+  let (show_dom_ref, set_show_dom_ref) = @react.use_state(true)
+  let (dom_ref_status, set_dom_ref_status) = @react.use_state("未检查")
+  let dom_ref_attrs = @react.ElementAttrs::new()
+  dom_ref_attrs.set_js_value("ref", dom_ref.to_js_obscure())
 
   // 演示 use_memo_deps - 计算昂贵的值
   let expensive_value = @react.use_memo_deps(
@@ -180,6 +185,65 @@ fn comp_hooks_demo(_props : HooksDemoProps) -> VirtualNode {
             cursor=Pointer,
           ),
           [Text("执行状态操作")],
+        ),
+      ]),
+
+      // DOM ref 挂载与卸载语义
+      @react.div(style=@css.respo_style(margin_bottom=15.0 |> @css.Px), [
+        @react.h3([Text("🔗 DOM Ref")]),
+        if show_dom_ref {
+          @react.input(
+            id="dom-ref-target",
+            attrs=dom_ref_attrs,
+            placeholder="DOM ref target",
+          )
+        } else {
+          @react.p([Text("DOM ref target 已卸载")])
+        },
+        @react.p(id="dom-ref-status", [
+          Text("DOM ref 状态: \{dom_ref_status}"),
+        ]),
+        @react.button(
+          on_click=fn(_) {
+            match dom_ref.current() {
+              Some(element) => element.focus()
+              None => ()
+            }
+          },
+          [Text("聚焦 DOM ref")],
+        ),
+        @react.button(on_click=fn(_) { set_show_dom_ref(!show_dom_ref) }, [
+          Text(if show_dom_ref { "卸载 DOM ref" } else { "挂载 DOM ref" }),
+        ]),
+        @react.button(
+          on_click=fn(_) {
+            set_dom_ref_status(
+              match dom_ref.current() {
+                Some(_) => "已挂载"
+                None => "空"
+              },
+            )
+          },
+          [Text("检查 DOM ref")],
+        ),
+        @react.input(
+          id="controlled-readonly-input",
+          value="只读受控值",
+          read_only=true,
+        ),
+        @react.input(
+          id="uncontrolled-default-input",
+          default_value="非受控初始值",
+        ),
+        @react.select(
+          id="uncontrolled-multiple-select",
+          default_values=["alpha", "gamma"],
+          multiple=true,
+          [
+            @react.option(value="alpha", [Text("Alpha")]),
+            @react.option(value="beta", [Text("Beta")]),
+            @react.option(value="gamma", [Text("Gamma")]),
+          ],
         ),
       ]),
 

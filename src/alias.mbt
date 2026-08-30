@@ -583,13 +583,20 @@ pub fn input(
   type_? : InputType,
   /// The current value of the input.
   value? : String,
+  /// The initial value of an uncontrolled input. Do not combine with `value`.
+  default_value? : String,
   /// Placeholder text displayed when input is empty.
   placeholder? : String,
   /// Whether the input is disabled.
   disabled? : Bool,
+  /// Whether a controlled input is intentionally read-only.
+  read_only? : Bool,
   /// Controlled checked value for checkbox and radio inputs. Unlike `disabled`,
   /// this is emitted for both true and false values.
   checked? : Bool,
+  /// Initial checked state for an uncontrolled checkbox or radio input. Do not
+  /// combine with `checked`.
+  default_checked? : Bool,
   /// Click event handler.
   on_click? : (DOMEvent) -> Unit,
   /// Change event handler (fired when value changes and input loses focus).
@@ -611,14 +618,23 @@ pub fn input(
   if value is Some(value) {
     attrs.set("value", value)
   }
+  if default_value is Some(default_value) {
+    attrs.set("defaultValue", default_value)
+  }
   if placeholder is Some(placeholder) {
     attrs.set("placeholder", placeholder)
   }
   if disabled is Some(true) {
     attrs.set_bool("disabled", true)
   }
+  if read_only is Some(read_only) {
+    attrs.set_bool("readOnly", read_only)
+  }
   if checked is Some(checked) {
     attrs.set_bool("checked", checked)
+  }
+  if default_checked is Some(default_checked) {
+    attrs.set_bool("defaultChecked", default_checked)
   }
   if on_click is Some(on_click) {
     event.set(Click, on_click)
@@ -706,6 +722,9 @@ pub fn textarea(
   style? : RespoStyle = respo_style(),
   /// The current value of the textarea.
   value? : String,
+  /// The initial value of an uncontrolled textarea. Do not combine with
+  /// `value`.
+  default_value? : String,
   /// Placeholder text displayed when textarea is empty.
   placeholder? : String,
   /// Number of visible text lines.
@@ -714,6 +733,8 @@ pub fn textarea(
   cols? : Int,
   /// Whether the textarea is disabled.
   disabled? : Bool,
+  /// Whether a controlled textarea is intentionally read-only.
+  read_only? : Bool,
   /// Change event handler (fired when value changes and textarea loses focus).
   on_change? : (DOMEvent) -> Unit,
   /// Input event handler (fired on every keystroke).
@@ -730,6 +751,9 @@ pub fn textarea(
   if value is Some(value) {
     attrs.set("value", value)
   }
+  if default_value is Some(default_value) {
+    attrs.set("defaultValue", default_value)
+  }
   if placeholder is Some(placeholder) {
     attrs.set("placeholder", placeholder)
   }
@@ -741,6 +765,9 @@ pub fn textarea(
   }
   if disabled is Some(true) {
     attrs.set_bool("disabled", true)
+  }
+  if read_only is Some(read_only) {
+    attrs.set_bool("readOnly", read_only)
   }
   if on_change is Some(on_change) {
     event.set(Change, on_change)
@@ -774,6 +801,13 @@ pub fn select(
   children : Array[VirtualNode],
   /// The currently selected value.
   value? : String,
+  /// Currently selected values for `multiple=true`.
+  values? : Array[String],
+  /// The initially selected value of an uncontrolled select. Do not combine
+  /// with `value`.
+  default_value? : String,
+  /// Initially selected values for an uncontrolled `multiple=true` select.
+  default_values? : Array[String],
   /// Whether the select is disabled.
   disabled? : Bool,
   /// Whether multiple options can be selected.
@@ -783,6 +817,15 @@ pub fn select(
 ) -> VirtualNode {
   let attrs = attrs.unwrap_or_default()
   let event = event.unwrap_or_default()
+  let is_multiple = multiple is Some(true)
+  if is_multiple && (value is Some(_) || default_value is Some(_)) {
+    abort(
+      "A multiple React select requires values or default_values arrays instead of scalar values",
+    )
+  }
+  if !is_multiple && (values is Some(_) || default_values is Some(_)) {
+    abort("React select values and default_values arrays require multiple=true")
+  }
   if id is Some(id) {
     attrs.set("id", id)
   }
@@ -791,6 +834,25 @@ pub fn select(
   }
   if value is Some(value) {
     attrs.set("value", value)
+  }
+  if values is Some(values) {
+    attrs.set_js_value(
+      "value",
+      @dom.JsObscure::from_array(
+        values.map(fn(value) { @dom.JsObscure::from_string(value) }),
+      ),
+    )
+  }
+  if default_value is Some(default_value) {
+    attrs.set("defaultValue", default_value)
+  }
+  if default_values is Some(default_values) {
+    attrs.set_js_value(
+      "defaultValue",
+      @dom.JsObscure::from_array(
+        default_values.map(fn(value) { @dom.JsObscure::from_string(value) }),
+      ),
+    )
   }
   if disabled is Some(true) {
     attrs.set_bool("disabled", true)
@@ -828,8 +890,6 @@ pub fn option(
   innerHTML? : String,
   /// The value of the option when selected.
   value? : String,
-  /// Whether the option is selected by default.
-  selected? : Bool,
   /// Whether the option is disabled.
   disabled? : Bool,
 ) -> VirtualNode {
@@ -846,9 +906,6 @@ pub fn option(
   }
   if value is Some(value) {
     attrs.set("value", value)
-  }
-  if selected is Some(true) {
-    attrs.set_bool("selected", true)
   }
   if disabled is Some(true) {
     attrs.set_bool("disabled", true)

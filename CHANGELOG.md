@@ -7,6 +7,13 @@
 - Added real React 19.2.8 conformance coverage for StrictMode lifecycle,
   functional state and reducer batching, root reuse and unmount, DOM ref mount
   and cleanup, and warning-free execution.
+- Added `use_dom_ref` and `ReactDomRef` with an explicit `Element?` lifecycle,
+  and deprecated the constructor-shaped `ReactRef::from` Hook alias.
+- Added typed uncontrolled form defaults; the shared conversion boundary now
+  rejects controlled/uncontrolled conflicts, controlled fields without change
+  handling, invalid select value shapes, and children combined with `innerHTML`.
+- Removed the unsupported `selected` option helper; selection now belongs on
+  `select` through scalar or multiple-value props.
 - Added typed React Context creation, provider, consumption, and JavaScript
   interoperation with nested-provider browser coverage.
 - Added `VirtualNode::with_key` for stable reconciliation identity across

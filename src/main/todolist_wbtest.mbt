@@ -211,7 +211,7 @@ test "Todo and Hooks demo components build React trees with hook runtime" {
 
   let hooks_node = comp_hooks_demo(Default::default()).to_js_obscure()
   inspect(main_react_element_tag(hooks_node), content="div")
-  inspect(main_react_element_child_count(hooks_node), content="4")
+  inspect(main_react_element_child_count(hooks_node), content="5")
 
   let controls = main_react_element_child(hooks_node, 2)
   main_react_trigger_handler(main_react_element_child(controls, 1), "onClick")
