@@ -34,6 +34,75 @@ enum NonDefaultReducerState {
 } derive(Eq)
 
 ///|
+struct ComponentApiProps {
+  label : String
+}
+
+///|
+fn comp_component_api_test(props : ComponentApiProps) -> VirtualNode {
+  span([Text(props.label)])
+}
+
+///|
+extern "js" fn install_component_api_test_react() -> Unit =
+  #| () => {
+  #|   const Suspense = Symbol("Suspense");
+  #|   globalThis.React = {
+  #|     Suspense,
+  #|     createElement: (tag, props, ...children) => ({ tag, props, children }),
+  #|     memo: (component, compare) => ({
+  #|       kind: "memo",
+  #|       component,
+  #|       compare: compare ?? null,
+  #|     }),
+  #|     lazy: (load) => ({ kind: "lazy", load }),
+  #|   };
+  #|   globalThis.__moonbitTestSuspense = Suspense;
+  #|   globalThis.__moonbitReactComponentTypes = new WeakMap();
+  #| }
+
+///|
+extern "js" fn test_js_component() -> @dom.JsObscure =
+  #| () => (props) => ({
+  #|   tag: "js-component",
+  #|   props: { received: props.moonbitProps },
+  #|   children: [],
+  #| })
+
+///|
+extern "js" fn test_component_kind(node : @dom.JsObscure) -> String =
+  #| (node) => node.tag?.kind ?? "component"
+
+///|
+extern "js" fn test_lazy_loader_returns_promise(node : @dom.JsObscure) -> Bool =
+  #| (node) => typeof node.tag.load()?.then === "function"
+
+///|
+extern "js" fn test_memo_has_custom_compare(node : @dom.JsObscure) -> Bool =
+  #| (node) => typeof node.tag?.compare === "function"
+
+///|
+extern "js" fn test_memo_compare(
+  node : @dom.JsObscure,
+  previous : @dom.JsObscure,
+  next : @dom.JsObscure,
+) -> Bool =
+  #| (node, previous, next) => node.tag.compare(
+  #|   { moonbitProps: previous },
+  #|   { moonbitProps: next },
+  #| )
+
+///|
+extern "js" fn test_suspense_tag_matches(node : @dom.JsObscure) -> Bool =
+  #| (node) => node.tag === globalThis.__moonbitTestSuspense
+
+///|
+extern "js" fn test_js_component_received_label(
+  node : @dom.JsObscure,
+) -> String =
+  #| (node) => node.props.received.label
+
+///|
 extern "js" fn react_element_child_count(node : @dom.JsObscure) -> Int =
   #| (node) => node.children.length
 
@@ -299,6 +368,8 @@ extern "js" fn install_test_react_hooks() -> Unit =
   #|     reduced: null,
   #|     optimistic: null,
   #|     transitionActions: 0,
+  #|     externalServerSnapshot: null,
+  #|     imperativeDeps: 0,
   #|   };
   #|   const runTransition = (action) => {
   #|     globalThis.__moonbitHookState.transitionActions += 1;
@@ -344,6 +415,17 @@ extern "js" fn install_test_react_hooks() -> Unit =
   #|       useDeferredValue: (value) => value,
   #|       useTransition: () => [false, runTransition],
   #|       startTransition: runTransition,
+  #|       useSyncExternalStore: (subscribe, getSnapshot, getServerSnapshot) => {
+  #|         globalThis.__moonbitHookState.externalServerSnapshot =
+  #|           getServerSnapshot?.() ?? null;
+  #|         const cleanup = subscribe(() => {});
+  #|         if (typeof cleanup === "function") cleanup();
+  #|         return getSnapshot();
+  #|       },
+  #|       useImperativeHandle: (ref, createHandle, deps) => {
+  #|         ref.current = createHandle();
+  #|         globalThis.__moonbitHookState.imperativeDeps = deps.length;
+  #|       },
   #|       useReducer: (reducer, initial) => [initial, (action) => {
   #|         globalThis.__moonbitHookState.reduced = reducer(initial, action);
   #|       }],
@@ -375,6 +457,14 @@ extern "js" fn hook_test_optimistic_state() -> Int =
 ///|
 extern "js" fn hook_test_reduced_is_promise() -> Bool =
   #| () => typeof globalThis.__moonbitHookState.reduced?.then === "function"
+
+///|
+extern "js" fn hook_test_external_server_snapshot() -> Int =
+  #| () => globalThis.__moonbitHookState.externalServerSnapshot
+
+///|
+extern "js" fn hook_test_imperative_dep_count() -> Int =
+  #| () => globalThis.__moonbitHookState.imperativeDeps
 
 ///|
 extern "js" fn test_form_data() -> ReactFormData =
@@ -1855,6 +1945,34 @@ test "hook wrappers preserve MoonBit values and callbacks" {
   inspect(form_status.action() is Some(_), content="true")
   set_test_form_status_action_present(false)
   inspect(form_status.action() is None, content="true")
+
+  let mut subscribes = 0
+  let mut unsubscribes = 0
+  let external_snapshot = use_sync_external_store(
+    fn(_notify) {
+      subscribes = subscribes + 1
+      fn() { unsubscribes = unsubscribes + 1 }
+    },
+    fn() { 7 },
+    get_server_snapshot=fn() { 6 },
+  )
+  inspect(external_snapshot, content="7")
+  inspect(subscribes, content="1")
+  inspect(unsubscribes, content="1")
+  inspect(hook_test_external_server_snapshot(), content="6")
+  inspect(
+    use_sync_external_store(fn(_notify) { fn() {  } }, fn() { 8 }),
+    content="8",
+  )
+
+  let imperative_ref : ImperativeRef[Int] = use_imperative_ref()
+  inspect(imperative_ref.current() is None, content="true")
+  use_imperative_handle_deps(imperative_ref, fn() { 42 }, [
+    obscure("first"),
+    obscure("second"),
+  ])
+  inspect(imperative_ref.current() == Some(42), content="true")
+  inspect(hook_test_imperative_dep_count(), content="2")
 }
 
 ///|
@@ -1905,6 +2023,73 @@ test "components without child access render through their React factory" {
   ).to_js_obscure()
   inspect(react_element_tag(node), content="div")
   inspect(react_element_child_count(node), content="1")
+}
+
+///|
+test "typed component types preserve props across memo lazy and JS bridges" {
+  install_component_api_test_react()
+  let props = ComponentApiProps::{ label: "typed value" }
+  let defined = define_component(comp_component_api_test)
+  let defined_node = defined.render(props).to_js_obscure()
+  let rendered = render_test_component_factory(defined_node)
+  inspect(react_element_first_child_string(rendered), content="typed value")
+
+  let custom_memo = defined.memo(are_props_equal=fn(previous, next) {
+    previous.label == next.label
+  })
+  let custom_memo_node = custom_memo.render(props).to_js_obscure()
+  inspect(test_component_kind(custom_memo_node), content="memo")
+  inspect(test_memo_has_custom_compare(custom_memo_node), content="true")
+  inspect(
+    test_memo_compare(
+      custom_memo_node,
+      @dom.v_to_js_obscure(ComponentApiProps::{ label: "same" }),
+      @dom.v_to_js_obscure(ComponentApiProps::{ label: "same" }),
+    ),
+    content="true",
+  )
+  inspect(
+    test_memo_compare(
+      custom_memo_node,
+      @dom.v_to_js_obscure(ComponentApiProps::{ label: "before" }),
+      @dom.v_to_js_obscure(ComponentApiProps::{ label: "after" }),
+    ),
+    content="false",
+  )
+  let default_memo = defined.memo()
+  inspect(
+    test_memo_has_custom_compare(default_memo.render(props).to_js_obscure()),
+    content="false",
+  )
+
+  let lazy_component_value : ReactComponent[ComponentApiProps] = lazy_component(async fn() {
+      test_resolved_unit_promise().wait()
+      define_component(comp_component_api_test)
+    },
+  )
+  inspect(
+    test_component_kind(lazy_component_value.render(props).to_js_obscure()),
+    content="lazy",
+  )
+  inspect(
+    test_lazy_loader_returns_promise(
+      lazy_component_value.render(props).to_js_obscure(),
+    ),
+    content="true",
+  )
+
+  let js_component : ReactComponent[ComponentApiProps] = component_from_js(
+    test_js_component(),
+  )
+  let js_rendered = render_test_component_factory(
+    js_component.render(props).to_js_obscure(),
+  )
+  inspect(test_js_component_received_label(js_rendered), content="typed value")
+  inspect(js_component.to_js_obscure().is_nil(), content="false")
+
+  let boundary = suspense(Text("loading"), [Text("ready")]).to_js_obscure()
+  inspect(test_suspense_tag_matches(boundary), content="true")
+  inspect(react_element_string_prop(boundary, "fallback"), content="loading")
 }
 
 ///|

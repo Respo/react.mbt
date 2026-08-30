@@ -50,6 +50,12 @@ identities rather than array indexes.
 - `ReactError::message() -> String`, `ReactErrorInfo::component_stack() -> String` - Inspect root callback values
 - `component[T](f: (T) -> VirtualNode, props: T, children: Array[VirtualNode]) -> VirtualNode` - Create a leaf component
 - `component_with_children[T](f: (T, Array[VirtualNode]) -> VirtualNode, props: T, children: Array[VirtualNode]) -> VirtualNode` - Create a component that places its children
+- `define_component[T](render: (T) -> VirtualNode) -> ReactComponent[T]` - Define a stable reusable component type with typed MoonBit props
+- `ReactComponent::render(props: T) -> VirtualNode` - Render a reusable typed component
+- `ReactComponent::memo(are_props_equal?: (T, T) -> Bool) -> ReactComponent[T]` - Memoize a typed component with default identity or a typed comparator
+- `lazy_component[T](loader: async () -> ReactComponent[T]) -> ReactComponent[T]` - Lazily load and cache a typed component through Suspense
+- `suspense(fallback: VirtualNode, children: Array[VirtualNode]) -> VirtualNode` - Display fallback UI until suspended children are ready
+- `component_from_js[T](component: JsObscure) -> ReactComponent[T]` - Declare the typed MoonBit props contract for a trusted JavaScript component
 - `VirtualNode::with_key(key: String) -> VirtualNode` - Assign a stable React reconciliation key without adding a DOM wrapper
 - `create_context[T](default_value: T) -> ReactContext[T]` - Create a typed React Context
 - `ReactContext::provider(value: T, children: Array[VirtualNode]) -> VirtualNode` - Provide a value without adding a DOM wrapper
@@ -83,6 +89,9 @@ For example, use `component(my_component, props, [])`, never
 - `use_deferred_value[T](value: T) -> T` - Deferred-value hook for non-urgent rendering
 - `use_transition() -> (Bool, (() -> Unit) -> Unit)` - Transition state and starter hook
 - `start_transition(action: () -> Unit) -> Unit` - Start a transition when pending state is not needed
+- `use_sync_external_store[T](subscribe, get_snapshot, get_server_snapshot?) -> T` - Read and subscribe to a typed immutable external-store snapshot
+- `use_imperative_ref[T]() -> ImperativeRef[T]` - Create a nullable typed ref for a custom component handle
+- `use_imperative_handle_deps[T](ref: ImperativeRef[T], create_handle: () -> T, deps: Array[JsObscure]) -> Unit` - Expose a typed React 19 imperative handle
 - `obscure[T](v: T) -> JsObscure` - Dependency conversion helper function
 
 ### HTML Element Bindings
@@ -183,6 +192,32 @@ Then initialize `React`, `ReactDOM`, and `ReactDOMClient` in the browser entry
 before calling `hydrate_root`. Do not bundle `react-dom/server` into ordinary
 client code merely to hydrate markup that was already generated on the server.
 
+### External Stores and Component Integration
+
+`use_sync_external_store` follows React's immutable snapshot contract. Keep the
+`subscribe` function stable across renders, return an unsubscribe callback, and
+return the same snapshot value while the store has not changed. When rendering
+on the server, provide `get_server_snapshot` and return the same initial value
+during hydration.
+
+`ReactComponent[T]` carries a single typed MoonBit props value. A component
+created through `component_from_js` receives that value as
+`props.moonbitProps`; this explicit carrier avoids spreading or depending on
+MoonBit's generated JavaScript object representation. `memo` compares this
+single value with `Object.is` by default, or receives previous and next typed
+values in its custom comparator.
+
+Declare memoized and lazy components outside ordinary render paths. A
+`lazy_component` loader resolves to `ReactComponent[T]`; React caches both the
+loader Promise and its resolved component. Render it below `suspense` so a
+fallback is visible while loading.
+
+React 19 makes refs available as component props, so this binding intentionally
+does not add a new `forwardRef` wrapper. Pass `ImperativeRef[T]` through typed
+props and call `use_imperative_handle_deps` in the child. `current()` returns
+`None` before commit and after cleanup. Prefer declarative props whenever the
+behavior does not genuinely require an imperative handle.
+
 ### Virtual DOM Types
 
 - `VirtualNode` - Base virtual node type
@@ -272,8 +307,10 @@ CI pins MoonBit compiler `0.10.4+2cc641edf` and validates Node 22 with Yarn
 1.22.22. `test:browser` runs deterministic TodoMVC and React runtime conformance
 flows in Chromium, including StrictMode lifecycle, batching, root reuse, DOM
 ref cleanup, async form Actions, form status, optimistic rollback, portals,
-root error callbacks, synchronous server rendering, and hydration; install it
-once locally with `yarn playwright install chromium`.
+root error callbacks, synchronous server rendering, hydration, external-store
+subscription lifecycles, memo/lazy/Suspense, typed JavaScript interoperation,
+and imperative handles; install it once locally with
+`yarn playwright install chromium`.
 Update the toolchain pin only through the full check, unit-test, interface,
 browser-test, and browser-build matrix. This revision was verified with MoonBit
 `0.1.20260713`, React 19.2.8, and Vite 8.2.x.

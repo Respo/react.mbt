@@ -81,6 +81,28 @@ extern "js" fn react_start_transition(action : JsObscure) -> Unit =
   #| (action) => globalThis.React.startTransition(action)
 
 ///|
+extern "js" fn react_use_sync_external_store(
+  subscribe : JsObscure,
+  get_snapshot : JsObscure,
+  get_server_snapshot : JsObscure,
+) -> JsObscure =
+  #| (subscribe, getSnapshot, getServerSnapshot) =>
+  #|   globalThis.React.useSyncExternalStore(
+  #|     subscribe,
+  #|     getSnapshot,
+  #|     getServerSnapshot ?? undefined,
+  #|   )
+
+///|
+extern "js" fn react_use_imperative_handle(
+  handle_ref : JsObscure,
+  create_handle : JsObscure,
+  deps : FixedArray[JsObscure],
+) -> Unit =
+  #| (ref, createHandle, deps) =>
+  #|   globalThis.React.useImperativeHandle(ref, createHandle, deps)
+
+///|
 fn fn0_to_js_obscure(f : () -> Unit) -> @dom.JsObscure = "%identity"
 
 ///|
@@ -275,6 +297,40 @@ pub fn ReactDomRef::to_js_obscure(self : ReactDomRef) -> JsObscure {
 }
 
 ///|
+/// A nullable typed ref for a custom imperative component handle.
+struct ImperativeRef[T] {
+  js_value : @dom.JsObscure
+  _handle_marker : T?
+}
+
+///|
+/// Creates an empty typed imperative ref. Pass it through typed component props
+/// and bind it inside the child with `use_imperative_handle_deps`.
+pub fn[T] use_imperative_ref() -> ImperativeRef[T] {
+  ImperativeRef::{
+    js_value: react_use_ref(JsObscure::null()),
+    _handle_marker: None,
+  }
+}
+
+///|
+/// Returns the committed handle, or `None` before mount and after cleanup.
+pub fn[T] ImperativeRef::current(self : ImperativeRef[T]) -> T? {
+  let current = react_ref_get_value(self.js_value)
+  if current.is_nil() {
+    None
+  } else {
+    Some(@dom.js_obscure_to_v(current))
+  }
+}
+
+///|
+/// Returns the underlying React ref object for an explicit JavaScript bridge.
+pub fn[T] ImperativeRef::to_js_obscure(self : ImperativeRef[T]) -> JsObscure {
+  self.js_value
+}
+
+///|
 /// Creates a reducer with an explicit initial state. Unlike the compatibility
 /// `use_reducer` overload, this accepts state types that do not implement
 /// `Default`.
@@ -331,4 +387,47 @@ pub fn use_transition() -> (Bool, (() -> Unit) -> Unit) {
 /// state. Use `use_transition` when the component also needs `is_pending`.
 pub fn start_transition(action : () -> Unit) -> Unit {
   react_start_transition(fn0_to_js_obscure(action))
+}
+
+///|
+/// Reads and subscribes to a typed immutable snapshot from an external store.
+///
+/// `subscribe` must return an unsubscribe callback and should keep stable
+/// identity across renders. Repeated `get_snapshot` calls must return the same
+/// value while the store has not changed. Supply `get_server_snapshot` when the
+/// component can render on the server; its initial value must also match during
+/// hydration.
+pub fn[T] use_sync_external_store(
+  subscribe : (() -> Unit) -> () -> Unit,
+  get_snapshot : () -> T,
+  get_server_snapshot? : () -> T,
+) -> T {
+  let server_snapshot = match get_server_snapshot {
+    Some(callback) => @dom.v_to_js_obscure(callback)
+    None => JsObscure::null()
+  }
+  react_use_sync_external_store(
+    @dom.v_to_js_obscure(subscribe),
+    @dom.v_to_js_obscure(get_snapshot),
+    server_snapshot,
+  )
+  |> any_from_js_value
+}
+
+///|
+/// Exposes a typed imperative handle through a nullable imperative ref.
+///
+/// React assigns `Some(handle)` after commit and restores `None` on cleanup.
+/// In React 19 the ref can be carried in ordinary typed component props, so a
+/// `forwardRef` wrapper is not required.
+pub fn[T] use_imperative_handle_deps(
+  handle_ref : ImperativeRef[T],
+  create_handle : () -> T,
+  deps : Array[JsObscure],
+) -> Unit {
+  react_use_imperative_handle(
+    handle_ref.to_js_obscure(),
+    @dom.v_to_js_obscure(create_handle),
+    FixedArray::from_array(deps),
+  )
 }

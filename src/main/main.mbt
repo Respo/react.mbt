@@ -40,6 +40,7 @@ fn run_app() -> Unit {
 fn main {
   run_app()
   run_conformance()
+  run_store_component_conformance()
 }
 
 ///|
