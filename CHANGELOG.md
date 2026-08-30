@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Added `create_portal` with real React coverage for target placement,
+  React-tree event propagation, and cleanup when the owning root unmounts.
+- Added typed React 19 root options for `identifierPrefix`, caught, uncaught,
+  and recoverable error callbacks, including error message and component-stack
+  accessors.
+- Added basic synchronous `render_to_string` SSR/SSG and `hydrate_root`, with
+  browser conformance for node reuse, matching `use_id` prefixes, interactive
+  hydration, and zero mismatches on the supported path. Streaming, suspended
+  data, and React Server Components remain explicitly out of scope.
+- Switched the library FFI to `globalThis` React globals so synchronous server
+  rendering does not require a browser `window` shim.
 - Added typed React 19 form `action` and submit-control `formAction` props,
   `ReactFormData`, and MoonBit async-to-Promise Action interoperation.
 - Added `use_optimistic` and ReactDOM `use_form_status` bindings with real

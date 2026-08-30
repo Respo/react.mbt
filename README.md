@@ -23,10 +23,11 @@ MoonBit JavaScript representation, so they must be values that the generated
 MoonBit runtime can pass directly; do not assume JSON serialization or deep
 cloning occurs.
 
-The browser entry point must initialize `window.React`, `window.ReactDOM`, and
-`window.ReactDOMClient` before calling this package. `window.ReactDOM` supplies
-DOM-specific Hooks such as `use_form_status`; the bundled demo shows the
-supported ESM integration pattern.
+The browser entry point must initialize `globalThis.React`,
+`globalThis.ReactDOM`, and `globalThis.ReactDOMClient` before calling this
+package. (`window` and `globalThis` are the same global object in a browser.)
+`ReactDOM` supplies DOM-specific Hooks such as `use_form_status`; the bundled
+demo shows the supported ESM integration pattern.
 
 Component functions must be placed in the virtual DOM through `component`, not
 called directly. Use `component_with_children` when the component needs to
@@ -40,7 +41,13 @@ identities rather than array indexes.
 ### Core Rendering API
 
 - `render(vdom: VirtualNode, parent: @dom.Element) -> Unit` - Render virtual DOM to specified parent element
+- `render_with_options(vdom: VirtualNode, parent: @dom.Element, options: RootOptions) -> Unit` - Create and render through a configured React root
+- `hydrate_root(vdom: VirtualNode, parent: @dom.Element, options?: RootOptions) -> Unit` - Attach React to matching server-rendered HTML
 - `unmount(parent: @dom.Element) -> Unit` - Unmount the React root for an element
+- `create_portal(child: VirtualNode, parent: @dom.Element, key?: String) -> VirtualNode` - Place DOM in another container while retaining React-tree context and event propagation
+- `render_to_string(vdom: VirtualNode, identifier_prefix?: String) -> String` - Basic synchronous SSR/SSG renderer
+- `RootOptions::new(...) -> RootOptions` - Configure `identifierPrefix` and caught, uncaught, and recoverable error callbacks
+- `ReactError::message() -> String`, `ReactErrorInfo::component_stack() -> String` - Inspect root callback values
 - `component[T](f: (T) -> VirtualNode, props: T, children: Array[VirtualNode]) -> VirtualNode` - Create a leaf component
 - `component_with_children[T](f: (T, Array[VirtualNode]) -> VirtualNode, props: T, children: Array[VirtualNode]) -> VirtualNode` - Create a component that places its children
 - `VirtualNode::with_key(key: String) -> VirtualNode` - Assign a stable React reconciliation key without adding a DOM wrapper
@@ -147,6 +154,35 @@ Static-style declarations are safe during server-side rendering or pre-rendering
 without a browser document they return their deterministic class name without
 injecting a tag. The browser's module evaluation then performs the injection.
 
+### Portals, Roots, and SSR Scope
+
+`create_portal` changes physical DOM placement only: context and events still
+follow the owning React tree. `render_with_options` applies its options only
+when it creates a root; later calls for the same parent reuse that root.
+
+The supported SSR/SSG path is deliberately narrow and explicit:
+
+- `render_to_string` is a synchronous `react-dom/server` binding.
+- `hydrate_root` requires markup identical to the initial client tree.
+- `identifier_prefix` must be identical in `render_to_string` and
+  `RootOptions::new` when the tree uses `use_id`.
+- Streaming, waiting for suspended data, async server rendering, React Server
+  Components, and framework routing/data protocols are not provided.
+
+For a server or build entry, initialize only the renderer globals it needs:
+
+```js
+import * as React from "react";
+import * as ReactDOMServer from "react-dom/server";
+
+globalThis.React = React;
+globalThis.ReactDOMServer = ReactDOMServer;
+```
+
+Then initialize `React`, `ReactDOM`, and `ReactDOMClient` in the browser entry
+before calling `hydrate_root`. Do not bundle `react-dom/server` into ordinary
+client code merely to hydrate markup that was already generated on the server.
+
 ### Virtual DOM Types
 
 - `VirtualNode` - Base virtual node type
@@ -162,9 +198,9 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import * as ReactDOMClient from "react-dom/client";
 
-window.React = React;
-window.ReactDOM = ReactDOM;
-window.ReactDOMClient = ReactDOMClient;
+globalThis.React = React;
+globalThis.ReactDOM = ReactDOM;
+globalThis.ReactDOMClient = ReactDOMClient;
 ```
 
 Here's a simple example of how to use this library:
@@ -235,15 +271,17 @@ corepack yarn test:browser
 CI pins MoonBit compiler `0.10.4+2cc641edf` and validates Node 22 with Yarn
 1.22.22. `test:browser` runs deterministic TodoMVC and React runtime conformance
 flows in Chromium, including StrictMode lifecycle, batching, root reuse, DOM
-ref cleanup, async form Actions, form status, and optimistic rollback; install
-it once locally with `yarn playwright install chromium`.
+ref cleanup, async form Actions, form status, optimistic rollback, portals,
+root error callbacks, synchronous server rendering, and hydration; install it
+once locally with `yarn playwright install chromium`.
 Update the toolchain pin only through the full check, unit-test, interface,
 browser-test, and browser-build matrix. This revision was verified with MoonBit
 `0.1.20260713`, React 19.2.8, and Vite 8.2.x.
 
-The browser entry point loads React, ReactDOM, and ReactDOMClient before the
-generated MoonBit application. `render` can be called again for the same parent
-element; the binding reuses its React root rather than creating a second one.
+The browser entry point loads React, ReactDOM, ReactDOMClient, and the demo-only
+server renderer before the generated MoonBit application. `render` can be
+called again for the same parent element; the binding reuses its React root
+rather than creating a second one.
 
 ## Release
 

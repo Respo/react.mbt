@@ -2,87 +2,30 @@
 using @css {respo_style, type RespoStyle}
 
 ///|
-extern "js" fn react_render(vdom : @dom.JsObscure, parent : @dom.Node) -> Unit =
-  #| (vdom, parent) => {
-  #|   const roots = globalThis.__moonbitReactRoots ??= new WeakMap();
-  #|   let root = roots.get(parent);
-  #|   if (!root) {
-  #|     root = window.ReactDOMClient.createRoot(parent);
-  #|     roots.set(parent, root);
-  #|   }
-  #|   root.render(vdom);
-  #| }
-
-///|
-extern "js" fn react_unmount(parent : @dom.Node) -> Unit =
-  #| (parent) => {
-  #|   const roots = globalThis.__moonbitReactRoots;
-  #|   const root = roots?.get(parent);
-  #|   if (root) {
-  #|     root.unmount();
-  #|     roots.delete(parent);
-  #|   }
-  #| }
-
-///|
-/// Renders a virtual DOM node to the specified parent element.
-///
-/// This function takes a virtual DOM node and a parent DOM element, then uses
-/// the React rendering engine to render the virtual node as a real DOM element
-/// within the parent. Repeated calls for the same parent reuse its React root.
-///
-/// # Parameters
-/// - `vdom`: The virtual DOM node to render.
-/// - `parent`: The parent DOM element where the rendered node will be appended.
-///
-/// # Example
-/// ```moonbit_no_check
-/// // Render a virtual element to the document body
-/// let custom_elem = create_element(
-///   "my-custom-element",
-///   ElementAttrs::new(),
-///   ElementEvents::new(),
-///   style=@css.respo_style(),
-///   [Text("Custom content")]
-/// )
-/// render(custom_elem.to_node(), document.body)
-/// ```
-pub fn render(vdom : VirtualNode, parent : @dom.Element) -> Unit {
-  react_render(vdom.to_js_obscure(), parent.reinterpret_as_node())
-}
-
-///|
-/// Unmounts the React root associated with a parent element, if one exists.
-/// A later call to `render` for the same parent creates a fresh root.
-pub fn unmount(parent : @dom.Element) -> Unit {
-  react_unmount(parent.reinterpret_as_node())
-}
-
-///|
 extern "js" fn react_create_element(
   tag : String,
   props : @dom.JsObjectObscure,
   children : FixedArray[@dom.JsObscure],
 ) -> @dom.JsObscure =
-  #| (tag, props, children) => window.React.createElement(tag, props, ...children)
+  #| (tag, props, children) => globalThis.React.createElement(tag, props, ...children)
 
 ///|
 extern "js" fn react_fragment(
   props : @dom.JsObjectObscure,
   children : FixedArray[@dom.JsObscure],
 ) -> @dom.JsObscure =
-  #| (props, children) => window.React.createElement(window.React.Fragment, props, ...children)
+  #| (props, children) => globalThis.React.createElement(globalThis.React.Fragment, props, ...children)
 
 ///|
 extern "js" fn react_clone_element_with_key(
   node : @dom.JsObscure,
   key : String,
 ) -> @dom.JsObscure =
-  #| (node, key) => window.React.cloneElement(node, { key })
+  #| (node, key) => globalThis.React.cloneElement(node, { key })
 
 ///|
 extern "js" fn react_use_state(initial : JsObscure) -> JsObscure =
-  #| (initial) => { return window.React.useState(initial)}
+  #| (initial) => { return globalThis.React.useState(initial)}
 
 ///|
 // React hook values are emitted by the MoonBit JavaScript runtime. These
@@ -905,7 +848,7 @@ extern "js" fn create_factory(
   #|     __moonbitRenderComponent: renderComponent,
   #|     __moonbitProps: props,
   #|   };
-  #|   let h0 = window.React.createElement(factory, internalProps, ...children);
+  #|   let h0 = globalThis.React.createElement(factory, internalProps, ...children);
   #|   return h0;
   #| }
 

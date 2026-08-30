@@ -85,7 +85,7 @@ extern "js" fn react_use_optimistic(
   value : JsObscure,
   reducer : JsObscure,
 ) -> JsObscure =
-  #| (value, reducer) => window.React.useOptimistic(value, reducer)
+  #| (value, reducer) => globalThis.React.useOptimistic(value, reducer)
 
 ///|
 /// Returns a temporary optimistic state and a typed dispatcher. React restores
@@ -106,7 +106,7 @@ pub fn[S, A] use_optimistic(
 
 ///|
 extern "js" fn react_use_form_status() -> JsObscure =
-  #| () => window.ReactDOM.useFormStatus()
+  #| () => globalThis.ReactDOM.useFormStatus()
 
 ///|
 /// Status for the nearest parent React form. A component calling this Hook

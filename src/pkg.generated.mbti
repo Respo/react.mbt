@@ -36,6 +36,8 @@ pub fn[T] create_context(T) -> ReactContext[T]
 
 pub fn create_element(String, ElementAttrs, ElementEvents, style~ : @respo_css.RespoStyle, Array[VirtualNode]) -> VirtualElement
 
+pub fn create_portal(VirtualNode, @dom-ffi.Element, key? : String) -> VirtualNode
+
 pub fn css_prop_to_camel_case(String) -> String
 
 #deprecated
@@ -68,6 +70,8 @@ pub fn h6(id? : String, class_name? : String, class_list? : Array[String], attrs
 
 pub fn header(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
+pub fn hydrate_root(VirtualNode, @dom-ffi.Element, options? : RootOptions) -> Unit
+
 pub fn img(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, src? : String, alt? : String, width? : String, height? : String, on_click? : (DOMEvent) -> Unit, on_load? : (DOMEvent) -> Unit, on_error? : (DOMEvent) -> Unit) -> VirtualNode
 
 pub fn input(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, type_? : InputType, name? : String, value? : String, default_value? : String, placeholder? : String, disabled? : Bool, read_only? : Bool, checked? : Bool, default_checked? : Bool, form_action? : FormAction, on_click? : (DOMEvent) -> Unit, on_change? : (DOMEvent) -> Unit, on_input? : (DOMEvent) -> Unit) -> VirtualNode
@@ -89,6 +93,10 @@ pub fn option(id? : String, class_name? : String, class_list? : Array[String], a
 pub fn p(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
 pub fn render(VirtualNode, @dom-ffi.Element) -> Unit
+
+pub fn render_to_string(VirtualNode, identifier_prefix? : String) -> String
+
+pub fn render_with_options(VirtualNode, @dom-ffi.Element, RootOptions) -> Unit
 
 pub fn section(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
@@ -319,6 +327,14 @@ pub fn ReactDomRef::current(Self) -> @dom-ffi.Element?
 pub fn ReactDomRef::to_js_obscure(Self) -> @dom-ffi.JsObscure
 
 #external
+pub type ReactError
+pub fn ReactError::message(Self) -> String
+
+#external
+pub type ReactErrorInfo
+pub fn ReactErrorInfo::component_stack(Self) -> String
+
+#external
 pub type ReactFormData
 pub fn ReactFormData::get_string(Self, String) -> String?
 
@@ -328,6 +344,9 @@ pub fn[T] ReactRef::from(T) -> Self[T]
 pub fn[T] ReactRef::get(Self[T]) -> T
 pub fn[T] ReactRef::set(Self[T], T) -> Unit
 pub fn[T] ReactRef::to_js_obscure(Self[T]) -> @dom-ffi.JsObscure
+
+type RootOptions
+pub fn RootOptions::new(identifier_prefix? : String, on_caught_error? : (ReactError, ReactErrorInfo) -> Unit, on_uncaught_error? : (ReactError, ReactErrorInfo) -> Unit, on_recoverable_error? : (ReactError, ReactErrorInfo) -> Unit) -> Self
 
 pub(all) enum StateUpdate[T] {
   Set(T)

@@ -24,6 +24,14 @@ type FormStatusProps derive(Default)
 
 type HooksDemoProps derive(Default)
 
+type HydrationProbeProps
+
+type PortalControllerProps
+
+type PortalOwnerProps
+
+type RootErrorControllerProps
+
 type Todo derive(Default)
 
 type TodoAction
