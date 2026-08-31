@@ -452,10 +452,12 @@ organization Secret `MOON_CREDENTIALS`; registry credentials never leave the
 ephemeral Actions runner. The publish command intentionally is not frozen:
 MoonBit validates the archive from a fresh extracted module that must install
 its declared dependencies. All source/package inputs are frozen and checked by
-the preceding release gates. The workflow then resolves `tiye/react@X.Y.Z` from a fresh
-temporary consumer, compiles a generated-DOM smoke use, runs JS check/build,
-and preserves the exact logs as an Actions artifact. A release is not complete
-until this downstream check passes.
+the preceding release gates. The workflow then resolves `tiye/react@X.Y.Z` from
+a fresh temporary consumer, runs JS check/build, verifies exact Node SSR output,
+and exercises client render, DOM-reusing hydration, and post-hydration state
+updates in Chromium. It requires zero browser diagnostics and preserves the
+exact logs as an Actions artifact. A release is not complete until this
+downstream runtime check passes.
 
 Release source is always checked out from the immutable tag. The downstream
 verifier is sparse-checked out separately from `github.workflow_sha`, so a

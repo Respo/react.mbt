@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.0 - 2026-08-31
+
 - Expanded the public API documentation gate from a 19-declaration allowlist to
   automatic discovery across the library package. All 228 explicit public
   declarations now carry doc comments, and checker regressions cover missing
@@ -26,7 +28,8 @@
   fulfilled/pending/rejected Chromium conformance.
 - Changed releases to publish `tiye/react` to mooncakes.io from the
   `release.published` GitHub Actions event, followed by an exact-version fresh
-  downstream check/build and retained verification logs.
+  downstream check/build, Node SSR runtime, Chromium render/hydration, zero
+  diagnostics, and retained verification logs.
 
 ## 0.2.0 - 2026-08-31
 
@@ -154,3 +157,11 @@ Experimental React bindings for MoonBit.
 ## 0.0.2-a1 - 2025-10-02
 
 - Updated the demos.
+
+## 0.0.1-a3 - 2025-10-01
+
+- Updated the project README for the early React binding preview.
+
+## 0.0.1-a2 - 2025-10-01
+
+- Cut an early prerelease of the MoonBit React binding.
