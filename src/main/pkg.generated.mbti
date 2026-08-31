@@ -20,6 +20,8 @@ type ContainerProps derive(Default)
 
 type ContextReaderProps
 
+type DomOperationsProps
+
 type EditingState derive(Default)
 
 type ExternalStoreControllerProps

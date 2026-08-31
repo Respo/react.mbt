@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Added typed React DOM `flushSync` and all six React 19.2 resource-hint APIs,
+  including CORS, preload destinations, referrer/fetch policies, security
+  metadata, image options, and required stylesheet precedence. Public API doc
+  comments now have a dedicated CI gate; real Chromium coverage verifies
+  synchronous DOM observability and exact hint deduplication without external
+  resource requests.
 - Added typed React 19.2 Web Streams SSR with progressive Suspense delivery,
   all-ready static output, abort control, identifier/bootstrap/CSP options, and
   server error reporting. Real Node and Chromium tests cover two progressive

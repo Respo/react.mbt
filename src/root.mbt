@@ -121,6 +121,441 @@ extern "js" fn react_create_portal(
   #|   : globalThis.ReactDOM.createPortal(child, parent, key)
 
 ///|
+/// Cross-origin policies supported by React DOM resource hints.
+/// `Anonymous` omits credentials, while `UseCredentials` includes them.
+pub(all) enum ResourceCrossOrigin {
+  Anonymous
+  UseCredentials
+} derive(Eq)
+
+///|
+fn ResourceCrossOrigin::to_string(self : ResourceCrossOrigin) -> String {
+  match self {
+    Anonymous => "anonymous"
+    UseCredentials => "use-credentials"
+  }
+}
+
+///|
+/// Browser fetch priorities supported by React DOM resource hints.
+/// This is a hint only; the browser retains control over actual scheduling.
+pub(all) enum ResourceFetchPriority {
+  Auto
+  High
+  Low
+} derive(Eq)
+
+///|
+fn ResourceFetchPriority::to_string(self : ResourceFetchPriority) -> String {
+  match self {
+    Auto => "auto"
+    High => "high"
+    Low => "low"
+  }
+}
+
+///|
+/// Valid `as` destinations for `preload` according to React 19.2.
+/// Select the destination that matches how the browser will consume the URL.
+pub(all) enum PreloadDestination {
+  Audio
+  Document
+  Embed
+  Fetch
+  Font
+  Image
+  Object
+  Script
+  Style
+  Track
+  Video
+  Worker
+} derive(Eq)
+
+///|
+fn PreloadDestination::to_string(self : PreloadDestination) -> String {
+  match self {
+    Audio => "audio"
+    Document => "document"
+    Embed => "embed"
+    Fetch => "fetch"
+    Font => "font"
+    Image => "image"
+    Object => "object"
+    Script => "script"
+    Style => "style"
+    Track => "track"
+    Video => "video"
+    Worker => "worker"
+  }
+}
+
+///|
+/// Referrer policies accepted by React 19.2's `preload` options.
+pub(all) enum ResourceReferrerPolicy {
+  NoReferrerWhenDowngrade
+  NoReferrer
+  Origin
+  OriginWhenCrossOrigin
+  UnsafeUrl
+} derive(Eq)
+
+///|
+fn ResourceReferrerPolicy::to_string(self : ResourceReferrerPolicy) -> String {
+  match self {
+    NoReferrerWhenDowngrade => "no-referrer-when-downgrade"
+    NoReferrer => "no-referrer"
+    Origin => "origin"
+    OriginWhenCrossOrigin => "origin-when-cross-origin"
+    UnsafeUrl => "unsafe-url"
+  }
+}
+
+///|
+/// Stylesheet precedence levels supported by React 19.2 `preinit`.
+/// Higher levels are inserted so they can override lower-precedence styles.
+pub(all) enum ResourceStylePrecedence {
+  Reset
+  Low
+  Medium
+  High
+} derive(Eq)
+
+///|
+fn ResourceStylePrecedence::to_string(self : ResourceStylePrecedence) -> String {
+  match self {
+    Reset => "reset"
+    Low => "low"
+    Medium => "medium"
+    High => "high"
+  }
+}
+
+///|
+fn optional_resource_string(value : String?) -> @dom.JsObscure {
+  match value {
+    Some(text) => @dom.JsObscure::from_string(text)
+    None => @dom.JsObscure::null()
+  }
+}
+
+///|
+fn optional_cross_origin(value : ResourceCrossOrigin?) -> @dom.JsObscure {
+  match value {
+    Some(mode) => @dom.JsObscure::from_string(mode.to_string())
+    None => @dom.JsObscure::null()
+  }
+}
+
+///|
+fn optional_fetch_priority(value : ResourceFetchPriority?) -> @dom.JsObscure {
+  match value {
+    Some(priority) => @dom.JsObscure::from_string(priority.to_string())
+    None => @dom.JsObscure::null()
+  }
+}
+
+///|
+/// Typed options for React DOM `preload`.
+/// Image-only fields are meaningful only with `PreloadDestination::Image`.
+struct PreloadOptions {
+  js_value : @dom.JsObscure
+}
+
+///|
+extern "js" fn react_preload_options(
+  destination : String,
+  cross_origin : @dom.JsObscure,
+  referrer_policy : @dom.JsObscure,
+  integrity : @dom.JsObscure,
+  mime_type : @dom.JsObscure,
+  nonce : @dom.JsObscure,
+  fetch_priority : @dom.JsObscure,
+  image_src_set : @dom.JsObscure,
+  image_sizes : @dom.JsObscure,
+) -> @dom.JsObscure =
+  #| (as, crossOrigin, referrerPolicy, integrity, type, nonce, fetchPriority, imageSrcSet, imageSizes) => {
+  #|   const options = { as };
+  #|   if (crossOrigin != null) options.crossOrigin = crossOrigin;
+  #|   if (referrerPolicy != null) options.referrerPolicy = referrerPolicy;
+  #|   if (integrity != null) options.integrity = integrity;
+  #|   if (type != null) options.type = type;
+  #|   if (nonce != null) options.nonce = nonce;
+  #|   if (fetchPriority != null) options.fetchPriority = fetchPriority;
+  #|   if (imageSrcSet != null) options.imageSrcSet = imageSrcSet;
+  #|   if (imageSizes != null) options.imageSizes = imageSizes;
+  #|   return options;
+  #| }
+
+///|
+/// Creates options for `preload`.
+///
+/// `destination` is required by React. `Fetch` resources must also provide a
+/// `cross_origin` policy. `image_src_set` and `image_sizes` apply only to
+/// `Image`; equivalent image hints are deduplicated by URL, source set, and
+/// sizes, while other destinations are deduplicated by URL.
+pub fn PreloadOptions::new(
+  destination : PreloadDestination,
+  cross_origin? : ResourceCrossOrigin,
+  referrer_policy? : ResourceReferrerPolicy,
+  integrity? : String,
+  mime_type? : String,
+  nonce? : String,
+  fetch_priority? : ResourceFetchPriority,
+  image_src_set? : String,
+  image_sizes? : String,
+) -> PreloadOptions {
+  let js_referrer_policy = match referrer_policy {
+    Some(policy) => @dom.JsObscure::from_string(policy.to_string())
+    None => @dom.JsObscure::null()
+  }
+  PreloadOptions::{
+    js_value: react_preload_options(
+      destination.to_string(),
+      optional_cross_origin(cross_origin),
+      js_referrer_policy,
+      optional_resource_string(integrity),
+      optional_resource_string(mime_type),
+      optional_resource_string(nonce),
+      optional_fetch_priority(fetch_priority),
+      optional_resource_string(image_src_set),
+      optional_resource_string(image_sizes),
+    ),
+  }
+}
+
+///|
+/// Shared typed options for ESM module preload and preinit hints.
+/// React always receives `as: "script"`; callers configure only CORS and
+/// security metadata.
+struct ModuleHintOptions {
+  js_value : @dom.JsObscure
+}
+
+///|
+extern "js" fn react_module_hint_options(
+  cross_origin : @dom.JsObscure,
+  integrity : @dom.JsObscure,
+  nonce : @dom.JsObscure,
+) -> @dom.JsObscure =
+  #| (crossOrigin, integrity, nonce) => {
+  #|   const options = { as: "script" };
+  #|   if (crossOrigin != null) options.crossOrigin = crossOrigin;
+  #|   if (integrity != null) options.integrity = integrity;
+  #|   if (nonce != null) options.nonce = nonce;
+  #|   return options;
+  #| }
+
+///|
+/// Creates ESM resource-hint options shared by `preload_module` and
+/// `preinit_module`. Repeated calls with the same URL are deduplicated by
+/// React, regardless of how many times the wrapper is invoked.
+pub fn ModuleHintOptions::new(
+  cross_origin? : ResourceCrossOrigin,
+  integrity? : String,
+  nonce? : String,
+) -> ModuleHintOptions {
+  ModuleHintOptions::{
+    js_value: react_module_hint_options(
+      optional_cross_origin(cross_origin),
+      optional_resource_string(integrity),
+      optional_resource_string(nonce),
+    ),
+  }
+}
+
+///|
+/// Typed options for React DOM `preinit` of classic scripts or stylesheets.
+/// Use the dedicated constructors so stylesheet precedence cannot be omitted.
+struct PreinitOptions {
+  js_value : @dom.JsObscure
+}
+
+///|
+extern "js" fn react_preinit_options(
+  resource_type : String,
+  precedence : @dom.JsObscure,
+  cross_origin : @dom.JsObscure,
+  integrity : @dom.JsObscure,
+  nonce : @dom.JsObscure,
+  fetch_priority : @dom.JsObscure,
+) -> @dom.JsObscure =
+  #| (as, precedence, crossOrigin, integrity, nonce, fetchPriority) => {
+  #|   const options = { as };
+  #|   if (precedence != null) options.precedence = precedence;
+  #|   if (crossOrigin != null) options.crossOrigin = crossOrigin;
+  #|   if (integrity != null) options.integrity = integrity;
+  #|   if (nonce != null) options.nonce = nonce;
+  #|   if (fetchPriority != null) options.fetchPriority = fetchPriority;
+  #|   return options;
+  #| }
+
+///|
+/// Creates `preinit` options for a classic external script. The resource is
+/// fetched and executed when ready; use `preload` when execution should wait.
+pub fn PreinitOptions::script(
+  cross_origin? : ResourceCrossOrigin,
+  integrity? : String,
+  nonce? : String,
+  fetch_priority? : ResourceFetchPriority,
+) -> PreinitOptions {
+  PreinitOptions::{
+    js_value: react_preinit_options(
+      "script",
+      @dom.JsObscure::null(),
+      optional_cross_origin(cross_origin),
+      optional_resource_string(integrity),
+      optional_resource_string(nonce),
+      optional_fetch_priority(fetch_priority),
+    ),
+  }
+}
+
+///|
+/// Creates `preinit` options for a stylesheet. `precedence` is mandatory and
+/// determines its order relative to other React-managed stylesheets.
+pub fn PreinitOptions::style(
+  precedence : ResourceStylePrecedence,
+  cross_origin? : ResourceCrossOrigin,
+  integrity? : String,
+  nonce? : String,
+  fetch_priority? : ResourceFetchPriority,
+) -> PreinitOptions {
+  PreinitOptions::{
+    js_value: react_preinit_options(
+      "style",
+      @dom.JsObscure::from_string(precedence.to_string()),
+      optional_cross_origin(cross_origin),
+      optional_resource_string(integrity),
+      optional_resource_string(nonce),
+      optional_fetch_priority(fetch_priority),
+    ),
+  }
+}
+
+///|
+extern "js" fn react_flush_sync(callback : () -> Unit) -> Unit =
+  #| (callback) => {
+  #|   globalThis.ReactDOM.flushSync(() => {
+  #|     callback();
+  #|   });
+  #| }
+
+///|
+/// Forces React to apply updates scheduled inside `callback` before returning.
+///
+/// This is a last-resort escape hatch for third-party or browser integrations
+/// that must observe the updated DOM synchronously. It can hurt performance,
+/// flush pending work outside the callback, run pending Effects, or reveal
+/// Suspense fallbacks. Do not call it during render or an Effect.
+pub fn flush_sync(callback : () -> Unit) -> Unit {
+  react_flush_sync(callback)
+}
+
+///|
+extern "js" fn react_prefetch_dns(href : String) -> Unit =
+  #| (href) => { globalThis.ReactDOM.prefetchDNS(href); }
+
+///|
+/// Hints that the browser may resolve the host in `href` ahead of use.
+/// Equivalent calls for the same server are deduplicated by React. During SSR,
+/// call this only while rendering or in async work originating from rendering.
+pub fn prefetch_dns(href : String) -> Unit {
+  react_prefetch_dns(href)
+}
+
+///|
+extern "js" fn react_preconnect(
+  href : String,
+  cross_origin : @dom.JsObscure,
+) -> Unit =
+  #| (href, crossOrigin) => {
+  #|   globalThis.ReactDOM.preconnect(
+  #|     href,
+  #|     crossOrigin == null ? undefined : { crossOrigin },
+  #|   );
+  #| }
+
+///|
+/// Hints that the browser may open an early connection to the server in
+/// `href`. Use `cross_origin` when the eventual request uses CORS. Equivalent
+/// calls for the same server have the effect of one call.
+pub fn preconnect(href : String, cross_origin? : ResourceCrossOrigin) -> Unit {
+  react_preconnect(href, optional_cross_origin(cross_origin))
+}
+
+///|
+extern "js" fn react_preload(href : String, options : @dom.JsObscure) -> Unit =
+  #| (href, options) => { globalThis.ReactDOM.preload(href, options); }
+
+///|
+/// Hints that the browser should start downloading `href` with the configured
+/// destination and metadata. Prefer framework resource management when one is
+/// present; frameworks commonly emit and deduplicate these hints themselves.
+pub fn preload(href : String, options : PreloadOptions) -> Unit {
+  react_preload(href, options.js_value)
+}
+
+///|
+extern "js" fn react_preload_module(
+  href : String,
+  options : @dom.JsObscure,
+) -> Unit =
+  #| (href, options) => { globalThis.ReactDOM.preloadModule(href, options); }
+
+///|
+/// Hints that the browser should download the ESM module at `href` without
+/// evaluating it. Use `preinit_module` when it should execute when ready.
+pub fn preload_module(href : String, options? : ModuleHintOptions) -> Unit {
+  let js_options = match options {
+    Some(value) => value.js_value
+    None =>
+      react_module_hint_options(
+        @dom.JsObscure::null(),
+        @dom.JsObscure::null(),
+        @dom.JsObscure::null(),
+      )
+  }
+  react_preload_module(href, js_options)
+}
+
+///|
+extern "js" fn react_preinit(href : String, options : @dom.JsObscure) -> Unit =
+  #| (href, options) => { globalThis.ReactDOM.preinit(href, options); }
+
+///|
+/// Hints that the browser should download and immediately apply a stylesheet
+/// or execute a classic script. Select the matching `PreinitOptions`
+/// constructor; use `preload` when the resource must not take effect yet.
+pub fn preinit(href : String, options : PreinitOptions) -> Unit {
+  react_preinit(href, options.js_value)
+}
+
+///|
+extern "js" fn react_preinit_module(
+  href : String,
+  options : @dom.JsObscure,
+) -> Unit =
+  #| (href, options) => { globalThis.ReactDOM.preinitModule(href, options); }
+
+///|
+/// Hints that the browser should download and evaluate the ESM module at
+/// `href`. Use `preload_module` when evaluation should wait. Framework-managed
+/// applications usually do not need to call this API directly.
+pub fn preinit_module(href : String, options? : ModuleHintOptions) -> Unit {
+  let js_options = match options {
+    Some(value) => value.js_value
+    None =>
+      react_module_hint_options(
+        @dom.JsObscure::null(),
+        @dom.JsObscure::null(),
+        @dom.JsObscure::null(),
+      )
+  }
+  react_preinit_module(href, js_options)
+}
+
+///|
 extern "js" fn react_render_to_string(
   vdom : @dom.JsObscure,
   identifier_prefix : @dom.JsObscure,

@@ -67,6 +67,9 @@ identities rather than array indexes.
 - `VirtualNode::with_key(key: String) -> VirtualNode` - Assign a stable React reconciliation key without adding a DOM wrapper
 - `create_context[T](default_value: T) -> ReactContext[T]` - Create a typed React Context
 - `ReactContext::provider(value: T, children: Array[VirtualNode]) -> VirtualNode` - Provide a value without adding a DOM wrapper
+- `flush_sync(callback: () -> Unit) -> Unit` - Force callback updates into the DOM before returning for rare third-party integrations
+- `prefetch_dns`, `preconnect`, `preload`, `preload_module`, `preinit`, `preinit_module` - Emit React-managed browser resource hints
+- `PreloadOptions`, `ModuleHintOptions`, `PreinitOptions` - Configure typed destination, CORS, priority, integrity, CSP, image, module, and stylesheet-precedence metadata
 
 For example, use `component(my_component, props, [])`, never
 `my_component(props)` directly in a virtual DOM tree.
@@ -187,6 +190,36 @@ call; use `use_ref` or `use_dom_ref` at the top level of a component.
 Static-style declarations are safe during server-side rendering or pre-rendering:
 without a browser document they return their deterministic class name without
 injecting a tag. The browser's module evaluation then performs the injection.
+
+### React DOM Operational APIs
+
+`flush_sync` is a last-resort integration escape hatch. It guarantees that
+updates scheduled inside its callback are reflected in the DOM by the next
+line, but it may also flush pending work, run Effects, or reveal Suspense
+fallbacks. Use it in an event or browser/third-party callback only; do not call
+it while React is rendering or running an Effect, and do not replace normal
+React batching with it.
+
+The six resource-hint helpers mirror React 19.2:
+
+- `prefetch_dns` resolves a host speculatively; `preconnect` additionally asks
+  the browser to open an early connection.
+- `preload` and `preload_module` download a classic resource or ESM module
+  without applying/evaluating it.
+- `preinit` and `preinit_module` download and immediately apply a stylesheet or
+  evaluate a classic/ESM script when ready.
+
+Use `PreloadOptions::new` with a typed `PreloadDestination`. Fetch destinations
+must supply `cross_origin`; the image source-set and sizes fields are image-only.
+Use `PreinitOptions::script` or `PreinitOptions::style`; the style constructor
+requires typed precedence so a required React option cannot be omitted. Module
+hints always use `as: "script"` internally.
+
+React deduplicates equivalent hints. Browser calls may be made during render,
+Effects, or events; server-rendered hints only take effect during component
+rendering or async work originating from it. Frameworks commonly manage
+resource discovery, ordering, and deduplication already, so consult the
+framework documentation before calling these APIs directly.
 
 ### Portals, Roots, and SSR Scope
 
@@ -366,6 +399,7 @@ moon info
 corepack yarn install --frozen-lockfile
 corepack yarn generate:dom
 corepack yarn check:generated
+corepack yarn check:docs
 corepack yarn test:server
 corepack yarn build
 corepack yarn test:browser

@@ -47,6 +47,9 @@ jobs:
           moon info
           git diff --exit-code -- src/pkg.generated.mbti src/main/pkg.generated.mbti src/main/streaming-test/pkg.generated.mbti
 
+      - name: Check public API documentation
+        run: yarn check:docs
+
       - name: moon test
         run: moon test
 
