@@ -67,6 +67,9 @@ jobs:
           git diff --check
           git diff --exit-code
 
+      - name: Verify server Web Stream conformance
+        run: yarn test:server
+
       - name: Verify generated sources and release metadata
         run: |
           yarn check:generated

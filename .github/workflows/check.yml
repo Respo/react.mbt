@@ -45,10 +45,13 @@ jobs:
       - name: Check generated interfaces
         run: |
           moon info
-          git diff --exit-code -- src/pkg.generated.mbti src/main/pkg.generated.mbti
+          git diff --exit-code -- src/pkg.generated.mbti src/main/pkg.generated.mbti src/main/streaming-test/pkg.generated.mbti
 
       - name: moon test
         run: moon test
+
+      - name: Server Web Stream conformance
+        run: yarn test:server
 
       - name: Install Chromium for browser tests
         run: npx playwright install --with-deps chromium

@@ -175,6 +175,8 @@ pub fn rect(id? : String, class_name? : String, class_list? : Array[String], att
 
 pub fn render(VirtualNode, @dom-ffi.Element) -> Unit
 
+pub async fn render_to_readable_stream(VirtualNode, options? : StreamRenderOptions) -> ReactReadableStream
+
 pub fn render_to_string(VirtualNode, identifier_prefix? : String) -> String
 
 pub fn render_with_options(VirtualNode, @dom-ffi.Element, RootOptions) -> Unit
@@ -489,6 +491,12 @@ pub fn ReactErrorInfo::component_stack(Self) -> String
 pub type ReactFormData
 pub fn ReactFormData::get_string(Self, String) -> String?
 
+type ReactReadableStream
+pub fn ReactReadableStream::abort(Self, reason? : String) -> Unit
+pub async fn ReactReadableStream::read_text(Self) -> String
+pub fn ReactReadableStream::to_js_readable_stream(Self) -> @js_async.JsReadableStream
+pub async fn ReactReadableStream::wait_all_ready(Self) -> Unit
+
 type ReactRef[T]
 #deprecated
 pub fn[T] ReactRef::from(T) -> Self[T]
@@ -506,6 +514,9 @@ pub(all) enum StateUpdate[T] {
   Set(T)
   Update((T) -> T)
 }
+
+type StreamRenderOptions
+pub fn StreamRenderOptions::new(identifier_prefix? : String, bootstrap_scripts? : Array[String], bootstrap_modules? : Array[String], nonce? : String, on_error? : (ReactError) -> Unit) -> Self
 
 pub struct VirtualElement {
   name : String

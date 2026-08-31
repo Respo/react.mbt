@@ -118,6 +118,49 @@ test("portals and hydration preserve React tree and existing DOM semantics", asy
   expect(consoleProblems).toEqual([]);
 });
 
+test("Web Stream HTML hydrates by reusing DOM with matching identifiers", async ({ page }) => {
+  const pageErrors = [];
+  const consoleProblems = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  page.on("console", (message) => {
+    if (["warning", "error"].includes(message.type())) {
+      consoleProblems.push(`${message.type()}: ${message.text()}`);
+    }
+  });
+
+  await page.goto("/");
+  await expect(page.locator("#streaming-hydration-button")).toHaveText(
+    "Streaming hydration clicks: 0",
+  );
+  const evidence = await page.evaluate(() => {
+    const target = document.querySelector("#react-streaming-hydration-root");
+    const state = globalThis.__moonbitStreamingHydration;
+    return {
+      reused: state?.serverNode === target?.firstElementChild,
+      htmlBytes: state?.htmlBytes ?? 0,
+      serverErrors: state?.serverErrors ?? [],
+      recoverableErrors: state?.recoverableErrors ?? [],
+      generatedId: document.querySelector("#streaming-hydration-id")?.textContent,
+    };
+  });
+  expect(evidence).toEqual({
+    reused: true,
+    htmlBytes: expect.any(Number),
+    serverErrors: [],
+    recoverableErrors: [],
+    generatedId: expect.stringContaining("moonbit-stream-"),
+  });
+  expect(evidence.htmlBytes).toBeGreaterThan(0);
+
+  await page.locator("#streaming-hydration-button").click();
+  await expect(page.locator("#streaming-hydration-button")).toHaveText(
+    "Streaming hydration clicks: 1",
+  );
+
+  expect(pageErrors).toEqual([]);
+  expect(consoleProblems).toEqual([]);
+});
+
 test("root options report caught, uncaught, and recoverable errors exactly once", async ({ page }) => {
   const pageErrors = [];
   const consoleProblems = [];

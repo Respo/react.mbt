@@ -41,6 +41,7 @@ fn main {
   run_app()
   run_conformance()
   run_resource_boundary_conformance()
+  run_streaming_hydration_conformance()
   run_store_component_conformance()
   run_generated_dom_conformance()
 }

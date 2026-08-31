@@ -369,6 +369,56 @@ extern "js" fn install_test_react_dom() -> Unit =
   #| }
 
 ///|
+extern "js" fn install_test_stream_renderer() -> Unit =
+  #| () => {
+  #|   globalThis.__moonbitStreamTest = {
+  #|     options: null,
+  #|     aborts: 0,
+  #|   };
+  #|   globalThis.ReactDOMServer.renderToReadableStream = async (vdom, options) => {
+  #|     globalThis.__moonbitStreamTest.options = options;
+  #|     options.signal.addEventListener("abort", () => {
+  #|       globalThis.__moonbitStreamTest.aborts += 1;
+  #|     });
+  #|     options.onError?.(new Error("reported stream error"));
+  #|     const stream = new ReadableStream({
+  #|       start(controller) {
+  #|         controller.enqueue(new TextEncoder().encode(`streamed:${vdom}`));
+  #|         controller.close();
+  #|       },
+  #|     });
+  #|     stream.allReady = Promise.resolve();
+  #|     return stream;
+  #|   };
+  #| }
+
+///|
+extern "js" fn test_stream_identifier_prefix() -> String =
+  #| () => globalThis.__moonbitStreamTest.options?.identifierPrefix ?? ""
+
+///|
+extern "js" fn test_stream_bootstrap_script_count() -> Int =
+  #| () => globalThis.__moonbitStreamTest.options?.bootstrapScripts?.length ?? 0
+
+///|
+extern "js" fn test_stream_bootstrap_module_count() -> Int =
+  #| () => globalThis.__moonbitStreamTest.options?.bootstrapModules?.length ?? 0
+
+///|
+extern "js" fn test_stream_nonce() -> String =
+  #| () => globalThis.__moonbitStreamTest.options?.nonce ?? ""
+
+///|
+extern "js" fn test_stream_abort_count() -> Int =
+  #| () => globalThis.__moonbitStreamTest.aborts
+
+///|
+extern "js" fn test_is_readable_stream(
+  stream : @js_async.JsReadableStream,
+) -> Bool =
+  #| (stream) => typeof stream?.getReader === "function"
+
+///|
 extern "js" fn test_parent_element() -> @dom.Element =
   #| () => ({})
 
@@ -2004,6 +2054,41 @@ test "portal and synchronous server renderer preserve their arguments" {
     content="<main>ssr-</main>",
   )
   inspect(test_server_render_prefix(), content="ssr-")
+}
+
+///|
+async test "Web Stream renderer maps options, allReady, text, and abort" {
+  install_test_react()
+  install_test_react_dom()
+  install_test_stream_renderer()
+  let mut error_reports = 0
+  let stream = render_to_readable_stream(
+    Text("server"),
+    options=StreamRenderOptions::new(
+      identifier_prefix="stream-",
+      bootstrap_scripts=["/client.js"],
+      bootstrap_modules=["/module.js"],
+      nonce="nonce-value",
+      on_error=fn(error) {
+        if error.message() == "reported stream error" {
+          error_reports = error_reports + 1
+        }
+      },
+    ),
+  )
+  inspect(test_stream_identifier_prefix(), content="stream-")
+  inspect(test_stream_bootstrap_script_count(), content="1")
+  inspect(test_stream_bootstrap_module_count(), content="1")
+  inspect(test_stream_nonce(), content="nonce-value")
+  inspect(error_reports, content="1")
+  inspect(
+    test_is_readable_stream(stream.to_js_readable_stream()),
+    content="true",
+  )
+  stream.wait_all_ready()
+  inspect(stream.read_text(), content="streamed:server")
+  stream.abort(reason="test complete")
+  inspect(test_stream_abort_count(), content="1")
 }
 
 ///|
