@@ -16,39 +16,77 @@ permissions:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     env:
       RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+      VERIFY_GIT_TAGS: "1"
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          ref: ${{ inputs.tag || github.ref }}
       - uses: hustcer/setup-moonbit@v1
         with:
           version: "0.10.4+2cc641edf"
           core-version: "0.10.4+2cc641edf"
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: "yarn"
+
       - name: Enable Corepack
         run: corepack enable
+
       - name: Install JavaScript dependencies
         run: yarn install --frozen-lockfile
+
+      - name: Verify tag identity and main ancestry
+        run: |
+          git fetch origin main --tags
+          tag_commit="$(git rev-parse "$RELEASE_TAG^{commit}")"
+          test "$tag_commit" = "$(git rev-parse HEAD)"
+          git merge-base --is-ancestor "$tag_commit" origin/main
+
       - name: Verify MoonBit module
         run: |
           moon update
+          moon version
           moon check --target js
           moon test
           moon info
           moon fmt
           git diff --check
           git diff --exit-code
-      - name: Build browser demo and MoonBit package
+
+      - name: Verify generated sources and release metadata
         run: |
-          yarn build
-          moon package --list
-      - name: Verify tag matches module version
+          yarn check:generated
+          yarn check:release
+
+      - name: Install Chromium for browser tests
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify real-browser conformance
+        run: yarn test:browser
+
+      - name: Build browser demo
+        run: yarn build
+
+      - name: Rebuild and checksum MoonBit package
         run: |
-          module_version="$(sed -n 's/^version = "\(.*\)"/\1/p' moon.mod)"
-          test "$RELEASE_TAG" = "v$module_version"
+          moon package --frozen --list
+          cd _build/publish
+          sha256sum ./*.zip > SHA256SUMS
+
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$RELEASE_TAG" _build/publish/*.zip --generate-notes
+        run: |
+          gh release create "$RELEASE_TAG" \
+            _build/publish/*.zip \
+            _build/publish/SHA256SUMS \
+            --title "$RELEASE_TAG" \
+            --notes-file "release-notes/$RELEASE_TAG.md" \
+            --verify-tag \
+            --fail-on-no-commits

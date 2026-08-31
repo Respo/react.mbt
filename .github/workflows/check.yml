@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Setup Moonbit
         uses: hustcer/setup-moonbit@v1
@@ -34,6 +36,11 @@ jobs:
 
       - name: moon check
         run: moon update && moon version && moon check --target js
+
+      - name: Check release metadata and package contents
+        env:
+          VERIFY_GIT_TAGS: "1"
+        run: yarn check:release
 
       - name: Check generated interfaces
         run: |

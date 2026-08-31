@@ -1,0 +1,38 @@
+name: Verify published package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Exact mooncakes.io version, for example 0.2.0"
+        required: true
+        type: string
+
+jobs:
+  downstream:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: hustcer/setup-moonbit@v1
+        with:
+          version: "0.10.4+2cc641edf"
+          core-version: "0.10.4+2cc641edf"
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Resolve and compile a fresh downstream module
+        run: |
+          set -o pipefail
+          node scripts/verify-published-package.mjs "${{ inputs.version }}" \
+            | tee published-verification.log
+
+      - name: Preserve downstream evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: published-verification-${{ inputs.version }}
+          path: published-verification.log
+          if-no-files-found: error

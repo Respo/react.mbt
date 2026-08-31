@@ -341,13 +341,32 @@ rather than creating a second one.
 
 ## Release
 
-The release workflow verifies the module, builds the demo, packages the MoonBit
-module, and attaches the package archive to a GitHub Release. Trigger it by
-pushing a tag that exactly matches the module version, for example `v0.1.0`.
+Prepare releases on a branch by aligning `moon.mod`, `package.json`, the dated
+Changelog section, and bilingual `release-notes/vX.Y.Z.md`. Run
+`yarn check:release`; it requires exact version agreement, complete historical
+tag coverage, an empty `Unreleased` section, and an exact 17-file package
+allowlist.
 
-To also publish the module to mooncakes.io, log in with `moon login` and run
-`moon publish --frozen` after the release checks pass. The registry credential
-is deliberately not stored in the GitHub workflow.
+After the preparation PR is merged, create and push an annotated `vX.Y.Z` tag
+that points to `main`. The release workflow verifies tag identity and main
+ancestry, generated sources, MoonBit check/test/interface/format results, real
+Chromium conformance, the browser build, and the package allowlist. It creates
+a GitHub Release whose title exactly matches the tag and attaches both the
+MoonBit archive and `SHA256SUMS`.
+
+Publishing to mooncakes.io remains a separate authenticated step because the
+registry credential is deliberately not stored in GitHub Actions. Log in with
+`moon login`, run `moon publish --frozen`, then prove the exact published
+version from a fresh temporary consumer:
+
+```bash
+corepack yarn verify:published X.Y.Z
+```
+
+The same check is available through the manual **Verify published package**
+workflow. It resolves `tiye/react@X.Y.Z`, compiles a generated-DOM smoke use,
+and preserves the command metrics as a workflow artifact. A release is not
+complete until this downstream check passes.
 
 ### License
 
