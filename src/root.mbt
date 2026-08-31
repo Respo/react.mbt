@@ -293,7 +293,8 @@ extern "js" fn react_preload_options(
 /// `destination` is required by React. `Fetch` resources must also provide a
 /// `cross_origin` policy. `image_src_set` and `image_sizes` apply only to
 /// `Image`; equivalent image hints are deduplicated by URL, source set, and
-/// sizes, while other destinations are deduplicated by URL.
+/// sizes, while other destinations are deduplicated by URL. Construction
+/// aborts when `Fetch` is selected without `cross_origin`.
 pub fn PreloadOptions::new(
   destination : PreloadDestination,
   cross_origin? : ResourceCrossOrigin,
@@ -305,6 +306,9 @@ pub fn PreloadOptions::new(
   image_src_set? : String,
   image_sizes? : String,
 ) -> PreloadOptions {
+  if destination == PreloadDestination::Fetch && cross_origin is None {
+    abort("React preload with destination Fetch requires cross_origin")
+  }
   let js_referrer_policy = match referrer_policy {
     Some(policy) => @dom.JsObscure::from_string(policy.to_string())
     None => @dom.JsObscure::null()

@@ -2100,6 +2100,21 @@ test "portal and synchronous server renderer preserve their arguments" {
 ///|
 test "React DOM operational APIs map callbacks and all six resource hints" {
   install_test_react_dom()
+  inspect(
+    test_callback_throws(fn() {
+      let _ = PreloadOptions::new(PreloadDestination::Fetch)
+    }),
+    content="true",
+  )
+  inspect(
+    test_callback_throws(fn() {
+      let _ = PreloadOptions::new(
+        PreloadDestination::Fetch,
+        cross_origin=ResourceCrossOrigin::Anonymous,
+      )
+    }),
+    content="false",
+  )
   let mut callback_calls = 0
   flush_sync(fn() { callback_calls = callback_calls + 1 })
   prefetch_dns("https://dns.example")

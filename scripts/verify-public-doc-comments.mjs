@@ -23,9 +23,28 @@ const declarations = [
   "pub fn preinit_module",
 ];
 
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const matchesDeclaration = (block, declaration) =>
+  new RegExp(`${escapeRegExp(declaration)}(?=\\s*[({])`, "m").test(block);
+
+const prefixCollisionRegressions = [
+  ["pub fn preload_module(String) -> Unit", "pub fn preload"],
+  ["pub fn preinit_module(String) -> Unit", "pub fn preinit"],
+];
+for (const [block, shorterDeclaration] of prefixCollisionRegressions) {
+  if (matchesDeclaration(block, shorterDeclaration)) {
+    console.error(
+      `public API doc-comment checker matched a declaration prefix: ${shorterDeclaration}`,
+    );
+    process.exit(1);
+  }
+}
+
 const blocks = source.split("///|");
 const missing = declarations.filter((declaration) => {
-  const block = blocks.find((candidate) => candidate.includes(declaration));
+  const block = blocks.find((candidate) =>
+    matchesDeclaration(candidate, declaration),
+  );
   if (!block) return true;
   const declarationOffset = block.indexOf(declaration);
   return !block
@@ -46,6 +65,7 @@ console.log(
     {
       documentedDeclarations: declarations.length,
       missingDocComments: 0,
+      prefixCollisionRegressions: prefixCollisionRegressions.length,
     },
     null,
     2,
