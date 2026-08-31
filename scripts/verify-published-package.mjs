@@ -45,7 +45,7 @@ try {
   );
   writeFileSync(
     join(directory, "smoke.mbt"),
-    "pub fn release_smoke() -> @react.VirtualNode {\n  @react.table(children=[])\n}\n",
+    "pub fn release_smoke() -> @react.VirtualNode {\n  @react.table([])\n}\n",
   );
 
   run("moon", ["update"]);
