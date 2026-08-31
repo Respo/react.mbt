@@ -28,12 +28,18 @@ fn run_app() -> Unit {
   let window = @dom.window()
   let doc = window.document()
   let root = match doc.get_element_by_id("root") {
-    Some(root) => root
-    None => doc.body().unwrap()
+    Some(root) => Some(root)
+    None => doc.body()
   }
-  let props : ContainerProps = Default::default()
-  @react.render(@react.component(comp_container, props, []), root)
-  println("loaded")
+  match root {
+    Some(root) => {
+      let props : ContainerProps = Default::default()
+      @react.render(@react.component(comp_container, props, []), root)
+      println("loaded")
+    }
+    None =>
+      println("skipped rendering because the document has no root or body")
+  }
 }
 
 ///|
