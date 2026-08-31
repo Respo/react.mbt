@@ -91,22 +91,29 @@ if (unexpectedVersions.length > 0) {
 }
 
 if (process.env.VERIFY_GIT_TAGS === "1") {
-  const checkoutTags = execFileSync("git", ["tag", "--list"], {
-    encoding: "utf8",
-  })
-    .trim()
-    .split("\n")
-    .filter(Boolean)
-    .filter((tag) => semverPattern.test(tag.replace(/^v/, "")));
-  const missingCheckoutTags = releaseTags.filter(
-    (tag) => !checkoutTags.includes(tag),
+  const publicTags = [
+    ...new Set(
+      execFileSync("git", ["ls-remote", "--tags", "origin"], {
+        encoding: "utf8",
+      })
+        .trim()
+        .split("\n")
+        .filter(Boolean)
+        .map((line) => line.split("\t")[1]?.replace(/^refs\/tags\//, ""))
+        .filter(Boolean)
+        .map((tag) => tag.replace(/\^\{\}$/, ""))
+        .filter((tag) => semverPattern.test(tag.replace(/^v/, ""))),
+    ),
+  ];
+  const missingPublicTags = releaseTags.filter(
+    (tag) => !publicTags.includes(tag),
   );
-  const unexpectedCheckoutTags = checkoutTags.filter(
+  const unexpectedPublicTags = publicTags.filter(
     (tag) => !releaseTags.includes(tag) && tag !== `v${version}`,
   );
-  if (missingCheckoutTags.length > 0 || unexpectedCheckoutTags.length > 0) {
+  if (missingPublicTags.length > 0 || unexpectedPublicTags.length > 0) {
     fail(
-      `release-tags.json differs from checkout: missing=[${missingCheckoutTags.join(", ")}] unexpected=[${unexpectedCheckoutTags.join(", ")}]`,
+      `release-tags.json differs from origin: missing=[${missingPublicTags.join(", ")}] unexpected=[${unexpectedPublicTags.join(", ")}]`,
     );
   }
 }

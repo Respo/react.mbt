@@ -22,8 +22,18 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 22
+          cache: "yarn"
 
-      - name: Resolve and compile a fresh downstream module
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install JavaScript dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Resolve and run a fresh downstream module
         run: |
           set -o pipefail
           node scripts/verify-published-package.mjs "${{ inputs.version }}" \

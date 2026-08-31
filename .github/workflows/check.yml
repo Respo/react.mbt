@@ -37,6 +37,9 @@ jobs:
       - name: moon check
         run: moon update && moon version && moon check --target js
 
+      - name: Fetch complete public tag history
+        run: git fetch origin --tags --force
+
       - name: Check release metadata and package contents
         env:
           VERIFY_GIT_TAGS: "1"
