@@ -109,7 +109,9 @@ fn fn0_to_js_obscure(f : () -> Unit) -> @dom.JsObscure = "%identity"
 fn fn1_from_js_obscure(v : JsObscure) -> (JsObscure) -> Unit = "%identity"
 
 ///|
-// useLayoutEffect
+/// Runs a layout effect after React mutates the DOM and before the browser
+/// paints. Use `obscure` to construct dependencies that are not already
+/// `JsObscure` values.
 pub fn use_layout_effect_deps(
   effect : () -> Unit,
   deps : Array[@dom.JsObscure],
@@ -121,7 +123,9 @@ pub fn use_layout_effect_deps(
 }
 
 ///|
-// useMemo
+/// Memoizes the value returned by `factory` until one of `deps` changes.
+///
+/// Treat this as a performance optimization rather than a semantic guarantee.
 pub fn[A] use_memo_deps(factory : () -> A, deps : Array[@dom.JsObscure]) -> A {
   let v = react_use_memo(
     @dom.v_to_js_obscure(factory),
@@ -131,7 +135,7 @@ pub fn[A] use_memo_deps(factory : () -> A, deps : Array[@dom.JsObscure]) -> A {
 }
 
 ///|
-// useCallback
+/// Preserves `callback` identity until one of `deps` changes.
 pub fn[F] use_callback_deps(callback : F, deps : Array[@dom.JsObscure]) -> F {
   let v = react_use_callback(
     @dom.v_to_js_obscure(callback),
@@ -170,7 +174,8 @@ pub fn[S, A] use_action_state(
 }
 
 ///|
-// useEffect
+/// Runs an effect after the component mounts and does not rerun it for later
+/// renders. Use `use_effect_once_with_cleanup` when cleanup is required.
 pub fn use_effect_once(effect : () -> Unit) -> Unit {
   react_use_effect(fn0_to_js_obscure(effect), FixedArray::from_array([]))
 }
@@ -195,6 +200,10 @@ pub fn use_effect_once_with_cleanup(effect : () -> () -> Unit) -> Unit {
 pub fn[T] obscure(v : T) -> @dom.JsObscure = "%identity"
 
 ///|
+/// Runs an effect after rendering whenever one of `deps` changes.
+///
+/// Use `use_effect_cleanup_deps` when the effect owns subscriptions or other
+/// resources that must be released.
 pub fn use_effect_deps(
   effect : () -> Unit,
   deps : Array[@dom.JsObscure],
@@ -216,7 +225,8 @@ pub fn use_layout_effect_cleanup_deps(
 }
 
 ///|
-// useCallback (no argument)
+/// Preserves the identity of a zero-argument callback until one of `deps`
+/// changes.
 pub fn use_callback0_deps(
   f : () -> Unit,
   deps : Array[@dom.JsObscure],
@@ -235,6 +245,7 @@ struct ReactRef[T] {
 }
 
 ///|
+/// Returns the current value stored in this React ref.
 pub fn[T] ReactRef::get(self : ReactRef[T]) -> T {
   @dom.js_obscure_to_v(react_ref_get_value(self.js_value))
 }
@@ -247,6 +258,7 @@ pub fn[T] ReactRef::to_js_obscure(self : ReactRef[T]) -> JsObscure {
 }
 
 ///|
+/// Replaces the current value stored in this React ref.
 pub fn[T] ReactRef::set(self : ReactRef[T], value : T) -> Unit {
   react_ref_set_value(self.js_value, any_to_js_value(value))
   self._v0 = value

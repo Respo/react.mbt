@@ -406,7 +406,10 @@ corepack yarn test:browser
 ```
 
 CI pins MoonBit compiler `0.10.4+2cc641edf` and validates Node 22 with Yarn
-1.22.22. `test:server` covers progressive Suspense chunks, all-ready static
+1.22.22. `check:docs` automatically discovers explicit public declarations in
+the library package instead of relying on an API allowlist; the current gate
+requires all 228 declarations to carry doc comments. `test:server` covers
+progressive Suspense chunks, all-ready static
 output, abort/error behavior, bootstrap metadata, and identifier prefixes
 against the real React server renderer. `test:browser` runs deterministic
 TodoMVC and React runtime conformance

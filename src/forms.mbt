@@ -117,6 +117,10 @@ struct FormStatus {
 }
 
 ///|
+/// Reads React's submission status for the nearest parent form.
+///
+/// Call this Hook from a component rendered inside the form. A component that
+/// creates the form cannot observe that same form's status with this Hook.
 pub fn use_form_status() -> FormStatus {
   FormStatus::{ js_value: react_use_form_status() }
 }
@@ -126,6 +130,7 @@ extern "js" fn form_status_pending(status : JsObscure) -> Bool =
   #| (status) => status.pending === true
 
 ///|
+/// Returns whether the nearest parent form Action is currently pending.
 pub fn FormStatus::pending(self : FormStatus) -> Bool {
   form_status_pending(self.js_value)
 }
@@ -150,6 +155,8 @@ extern "js" fn form_status_method(status : JsObscure) -> String =
   #| (status) => status.method ?? "get"
 
 ///|
+/// Returns the HTTP method used by the pending parent-form submission.
+/// React reports `"get"` when no active submission supplies another method.
 pub fn FormStatus::submission_method(self : FormStatus) -> String {
   form_status_method(self.js_value)
 }
@@ -159,6 +166,8 @@ extern "js" fn form_status_action(status : JsObscure) -> JsObscure =
   #| (status) => status.action ?? null
 
 ///|
+/// Returns the Action function associated with the pending submission, or
+/// `None` when the parent form has no active Action submission.
 pub fn FormStatus::action(self : FormStatus) -> FormAction? {
   let value = form_status_action(self.js_value)
   if value.is_nil() {

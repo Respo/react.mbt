@@ -510,6 +510,11 @@ pub fn a(
 }
 
 ///|
+/// Creates a `div` element with optional React attributes, events, styles, raw
+/// HTML, and child nodes.
+///
+/// Do not provide both `innerHTML` and non-empty `children`; React elements must
+/// have exactly one content source.
 pub fn div(
   id? : String,
   class_name? : String,
