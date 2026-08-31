@@ -365,6 +365,10 @@ temporary consumer, compiles a generated-DOM smoke use, runs JS check/build,
 and preserves the exact logs as an Actions artifact. A release is not complete
 until this downstream check passes.
 
+Release source is always checked out from the immutable tag. The downstream
+verifier is sparse-checked out separately from `github.workflow_sha`, so a
+verifier bug can be corrected without changing or republishing tagged source.
+
 Use the workflow's `workflow_dispatch` input only to recover or verify an
 already-published GitHub Release, such as one created before the workflow was
 installed. The separate **Verify published package** workflow remains
