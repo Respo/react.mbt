@@ -2,6 +2,7 @@
 package "tiye/react"
 
 import {
+  "moonbitlang/async/js_async",
   "tiye/dom-ffi",
   "tiye/respo_css",
 }
@@ -83,6 +84,8 @@ pub fn dom_event_to_react_handler(DOMEventType) -> String
 pub fn ellipse(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], role? : String, title? : String, tab_index? : Int, hidden? : Bool, aria_label? : String, data_testid? : String, cx? : String, cy? : String, rx? : String, ry? : String, fill? : String, stroke? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
 pub fn em(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], role? : String, title? : String, tab_index? : Int, hidden? : Bool, aria_label? : String, data_testid? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
+
+pub fn error_boundary((ReactError) -> VirtualNode, Array[VirtualNode], reset_key? : String, on_error? : (ReactError, ReactErrorInfo) -> Unit) -> VirtualNode
 
 pub fn fieldset(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], role? : String, title? : String, tab_index? : Int, hidden? : Bool, aria_label? : String, data_testid? : String, name? : String, disabled? : Bool, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
@@ -175,6 +178,10 @@ pub fn render(VirtualNode, @dom-ffi.Element) -> Unit
 pub fn render_to_string(VirtualNode, identifier_prefix? : String) -> String
 
 pub fn render_with_options(VirtualNode, @dom-ffi.Element, RootOptions) -> Unit
+
+pub fn[T] resource_from_async(async () -> T) -> ReactResource[T]
+
+pub fn[T] resource_from_promise(@js_async.Promise[T]) -> ReactResource[T]
 
 pub fn script_tag(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], role? : String, title? : String, tab_index? : Int, hidden? : Bool, aria_label? : String, data_testid? : String, src? : String, type_? : String, cross_origin? : String, async_? : Bool, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
@@ -278,6 +285,8 @@ pub fn[S : Default, A] use_reducer(initial? : S, (S, A) -> S) -> (S, (A) -> Unit
 pub fn[S, A] use_reducer_with_initial(S, (S, A) -> S) -> (S, (A) -> Unit)
 
 pub fn[T] use_ref(T) -> ReactRef[T]
+
+pub fn[T] use_resource(ReactResource[T]) -> T
 
 pub fn[T] use_state(T) -> (T, (T) -> Unit)
 
@@ -486,6 +495,9 @@ pub fn[T] ReactRef::from(T) -> Self[T]
 pub fn[T] ReactRef::get(Self[T]) -> T
 pub fn[T] ReactRef::set(Self[T], T) -> Unit
 pub fn[T] ReactRef::to_js_obscure(Self[T]) -> @dom-ffi.JsObscure
+
+type ReactResource[T]
+pub fn[T] ReactResource::to_js_obscure(Self[T]) -> @dom-ffi.JsObscure
 
 type RootOptions
 pub fn RootOptions::new(identifier_prefix? : String, on_caught_error? : (ReactError, ReactErrorInfo) -> Unit, on_uncaught_error? : (ReactError, ReactErrorInfo) -> Unit, on_recoverable_error? : (ReactError, ReactErrorInfo) -> Unit) -> Self

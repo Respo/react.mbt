@@ -56,6 +56,10 @@ identities rather than array indexes.
 - `lazy_component[T](loader: async () -> ReactComponent[T]) -> ReactComponent[T]` - Lazily load and cache a typed component through Suspense
 - `suspense(fallback: VirtualNode, children: Array[VirtualNode]) -> VirtualNode` - Display fallback UI until suspended children are ready
 - `activity(mode: ActivityMode, children: Array[VirtualNode]) -> VirtualNode` - React 19.2 boundary that hides and restores UI while retaining child state
+- `resource_from_promise[T](promise: Promise[T]) -> ReactResource[T]` - Preserve one cached JavaScript Promise as a typed React resource
+- `resource_from_async[T](loader: async () -> T) -> ReactResource[T]` - Start one MoonBit async operation outside render and preserve its Promise identity
+- `use_resource[T](resource: ReactResource[T]) -> T` - Read a cached resource with React 19 `use`, suspending or throwing to the nearest boundary
+- `error_boundary(fallback, children, reset_key?, on_error?) -> VirtualNode` - Render a local fallback for render/resource errors and retry when its reset key changes
 - `component_from_js[T](component: JsObscure) -> ReactComponent[T]` - Declare the typed MoonBit props contract for a trusted JavaScript component
 - `VirtualNode::with_key(key: String) -> VirtualNode` - Assign a stable React reconciliation key without adding a DOM wrapper
 - `create_context[T](default_value: T) -> ReactContext[T]` - Create a typed React Context
@@ -236,6 +240,25 @@ props and call `use_imperative_handle_deps` in the child. `current()` returns
 `None` before commit and after cleanup. Prefer declarative props whenever the
 behavior does not genuinely require an imperative handle.
 
+### Resources and local errors / 资源与局部错误
+
+Create a `ReactResource[T]` outside component render with
+`resource_from_promise` or `resource_from_async`, then call `use_resource` while
+rendering below `suspense`. Reuse the same resource identity across retries;
+creating a new Promise during every render repeatedly suspends and triggers
+React's uncached-Promise warning. Rejections flow to the nearest
+`error_boundary`. Change its `reset_key` after selecting a new cached resource
+to retry. The optional `on_error` receives React's component stack; root error
+callbacks remain separate observability hooks. Error Boundaries do not catch
+event-handler failures or arbitrary asynchronous errors outside render.
+
+请在组件 render 之外通过 `resource_from_promise` 或 `resource_from_async`
+创建 `ReactResource[T]`，并在 `suspense` 内调用 `use_resource`。重试时必须复用
+稳定 resource；每次 render 新建 Promise 会反复 suspend，并触发 React 的
+uncached-Promise warning。rejection 会进入最近的 `error_boundary`；选择新的缓存
+resource 后改变 `reset_key` 即可重试。`on_error` 用于局部组件栈观测，root error
+callback 仍是独立观测点。Error Boundary 不捕获事件处理器或 render 外任意异步错误。
+
 ### Activity / 活动边界
 
 `activity(ActivityMode::Hidden, children)` keeps its child state and DOM tree,
@@ -341,7 +364,8 @@ flows in Chromium, including StrictMode lifecycle, batching, root reuse, DOM
 ref cleanup, async form Actions, form status, optimistic rollback, portals,
 root error callbacks, synchronous server rendering, hydration, external-store
 subscription lifecycles, memo/lazy/Suspense, typed JavaScript interoperation,
-imperative handles, Activity state/Effect lifecycles, and generated
+imperative handles, Activity state/Effect lifecycles, cached resources and
+local Error Boundary retry paths, and generated
 HTML/SVG/metadata DOM behavior; install it
 once locally with `yarn playwright install chromium`.
 Update the toolchain pin only through the full check, unit-test, interface,
@@ -358,7 +382,7 @@ rather than creating a second one.
 Prepare releases on a branch by aligning `moon.mod`, `package.json`, the dated
 Changelog section, and bilingual `release-notes/vX.Y.Z.md`. Run
 `yarn check:release`; it requires exact version agreement, complete historical
-tag coverage, an empty `Unreleased` section, and an exact 17-file package
+tag coverage, an empty `Unreleased` section, and an exact 18-file package
 allowlist.
 
 After the preparation PR is merged, create an annotated `vX.Y.Z` tag on
