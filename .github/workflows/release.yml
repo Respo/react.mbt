@@ -1,30 +1,34 @@
-name: Release
+name: Publish release
 
 on:
-  push:
-    tags:
-      - "v*"
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       tag:
-        description: "Version tag to release, for example v0.1.0"
+        description: "Existing published Release tag, for example v0.2.0"
         required: true
         type: string
 
 permissions:
   contents: write
 
+concurrency:
+  group: publish-${{ inputs.tag || github.event.release.tag_name }}
+  cancel-in-progress: false
+
 jobs:
-  release:
+  publish:
     runs-on: ubuntu-22.04
     env:
-      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+      RELEASE_TAG: ${{ inputs.tag || github.event.release.tag_name }}
       VERIFY_GIT_TAGS: "1"
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-          ref: ${{ inputs.tag || github.ref }}
+          ref: ${{ inputs.tag || github.event.release.tag_name }}
+
       - uses: hustcer/setup-moonbit@v1
         with:
           version: "0.10.4+2cc641edf"
@@ -41,9 +45,13 @@ jobs:
       - name: Install JavaScript dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Verify tag identity and main ancestry
+      - name: Verify published Release, tag identity, and main ancestry
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git fetch origin main --tags
+          test "$(gh release view "$RELEASE_TAG" --json name --jq .name)" = "$RELEASE_TAG"
+          test "$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft)" = "false"
           tag_commit="$(git rev-parse "$RELEASE_TAG^{commit}")"
           test "$tag_commit" = "$(git rev-parse HEAD)"
           git merge-base --is-ancestor "$tag_commit" origin/main
@@ -79,14 +87,65 @@ jobs:
           cd _build/publish
           sha256sum ./*.zip > SHA256SUMS
 
-      - name: Create GitHub release
+      - name: Upload verified GitHub Release assets
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$RELEASE_TAG" \
+          gh release upload "$RELEASE_TAG" \
             _build/publish/*.zip \
             _build/publish/SHA256SUMS \
-            --title "$RELEASE_TAG" \
-            --notes-file "release-notes/$RELEASE_TAG.md" \
-            --verify-tag \
-            --fail-on-no-commits
+            --clobber
+
+      - name: Read exact module version
+        run: |
+          module_version="$(sed -n 's/^version = "\(.*\)"/\1/p' moon.mod)"
+          test "$RELEASE_TAG" = "v$module_version"
+          echo "MODULE_VERSION=$module_version" >> "$GITHUB_ENV"
+
+      - name: Check whether the exact registry version already passes
+        id: registry
+        run: |
+          if node scripts/verify-published-package.mjs "$MODULE_VERSION" \
+            > prepublish-verification.log 2>&1; then
+            echo "already_published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "already_published=false" >> "$GITHUB_OUTPUT"
+          fi
+          cat prepublish-verification.log
+
+      - name: Publish to mooncakes.io
+        if: steps.registry.outputs.already_published != 'true'
+        env:
+          MOON_CREDENTIALS: ${{ secrets.MOON_CREDENTIALS }}
+        run: |
+          test -n "$MOON_CREDENTIALS"
+          install -d -m 700 ~/.moon
+          umask 077
+          printf '%s' "$MOON_CREDENTIALS" > ~/.moon/credentials.json
+          moon publish --frozen
+
+      - name: Verify exact published version from a fresh downstream module
+        run: |
+          set -o pipefail
+          for attempt in 1 2 3 4 5 6; do
+            echo "registry verification attempt $attempt/6" \
+              | tee -a published-verification.log
+            if node scripts/verify-published-package.mjs "$MODULE_VERSION" \
+              2>&1 | tee -a published-verification.log; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 6 ]; then
+              sleep 10
+            fi
+          done
+          exit 1
+
+      - name: Preserve registry verification evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: mooncakes-${{ env.MODULE_VERSION }}-verification
+          path: |
+            prepublish-verification.log
+            published-verification.log
+          if-no-files-found: warn

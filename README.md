@@ -347,26 +347,25 @@ Changelog section, and bilingual `release-notes/vX.Y.Z.md`. Run
 tag coverage, an empty `Unreleased` section, and an exact 17-file package
 allowlist.
 
-After the preparation PR is merged, create and push an annotated `vX.Y.Z` tag
-that points to `main`. The release workflow verifies tag identity and main
-ancestry, generated sources, MoonBit check/test/interface/format results, real
-Chromium conformance, the browser build, and the package allowlist. It creates
-a GitHub Release whose title exactly matches the tag and attaches both the
-MoonBit archive and `SHA256SUMS`.
+After the preparation PR is merged, create an annotated `vX.Y.Z` tag on
+`main`, then create and publish a GitHub Release whose title exactly matches
+that tag. The `release.published` event triggers **Publish release**. It verifies
+tag identity and main ancestry, generated sources, MoonBit
+check/test/interface/format results, real Chromium conformance, the browser
+build, and the package allowlist before uploading the archive and
+`SHA256SUMS` to the Release.
 
-Publishing to mooncakes.io remains a separate authenticated step because the
-registry credential is deliberately not stored in GitHub Actions. Log in with
-`moon login`, run `moon publish --frozen`, then prove the exact published
-version from a fresh temporary consumer:
+The same workflow publishes to mooncakes.io using the repository or inherited
+organization Secret `MOON_CREDENTIALS`; registry credentials never leave the
+ephemeral Actions runner. It then resolves `tiye/react@X.Y.Z` from a fresh
+temporary consumer, compiles a generated-DOM smoke use, runs JS check/build,
+and preserves the exact logs as an Actions artifact. A release is not complete
+until this downstream check passes.
 
-```bash
-corepack yarn verify:published X.Y.Z
-```
-
-The same check is available through the manual **Verify published package**
-workflow. It resolves `tiye/react@X.Y.Z`, compiles a generated-DOM smoke use,
-and preserves the command metrics as a workflow artifact. A release is not
-complete until this downstream check passes.
+Use the workflow's `workflow_dispatch` input only to recover or verify an
+already-published GitHub Release, such as one created before the workflow was
+installed. The separate **Verify published package** workflow remains
+available for registry-only rechecks.
 
 ### License
 

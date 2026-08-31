@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Changed releases to publish `tiye/react` to mooncakes.io from the
+  `release.published` GitHub Actions event, followed by an exact-version fresh
+  downstream check/build and retained verification logs.
+
 ## 0.2.0 - 2026-08-31
 
 - Added a deterministic declarative generator for 54 typed DOM helpers across
