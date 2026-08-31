@@ -122,7 +122,9 @@ jobs:
           install -d -m 700 ~/.moon
           umask 077
           printf '%s' "$MOON_CREDENTIALS" > ~/.moon/credentials.json
-          moon publish --frozen
+          # `moon publish` validates the archive from a fresh extracted module;
+          # that validation must be allowed to install its declared dependencies.
+          moon publish
 
       - name: Verify exact published version from a fresh downstream module
         run: |

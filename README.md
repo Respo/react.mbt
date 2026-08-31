@@ -357,7 +357,10 @@ build, and the package allowlist before uploading the archive and
 
 The same workflow publishes to mooncakes.io using the repository or inherited
 organization Secret `MOON_CREDENTIALS`; registry credentials never leave the
-ephemeral Actions runner. It then resolves `tiye/react@X.Y.Z` from a fresh
+ephemeral Actions runner. The publish command intentionally is not frozen:
+MoonBit validates the archive from a fresh extracted module that must install
+its declared dependencies. All source/package inputs are frozen and checked by
+the preceding release gates. The workflow then resolves `tiye/react@X.Y.Z` from a fresh
 temporary consumer, compiles a generated-DOM smoke use, runs JS check/build,
 and preserves the exact logs as an Actions artifact. A release is not complete
 until this downstream check passes.
