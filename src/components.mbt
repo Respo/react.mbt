@@ -67,6 +67,33 @@ extern "js" fn react_suspense(
   #| )
 
 ///|
+/// React 19.2 Activity visibility modes.
+pub(all) enum ActivityMode {
+  Visible
+  Hidden
+} derive(Eq)
+
+///|
+/// Returns the React `mode` property for this Activity mode.
+pub fn ActivityMode::to_string(self : ActivityMode) -> String {
+  match self {
+    Visible => "visible"
+    Hidden => "hidden"
+  }
+}
+
+///|
+extern "js" fn react_activity(
+  mode : String,
+  children : FixedArray[@dom.JsObscure],
+) -> @dom.JsObscure =
+  #| (mode, children) => globalThis.React.createElement(
+  #|   globalThis.React.Activity,
+  #|   { mode },
+  #|   ...children,
+  #| )
+
+///|
 /// Defines a stable typed React component from a MoonBit render function.
 /// Prefer module-level declarations; repeated calls with the same function also
 /// reuse the same JavaScript component type.
@@ -157,6 +184,24 @@ pub fn suspense(
   JsNode(
     react_suspense(
       fallback.to_js_obscure(),
+      FixedArray::from_array(children.map(fn(child) { child.to_js_obscure() })),
+    ),
+  )
+}
+
+///|
+/// Creates a React 19.2 Activity boundary.
+///
+/// A hidden Activity keeps its children and their state while hiding their DOM,
+/// cleans up their Effects, and deprioritizes their updates. Restoring it to
+/// `Visible` remounts those Effects without resetting child state.
+pub fn activity(
+  mode : ActivityMode,
+  children : Array[VirtualNode],
+) -> VirtualNode {
+  JsNode(
+    react_activity(
+      mode.to_string(),
       FixedArray::from_array(children.map(fn(child) { child.to_js_obscure() })),
     ),
   )

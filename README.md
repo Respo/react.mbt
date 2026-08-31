@@ -55,6 +55,7 @@ identities rather than array indexes.
 - `ReactComponent::memo(are_props_equal?: (T, T) -> Bool) -> ReactComponent[T]` - Memoize a typed component with default identity or a typed comparator
 - `lazy_component[T](loader: async () -> ReactComponent[T]) -> ReactComponent[T]` - Lazily load and cache a typed component through Suspense
 - `suspense(fallback: VirtualNode, children: Array[VirtualNode]) -> VirtualNode` - Display fallback UI until suspended children are ready
+- `activity(mode: ActivityMode, children: Array[VirtualNode]) -> VirtualNode` - React 19.2 boundary that hides and restores UI while retaining child state
 - `component_from_js[T](component: JsObscure) -> ReactComponent[T]` - Declare the typed MoonBit props contract for a trusted JavaScript component
 - `VirtualNode::with_key(key: String) -> VirtualNode` - Assign a stable React reconciliation key without adding a DOM wrapper
 - `create_context[T](default_value: T) -> ReactContext[T]` - Create a typed React Context
@@ -235,6 +236,18 @@ props and call `use_imperative_handle_deps` in the child. `current()` returns
 `None` before commit and after cleanup. Prefer declarative props whenever the
 behavior does not genuinely require an imperative handle.
 
+### Activity / 活动边界
+
+`activity(ActivityMode::Hidden, children)` keeps its child state and DOM tree,
+but React hides that DOM with `display: none`, cleans up Effects, and
+deprioritizes hidden updates. Switching the same boundary back to `Visible`
+restores the preserved state and remounts Effects. Use stable child keys when an
+Activity contains dynamic collections.
+
+`activity(ActivityMode::Hidden, children)` 会保留子组件 state 与 DOM 树，但
+React 会用 `display: none` 隐藏 DOM、清理 Effects，并降低隐藏更新的优先级。
+切回 `Visible` 后，原 state 会恢复且 Effects 会重新挂载；动态列表仍需使用稳定 key。
+
 ### Virtual DOM Types
 
 - `VirtualNode` - Base virtual node type
@@ -328,7 +341,8 @@ flows in Chromium, including StrictMode lifecycle, batching, root reuse, DOM
 ref cleanup, async form Actions, form status, optimistic rollback, portals,
 root error callbacks, synchronous server rendering, hydration, external-store
 subscription lifecycles, memo/lazy/Suspense, typed JavaScript interoperation,
-imperative handles, and generated HTML/SVG/metadata DOM behavior; install it
+imperative handles, Activity state/Effect lifecycles, and generated
+HTML/SVG/metadata DOM behavior; install it
 once locally with `yarn playwright install chromium`.
 Update the toolchain pin only through the full check, unit-test, interface,
 browser-test, and browser-build matrix. This revision was verified with MoonBit

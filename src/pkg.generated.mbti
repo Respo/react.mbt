@@ -9,6 +9,8 @@ import {
 // Values
 pub fn a(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, href? : String, target? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
+pub fn activity(ActivityMode, Array[VirtualNode]) -> VirtualNode
+
 pub fn address(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], role? : String, title? : String, tab_index? : Int, hidden? : Bool, aria_label? : String, data_testid? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
 pub fn article(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
@@ -290,6 +292,12 @@ pub fn video(id? : String, class_name? : String, class_list? : Array[String], at
 // Errors
 
 // Types and methods
+pub(all) enum ActivityMode {
+  Visible
+  Hidden
+} derive(Eq)
+pub fn ActivityMode::to_string(Self) -> String
+
 pub type DOMEvent
 pub fn DOMEvent::alt_key(Self) -> Bool
 pub fn DOMEvent::client_x(Self) -> Int
