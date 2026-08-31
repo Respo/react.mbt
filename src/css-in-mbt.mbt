@@ -39,7 +39,7 @@ pub fn[U : Show] static_style(
   } else {
     let window = @dom.window()
     let document = window.document()
-    let head = document.head()
+    let head = document.head().unwrap()
     let style_tag = document.create_element("style")
     style_tag.set_attribute("id", gen_name)
     style_tag.set_attribute("loc", loc.to_string())
@@ -93,7 +93,7 @@ pub fn[U : Show] contained_static_style(
   } else {
     let window = @dom.window()
     let document = window.document()
-    let head = document.head()
+    let head = document.head().unwrap()
     let style_tag = document.create_element("style")
     style_tag.set_attribute("id", gen_name)
     style_tag.set_attribute("loc", loc.to_string())
