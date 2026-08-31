@@ -1,0 +1,18 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "tiye/react/main/streaming-test"
+
+// Values
+
+// Errors
+
+// Types and methods
+type StreamChunkProbe
+
+type StreamContentProps
+
+type StreamTreeProps
+
+// Type aliases
+
+// Traits
+
