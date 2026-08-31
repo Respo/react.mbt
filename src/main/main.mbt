@@ -29,7 +29,7 @@ fn run_app() -> Unit {
   let doc = window.document()
   let root = match doc.get_element_by_id("root") {
     Some(root) => root
-    None => doc.body()
+    None => doc.body().unwrap()
   }
   let props : ContainerProps = Default::default()
   @react.render(@react.component(comp_container, props, []), root)

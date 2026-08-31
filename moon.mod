@@ -3,7 +3,7 @@ name = "tiye/react"
 version = "0.3.0"
 
 import {
-  "tiye/dom-ffi@0.2.3",
+  "tiye/dom-ffi@0.3.0",
   "tiye/respo_css@0.1.7",
   "moonbitlang/async@0.20.3",
 }
