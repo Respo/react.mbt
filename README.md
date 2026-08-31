@@ -382,7 +382,7 @@ rather than creating a second one.
 Prepare releases on a branch by aligning `moon.mod`, `package.json`, the dated
 Changelog section, and bilingual `release-notes/vX.Y.Z.md`. Run
 `yarn check:release`; it requires exact version agreement, complete historical
-tag coverage, an empty `Unreleased` section, and an exact 17-file package
+tag coverage, an empty `Unreleased` section, and an exact 18-file package
 allowlist.
 
 After the preparation PR is merged, create an annotated `vX.Y.Z` tag on

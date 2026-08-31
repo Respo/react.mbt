@@ -19,6 +19,7 @@ const expectedFiles = [
   "src/pkg.generated.mbti",
   "src/react.mbt",
   "src/react.mjs",
+  "src/resources.mbt",
   "src/root.mbt",
 ];
 
