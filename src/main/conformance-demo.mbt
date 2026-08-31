@@ -29,6 +29,12 @@ struct RootErrorControllerProps {
 }
 
 ///|
+struct ActivityProbeProps {}
+
+///|
+struct ActivityControllerProps {}
+
+///|
 extern "js" fn conformance_reset_observations() -> Unit =
   #| () => {
   #|   globalThis.__moonbitReactConformance = {
@@ -54,6 +60,39 @@ extern "js" fn conformance_record_setup() -> Unit =
 ///|
 extern "js" fn conformance_record_cleanup() -> Unit =
   #| () => globalThis.__moonbitReactConformance.cleanups += 1
+
+///|
+extern "js" fn conformance_reset_activity_observations() -> Unit =
+  #| () => {
+  #|   globalThis.__moonbitReactActivity = {
+  #|     renders: 0,
+  #|     mounts: 0,
+  #|     cleanups: 0,
+  #|     increment: null,
+  #|   };
+  #| }
+
+///|
+extern "js" fn conformance_record_activity_render() -> Unit =
+  #| () => globalThis.__moonbitReactActivity.renders += 1
+
+///|
+extern "js" fn conformance_record_activity_mount() -> Unit =
+  #| () => globalThis.__moonbitReactActivity.mounts += 1
+
+///|
+extern "js" fn conformance_record_activity_cleanup() -> Unit =
+  #| () => globalThis.__moonbitReactActivity.cleanups += 1
+
+///|
+extern "js" fn conformance_register_activity_increment(
+  increment : @dom.JsObscure,
+) -> Unit =
+  #| (increment) => globalThis.__moonbitReactActivity.increment = increment
+
+///|
+extern "js" fn conformance_increment_hidden_activity() -> Unit =
+  #| () => globalThis.__moonbitReactActivity.increment?.()
 
 ///|
 extern "js" fn conformance_focus_ref(js_ref : @dom.JsObscure) -> Unit =
@@ -160,6 +199,77 @@ extern "js" fn conformance_recoverable_node() -> @dom.JsObscure =
 ///|
 fn strict_mode(child : VirtualNode) -> VirtualNode {
   JsNode(conformance_strict_mode(child.to_js_obscure()))
+}
+
+///|
+fn comp_activity_probe(_props : ActivityProbeProps) -> VirtualNode {
+  let (count, set_count) = @react.use_state_with_updater(0)
+  let increment = fn() { set_count(@react.Update(fn(current) { current + 1 })) }
+  conformance_record_activity_render()
+  conformance_register_activity_increment(@react.obscure(increment))
+  @react.use_effect_once_with_cleanup(fn() {
+    conformance_record_activity_mount()
+    fn() { conformance_record_activity_cleanup() }
+  })
+  @react.section(id="activity-probe", [
+    @react.p(id="activity-state", [Text("Activity state: \{count}")]),
+    @react.button(
+      id="activity-visible-increment",
+      on_click=fn(_) { increment() },
+      [Text("Increment visible Activity")],
+    ),
+  ])
+}
+
+///|
+fn comp_activity_controller(_props : ActivityControllerProps) -> VirtualNode {
+  let (visible, set_visible) = @react.use_state(true)
+  @react.div(id="activity-controller", [
+    @react.button(
+      id="activity-hide",
+      disabled=!visible,
+      on_click=fn(_) { set_visible(false) },
+      [Text("Hide Activity")],
+    ),
+    @react.button(
+      id="activity-hidden-increment",
+      on_click=fn(_) { conformance_increment_hidden_activity() },
+      [Text("Increment hidden Activity")],
+    ),
+    @react.button(
+      id="activity-show",
+      disabled=visible,
+      on_click=fn(_) { set_visible(true) },
+      [Text("Show Activity")],
+    ),
+    @react.activity(
+      if visible {
+        @react.ActivityMode::Visible
+      } else {
+        @react.ActivityMode::Hidden
+      },
+      [@react.component(comp_activity_probe, ActivityProbeProps::{  }, [])],
+    ),
+  ])
+}
+
+///|
+fn run_activity_conformance() -> Unit {
+  let doc = @dom.window().document()
+  match doc.get_element_by_id("react-activity-root") {
+    Some(target) => {
+      conformance_reset_activity_observations()
+      @react.render(
+        @react.component(
+          comp_activity_controller,
+          ActivityControllerProps::{  },
+          [],
+        ),
+        target,
+      )
+    }
+    None => ()
+  }
 }
 
 ///|
@@ -476,4 +586,5 @@ fn run_conformance() -> Unit {
   run_portal_conformance()
   run_hydration_conformance()
   run_root_error_conformance()
+  run_activity_conformance()
 }

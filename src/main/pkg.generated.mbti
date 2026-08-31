@@ -6,6 +6,10 @@ package "tiye/react/main"
 // Errors
 
 // Types and methods
+type ActivityControllerProps
+
+type ActivityProbeProps
+
 type ComponentIntegrationProps
 
 type ConformanceControllerProps

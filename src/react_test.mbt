@@ -47,8 +47,10 @@ fn comp_component_api_test(props : ComponentApiProps) -> VirtualNode {
 extern "js" fn install_component_api_test_react() -> Unit =
   #| () => {
   #|   const Suspense = Symbol("Suspense");
+  #|   const Activity = Symbol("Activity");
   #|   globalThis.React = {
   #|     Suspense,
+  #|     Activity,
   #|     createElement: (tag, props, ...children) => ({ tag, props, children }),
   #|     memo: (component, compare) => ({
   #|       kind: "memo",
@@ -58,6 +60,7 @@ extern "js" fn install_component_api_test_react() -> Unit =
   #|     lazy: (load) => ({ kind: "lazy", load }),
   #|   };
   #|   globalThis.__moonbitTestSuspense = Suspense;
+  #|   globalThis.__moonbitTestActivity = Activity;
   #|   globalThis.__moonbitReactComponentTypes = new WeakMap();
   #| }
 
@@ -95,6 +98,10 @@ extern "js" fn test_memo_compare(
 ///|
 extern "js" fn test_suspense_tag_matches(node : @dom.JsObscure) -> Bool =
   #| (node) => node.tag === globalThis.__moonbitTestSuspense
+
+///|
+extern "js" fn test_activity_tag_matches(node : @dom.JsObscure) -> Bool =
+  #| (node) => node.tag === globalThis.__moonbitTestActivity
 
 ///|
 extern "js" fn test_js_component_received_label(
@@ -2252,6 +2259,21 @@ test "typed component types preserve props across memo lazy and JS bridges" {
   let boundary = suspense(Text("loading"), [Text("ready")]).to_js_obscure()
   inspect(test_suspense_tag_matches(boundary), content="true")
   inspect(react_element_string_prop(boundary, "fallback"), content="loading")
+}
+
+///|
+test "Activity exposes both React 19.2 modes and preserves children" {
+  install_component_api_test_react()
+  let visible = activity(ActivityMode::Visible, [Text("ready")]).to_js_obscure()
+  inspect(ActivityMode::Visible.to_string(), content="visible")
+  inspect(test_activity_tag_matches(visible), content="true")
+  inspect(react_element_string_prop(visible, "mode"), content="visible")
+  inspect(react_element_child_count(visible), content="1")
+  let hidden = activity(ActivityMode::Hidden, [Text("waiting")]).to_js_obscure()
+  inspect(ActivityMode::Hidden.to_string(), content="hidden")
+  inspect(test_activity_tag_matches(hidden), content="true")
+  inspect(react_element_string_prop(hidden, "mode"), content="hidden")
+  inspect(react_element_child_count(hidden), content="1")
 }
 
 ///|

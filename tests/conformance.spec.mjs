@@ -162,6 +162,54 @@ test("root options report caught, uncaught, and recoverable errors exactly once"
   expect(consoleProblems).toEqual([]);
 });
 
+test("React 19.2 Activity hides DOM, cleans Effects, and restores state", async ({ page }) => {
+  const pageErrors = [];
+  const consoleProblems = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  page.on("console", (message) => {
+    if (["warning", "error"].includes(message.type())) {
+      consoleProblems.push(`${message.type()}: ${message.text()}`);
+    }
+  });
+
+  const metrics = () =>
+    page.evaluate(() => {
+      const current = globalThis.__moonbitReactActivity;
+      return {
+        renders: current?.renders ?? 0,
+        mounts: current?.mounts ?? 0,
+        cleanups: current?.cleanups ?? 0,
+      };
+    });
+
+  await page.goto("/");
+  await expect(page.locator("#activity-probe")).toBeVisible();
+  await expect(page.locator("#activity-state")).toHaveText("Activity state: 0");
+  await expect.poll(async () => (await metrics()).mounts).toBe(1);
+  expect(await metrics()).toEqual({ renders: 1, mounts: 1, cleanups: 0 });
+
+  await page.locator("#activity-visible-increment").click();
+  await expect(page.locator("#activity-state")).toHaveText("Activity state: 1");
+
+  await page.locator("#activity-hide").click();
+  await expect(page.locator("#activity-probe")).toBeHidden();
+  await expect(page.locator("#activity-probe")).toHaveCount(1);
+  await expect.poll(async () => (await metrics()).cleanups).toBe(1);
+  expect(
+    await page.locator("#activity-probe").evaluate((node) => getComputedStyle(node).display),
+  ).toBe("none");
+
+  await page.locator("#activity-hidden-increment").click();
+  await page.locator("#activity-show").click();
+  await expect(page.locator("#activity-probe")).toBeVisible();
+  await expect(page.locator("#activity-state")).toHaveText("Activity state: 2");
+  await expect.poll(async () => (await metrics()).mounts).toBe(2);
+  expect((await metrics()).cleanups).toBe(1);
+
+  expect(pageErrors).toEqual([]);
+  expect(consoleProblems).toEqual([]);
+});
+
 test("external store commits each changed snapshot and unsubscribes exactly once", async ({ page }) => {
   const pageErrors = [];
   const consoleProblems = [];
