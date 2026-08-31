@@ -46,6 +46,9 @@ identities rather than array indexes.
 - `unmount(parent: @dom.Element) -> Unit` - Unmount the React root for an element
 - `create_portal(child: VirtualNode, parent: @dom.Element, key?: String) -> VirtualNode` - Place DOM in another container while retaining React-tree context and event propagation
 - `render_to_string(vdom: VirtualNode, identifier_prefix?: String) -> String` - Basic synchronous SSR/SSG renderer
+- `render_to_readable_stream(vdom: VirtualNode, options?: StreamRenderOptions) -> ReactReadableStream` - Start React 19.2 progressive SSR on runtimes with Web Streams
+- `StreamRenderOptions::new(...) -> StreamRenderOptions` - Configure identifier prefixes, bootstrap scripts/modules, CSP nonce, and server error reporting
+- `ReactReadableStream::{wait_all_ready, read_text, abort, to_js_readable_stream}` - Wait for suspended content, consume HTML, cancel work, or integrate the one-shot Web Stream directly
 - `RootOptions::new(...) -> RootOptions` - Configure `identifierPrefix` and caught, uncaught, and recoverable error callbacks
 - `ReactError::message() -> String`, `ReactErrorInfo::component_stack() -> String` - Inspect root callback values
 - `component[T](f: (T) -> VirtualNode, props: T, children: Array[VirtualNode]) -> VirtualNode` - Create a leaf component
@@ -191,14 +194,23 @@ injecting a tag. The browser's module evaluation then performs the injection.
 follow the owning React tree. `render_with_options` applies its options only
 when it creates a root; later calls for the same parent reuse that root.
 
-The supported SSR/SSG path is deliberately narrow and explicit:
+The supported SSR/SSG paths are deliberately explicit:
 
 - `render_to_string` is a synchronous `react-dom/server` binding.
+- `render_to_readable_stream` resolves when the shell is ready and supports
+  progressive Suspense output on runtimes that implement Web Streams and
+  `AbortController`.
+- `wait_all_ready` delays static generation until all suspended content is
+  ready; `read_text` and `to_js_readable_stream` expose the same one-shot body,
+  so choose one consumption path.
+- `abort` cancels pending server work and leaves unresolved boundaries for
+  client recovery. Use `StreamRenderOptions::new(on_error=...)` to observe
+  server failures.
 - `hydrate_root` requires markup identical to the initial client tree.
-- `identifier_prefix` must be identical in `render_to_string` and
+- `identifier_prefix` must be identical between either server renderer and
   `RootOptions::new` when the tree uses `use_id`.
-- Streaming, waiting for suspended data, async server rendering, React Server
-  Components, and framework routing/data protocols are not provided.
+- React Server Components and framework routing/data protocols are not
+  provided.
 
 For a server or build entry, initialize only the renderer globals it needs:
 
@@ -354,15 +366,20 @@ moon info
 corepack yarn install --frozen-lockfile
 corepack yarn generate:dom
 corepack yarn check:generated
+corepack yarn test:server
 corepack yarn build
 corepack yarn test:browser
 ```
 
 CI pins MoonBit compiler `0.10.4+2cc641edf` and validates Node 22 with Yarn
-1.22.22. `test:browser` runs deterministic TodoMVC and React runtime conformance
+1.22.22. `test:server` covers progressive Suspense chunks, all-ready static
+output, abort/error behavior, bootstrap metadata, and identifier prefixes
+against the real React server renderer. `test:browser` runs deterministic
+TodoMVC and React runtime conformance
 flows in Chromium, including StrictMode lifecycle, batching, root reuse, DOM
 ref cleanup, async form Actions, form status, optimistic rollback, portals,
-root error callbacks, synchronous server rendering, hydration, external-store
+root error callbacks, synchronous and Web Stream server rendering, hydration,
+external-store
 subscription lifecycles, memo/lazy/Suspense, typed JavaScript interoperation,
 imperative handles, Activity state/Effect lifecycles, cached resources and
 local Error Boundary retry paths, and generated

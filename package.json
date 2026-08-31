@@ -12,6 +12,7 @@
     "build:moon": "moon build --target js --debug",
     "check": "moon check --target js",
     "test": "moon test",
+    "test:server": "NODE_OPTIONS=--import=./scripts/register-react-server.mjs moon run src/main/streaming-test --target js",
     "test:browser": "moon build --target js --debug && playwright test",
     "build": "moon build --target js --debug && vite build --base=./",
     "dev": "vite",

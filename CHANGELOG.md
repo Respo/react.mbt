@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Added typed React 19.2 Web Streams SSR with progressive Suspense delivery,
+  all-ready static output, abort control, identifier/bootstrap/CSP options, and
+  server error reporting. Real Node and Chromium tests cover two progressive
+  chunks, abort fallback/error semantics, hydrated DOM reuse, matching IDs,
+  post-hydration interaction, and zero React diagnostics.
 - Added typed React 19.2 `Activity` boundaries with visible/hidden modes and
   real-browser coverage for DOM hiding, state retention, Effect cleanup, and
   restoration.
