@@ -46,6 +46,10 @@ type PortalControllerProps
 
 type PortalOwnerProps
 
+type ResourceControllerProps
+
+type ResourceReaderProps
+
 type RootErrorControllerProps
 
 type Todo derive(Default)

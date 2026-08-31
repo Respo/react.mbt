@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Added typed React 19.2 `Activity` boundaries with visible/hidden modes and
+  real-browser coverage for DOM hiding, state retention, Effect cleanup, and
+  restoration.
+- Added identity-stable typed Promise resources for React 19 `use` plus local
+  Error Boundaries with reset-key retry, component-stack callbacks, and
+  fulfilled/pending/rejected Chromium conformance.
 - Changed releases to publish `tiye/react` to mooncakes.io from the
   `release.published` GitHub Actions event, followed by an exact-version fresh
   downstream check/build and retained verification logs.

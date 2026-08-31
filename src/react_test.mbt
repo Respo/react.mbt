@@ -51,6 +51,7 @@ extern "js" fn install_component_api_test_react() -> Unit =
   #|   globalThis.React = {
   #|     Suspense,
   #|     Activity,
+  #|     Component: class {},
   #|     createElement: (tag, props, ...children) => ({ tag, props, children }),
   #|     memo: (component, compare) => ({
   #|       kind: "memo",
@@ -58,6 +59,7 @@ extern "js" fn install_component_api_test_react() -> Unit =
   #|       compare: compare ?? null,
   #|     }),
   #|     lazy: (load) => ({ kind: "lazy", load }),
+  #|     use: (resource) => resource.__testValue,
   #|   };
   #|   globalThis.__moonbitTestSuspense = Suspense;
   #|   globalThis.__moonbitTestActivity = Activity;
@@ -102,6 +104,51 @@ extern "js" fn test_suspense_tag_matches(node : @dom.JsObscure) -> Bool =
 ///|
 extern "js" fn test_activity_tag_matches(node : @dom.JsObscure) -> Bool =
   #| (node) => node.tag === globalThis.__moonbitTestActivity
+
+///|
+extern "js" fn test_resource_promise(
+  state : String,
+  value : String,
+) -> @js_async.Promise[String] =
+  #| (state, value) => ({
+  #|   __testState: state,
+  #|   __testValue: value,
+  #|   then() {},
+  #| })
+
+///|
+extern "js" fn test_resource_state(resource : @dom.JsObscure) -> String =
+  #| (resource) => resource.__testState
+
+///|
+extern "js" fn test_resource_identity(
+  resource : @dom.JsObscure,
+  promise : @js_async.Promise[String],
+) -> Bool =
+  #| (resource, promise) => resource === promise
+
+///|
+extern "js" fn test_resource_is_thenable(resource : @dom.JsObscure) -> Bool =
+  #| (resource) => typeof resource?.then === "function"
+
+///|
+extern "js" fn test_error_boundary_tag_matches(node : @dom.JsObscure) -> Bool =
+  #| (node) => node.tag === globalThis.__moonbitReactErrorBoundary
+
+///|
+extern "js" fn test_error_boundary_reset_key(node : @dom.JsObscure) -> String =
+  #| (node) => node.props.resetKey
+
+///|
+extern "js" fn test_error_boundary_has_on_error(node : @dom.JsObscure) -> Bool =
+  #| (node) => typeof node.props.onError === "function"
+
+///|
+extern "js" fn test_error_boundary_fallback(
+  node : @dom.JsObscure,
+  message : String,
+) -> @dom.JsObscure =
+  #| (node, message) => node.props.fallback(new Error(message))
 
 ///|
 extern "js" fn test_js_component_received_label(
@@ -2274,6 +2321,50 @@ test "Activity exposes both React 19.2 modes and preserves children" {
   inspect(test_activity_tag_matches(hidden), content="true")
   inspect(react_element_string_prop(hidden, "mode"), content="hidden")
   inspect(react_element_child_count(hidden), content="1")
+}
+
+///|
+test "resources preserve cached identity and error boundaries map retry props" {
+  install_component_api_test_react()
+  let fulfilled_promise = test_resource_promise("fulfilled", "ready")
+  let pending_promise = test_resource_promise("pending", "waiting")
+  let rejected_promise = test_resource_promise("rejected", "failed")
+  let fulfilled = resource_from_promise(fulfilled_promise)
+  let pending = resource_from_promise(pending_promise)
+  let rejected = resource_from_promise(rejected_promise)
+  inspect(test_resource_state(fulfilled.to_js_obscure()), content="fulfilled")
+  inspect(test_resource_state(pending.to_js_obscure()), content="pending")
+  inspect(test_resource_state(rejected.to_js_obscure()), content="rejected")
+  inspect(
+    test_resource_identity(fulfilled.to_js_obscure(), fulfilled_promise),
+    content="true",
+  )
+  inspect(use_resource(fulfilled), content="ready")
+  let async_resource = resource_from_async(async fn() {
+    test_resolved_unit_promise().wait()
+    "async ready"
+  })
+  inspect(
+    test_resource_is_thenable(async_resource.to_js_obscure()),
+    content="true",
+  )
+
+  let boundary = error_boundary(
+    fn(error) { p([Text("fallback: \{error.message()}")]) },
+    [Text("child")],
+    reset_key="retry-1",
+    on_error=fn(_error, _info) {  },
+  ).to_js_obscure()
+  inspect(test_error_boundary_tag_matches(boundary), content="true")
+  inspect(test_error_boundary_reset_key(boundary), content="retry-1")
+  inspect(test_error_boundary_has_on_error(boundary), content="true")
+  inspect(react_element_child_count(boundary), content="1")
+  inspect(
+    react_element_first_child_string(
+      test_error_boundary_fallback(boundary, "broken"),
+    ),
+    content="fallback: broken",
+  )
 }
 
 ///|

@@ -210,6 +210,98 @@ test("React 19.2 Activity hides DOM, cleans Effects, and restores state", async 
   expect(consoleProblems).toEqual([]);
 });
 
+test("cached resources suspend and reveal their fulfilled value", async ({ page }) => {
+  const pageErrors = [];
+  const consoleProblems = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  page.on("console", (message) => {
+    if (["warning", "error"].includes(message.type())) {
+      consoleProblems.push(`${message.type()}: ${message.text()}`);
+    }
+  });
+
+  const metrics = () =>
+    page.evaluate(() => ({ ...globalThis.__moonbitReactResources?.metrics }));
+
+  await page.goto("/");
+  await expect(page.locator("#resource-success-pending")).toHaveText("Success pending");
+  await expect(page.locator("#resource-failure-pending")).toHaveText("Failure pending");
+  expect(await metrics()).toEqual({
+    resolves: 0,
+    rejects: 0,
+    localErrors: 0,
+    rootCaughtErrors: 0,
+    fallbackRenders: 0,
+    retries: 0,
+  });
+
+  await page.locator("#resource-resolve-success").click();
+  await expect(page.locator("#resource-success-value")).toHaveText(
+    "Success: resolved value",
+  );
+  await expect(page.locator("#resource-success-pending")).toHaveCount(0);
+  expect(await metrics()).toEqual({
+    resolves: 1,
+    rejects: 0,
+    localErrors: 0,
+    rootCaughtErrors: 0,
+    fallbackRenders: 0,
+    retries: 0,
+  });
+
+  expect(pageErrors).toEqual([]);
+  expect(consoleProblems).toEqual([]);
+});
+
+test("rejected resources render locally and recover through a reset key", async ({ page }) => {
+  const pageErrors = [];
+  const consoleProblems = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  page.on("console", (message) => {
+    if (["warning", "error"].includes(message.type())) {
+      consoleProblems.push(`${message.type()}: ${message.text()}`);
+    }
+  });
+
+  const metrics = () =>
+    page.evaluate(() => ({ ...globalThis.__moonbitReactResources?.metrics }));
+
+  await page.goto("/");
+  await expect(page.locator("#resource-failure-pending")).toHaveText("Failure pending");
+
+  await page.locator("#resource-reject-failure").click();
+  await expect(page.locator("#resource-error-fallback")).toHaveText(
+    "Resource error: resource rejected",
+  );
+  await expect.poll(async () => (await metrics()).localErrors).toBe(1);
+  await expect.poll(async () => (await metrics()).rootCaughtErrors).toBe(1);
+  expect(await metrics()).toEqual({
+    resolves: 0,
+    rejects: 1,
+    localErrors: 1,
+    rootCaughtErrors: 1,
+    fallbackRenders: 2,
+    retries: 0,
+  });
+
+  await page.locator("#resource-retry").click();
+  await expect(page.locator("#resource-retry-value")).toHaveText(
+    "Retry: recovered value",
+  );
+  await expect(page.locator("#resource-error-fallback")).toHaveCount(0);
+  expect(await metrics()).toEqual({
+    resolves: 0,
+    rejects: 1,
+    localErrors: 1,
+    rootCaughtErrors: 1,
+    fallbackRenders: 2,
+    retries: 1,
+  });
+
+  expect(pageErrors).toEqual([]);
+  expect(consoleProblems).toEqual([]);
+});
+
 test("external store commits each changed snapshot and unsubscribes exactly once", async ({ page }) => {
   const pageErrors = [];
   const consoleProblems = [];
