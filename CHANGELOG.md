@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Expanded the public API documentation gate from a 19-declaration allowlist to
+  automatic discovery across the library package. All 228 explicit public
+  declarations now carry doc comments, and checker regressions cover missing
+  documentation, generic/extern declarations, and declaration-prefix
+  collisions.
 - Added typed React DOM `flushSync` and all six React 19.2 resource-hint APIs,
   including CORS, preload destinations, referrer/fetch policies, security
   metadata, image options, and required stylesheet precedence. Public API doc

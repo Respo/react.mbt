@@ -40,6 +40,11 @@ fn[T] any_to_js_value(v : T) -> JsObscure = "%identity"
 fn[T] any_from_js_value(v : JsObscure) -> T = "%identity"
 
 ///|
+/// Creates React state initialized with `initial` and returns its current value
+/// plus a setter that replaces the state directly.
+///
+/// Use `use_state_with_updater` when the next state depends on the previous
+/// value.
 pub fn[T] use_state(initial : T) -> (T, (T) -> Unit) {
   let pair = react_use_state(any_to_js_value(initial))
   let s0 = pair.get("0")
@@ -90,9 +95,14 @@ enum ElementPropValue {
 }
 
 ///|
+/// A mutable collection of React element properties.
+///
+/// Use the typed setters for primitive values and `set_js_value` only for
+/// values such as refs that are already represented as JavaScript objects.
 pub struct ElementAttrs(Map[String, ElementPropValue]) derive(Default)
 
 ///|
+/// Creates an empty React element-property collection.
 pub fn ElementAttrs::new() -> ElementAttrs {
   ElementAttrs(Map([]))
 }
@@ -203,9 +213,15 @@ fn ElementAttrs::input_value_requires_change(self : ElementAttrs) -> Bool {
 }
 
 ///|
+/// An opaque React synthetic event passed to MoonBit event handlers.
+///
+/// Use the typed accessors where available or `to_js_obscure` as an escape
+/// hatch for event fields that do not yet have a binding.
 pub type DOMEvent
 
 ///|
+/// Returns the underlying React synthetic event for advanced JavaScript
+/// interop.
 pub fn DOMEvent::to_js_obscure(self : DOMEvent) -> JsObscure = "%identity"
 
 ///|
@@ -270,6 +286,10 @@ pub extern "js" fn DOMEvent::meta_key(self : DOMEvent) -> Bool =
   #| (event) => event.metaKey || false
 
 ///|
+/// Logs a message and an opaque JavaScript value to the browser console.
+///
+/// This is a low-level debugging helper; application rendering must not depend
+/// on its side effect.
 pub extern "js" fn console_log2(msg : String, v : JsObscure) -> Unit =
   #| (msg, v) => { console.log(msg, v) }
 
@@ -484,6 +504,7 @@ pub impl Show for DOMEventType with fn output(self, logger) {
 struct ElementEvents(Map[DOMEventType, DOMEventHandler]) derive(Default)
 
 ///|
+/// Creates an empty mapping from DOM event types to React event handlers.
 pub fn ElementEvents::new() -> ElementEvents {
   ElementEvents(Map([]))
 }
@@ -515,6 +536,8 @@ pub fn ElementEvents::set(
 }
 
 ///|
+/// Converts this event map to a JavaScript React-props object whose keys use
+/// handler names such as `onClick`.
 pub fn ElementEvents::to_js_value(self : ElementEvents) -> JsObscure {
   // React consumes handler properties such as onClick, not native names like click.
   let obj = @dom.JsObjectObscure::new()
@@ -542,6 +565,10 @@ pub(all) enum VirtualNode {
 }
 
 ///|
+/// Converts a virtual node into the JavaScript value consumed by React.
+///
+/// Most applications pass virtual nodes to `render`, `component`, or another
+/// element helper instead of calling this interop method directly.
 pub fn VirtualNode::to_js_obscure(self : VirtualNode) -> @dom.JsObscure {
   let ret = match self {
     Element(el) => el.to_js_value()
@@ -646,6 +673,7 @@ pub struct VirtualElement {
 }
 
 ///|
+/// Wraps this virtual element as a general `VirtualNode`.
 pub fn VirtualElement::to_node(self : VirtualElement) -> VirtualNode {
   Element(self)
 }
@@ -707,8 +735,6 @@ pub fn css_prop_to_camel_case(name : String) -> String {
 /// let js_style = convert_style_to_js_object(style)
 /// // Results in: { backgroundColor: "red", fontSize: "16px" }
 /// ```
-
-///|
 pub fn convert_style_to_js_object(
   style : @css.RespoStyle,
 ) -> @dom.JsObjectObscure {
