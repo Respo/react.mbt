@@ -7,6 +7,7 @@
   "scripts": {
     "generate:dom": "node scripts/generate-dom-helpers.mjs",
     "check:generated": "node scripts/generate-dom-helpers.mjs --check",
+    "check:docs": "node scripts/verify-public-doc-comments.mjs",
     "check:release": "node scripts/verify-release-metadata.mjs && node scripts/verify-package-contents.mjs",
     "verify:published": "node scripts/verify-published-package.mjs",
     "build:moon": "moon build --target js --debug",

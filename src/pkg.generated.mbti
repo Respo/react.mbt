@@ -93,6 +93,8 @@ pub fn figcaption(id? : String, class_name? : String, class_list? : Array[String
 
 pub fn figure(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], role? : String, title? : String, tab_index? : Int, hidden? : Bool, aria_label? : String, data_testid? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
+pub fn flush_sync(() -> Unit) -> Unit
+
 pub fn footer(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
 pub fn form(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], action? : FormAction, method_? : String, on_submit? : (DOMEvent) -> Unit) -> VirtualNode
@@ -166,6 +168,18 @@ pub fn polygon(id? : String, class_name? : String, class_list? : Array[String], 
 pub fn polyline(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], role? : String, title? : String, tab_index? : Int, hidden? : Bool, aria_label? : String, data_testid? : String, points? : String, fill? : String, stroke? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
 pub fn pre(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], role? : String, title? : String, tab_index? : Int, hidden? : Bool, aria_label? : String, data_testid? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
+
+pub fn preconnect(String, cross_origin? : ResourceCrossOrigin) -> Unit
+
+pub fn prefetch_dns(String) -> Unit
+
+pub fn preinit(String, PreinitOptions) -> Unit
+
+pub fn preinit_module(String, options? : ModuleHintOptions) -> Unit
+
+pub fn preload(String, PreloadOptions) -> Unit
+
+pub fn preload_module(String, options? : ModuleHintOptions) -> Unit
 
 pub fn progress(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], role? : String, title? : String, tab_index? : Int, hidden? : Bool, aria_label? : String, data_testid? : String, value? : Float, max? : Float, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
@@ -466,6 +480,31 @@ pub(all) enum InputType {
 } derive(Eq)
 pub fn InputType::to_string(Self) -> String
 
+type ModuleHintOptions
+pub fn ModuleHintOptions::new(cross_origin? : ResourceCrossOrigin, integrity? : String, nonce? : String) -> Self
+
+type PreinitOptions
+pub fn PreinitOptions::script(cross_origin? : ResourceCrossOrigin, integrity? : String, nonce? : String, fetch_priority? : ResourceFetchPriority) -> Self
+pub fn PreinitOptions::style(ResourceStylePrecedence, cross_origin? : ResourceCrossOrigin, integrity? : String, nonce? : String, fetch_priority? : ResourceFetchPriority) -> Self
+
+pub(all) enum PreloadDestination {
+  Audio
+  Document
+  Embed
+  Fetch
+  Font
+  Image
+  Object
+  Script
+  Style
+  Track
+  Video
+  Worker
+} derive(Eq)
+
+type PreloadOptions
+pub fn PreloadOptions::new(PreloadDestination, cross_origin? : ResourceCrossOrigin, referrer_policy? : ResourceReferrerPolicy, integrity? : String, mime_type? : String, nonce? : String, fetch_priority? : ResourceFetchPriority, image_src_set? : String, image_sizes? : String) -> Self
+
 type ReactComponent[T]
 pub fn[T] ReactComponent::memo(Self[T], are_props_equal? : (T, T) -> Bool) -> Self[T]
 pub fn[T] ReactComponent::render(Self[T], T) -> VirtualNode
@@ -506,6 +545,32 @@ pub fn[T] ReactRef::to_js_obscure(Self[T]) -> @dom-ffi.JsObscure
 
 type ReactResource[T]
 pub fn[T] ReactResource::to_js_obscure(Self[T]) -> @dom-ffi.JsObscure
+
+pub(all) enum ResourceCrossOrigin {
+  Anonymous
+  UseCredentials
+} derive(Eq)
+
+pub(all) enum ResourceFetchPriority {
+  Auto
+  High
+  Low
+} derive(Eq)
+
+pub(all) enum ResourceReferrerPolicy {
+  NoReferrerWhenDowngrade
+  NoReferrer
+  Origin
+  OriginWhenCrossOrigin
+  UnsafeUrl
+} derive(Eq)
+
+pub(all) enum ResourceStylePrecedence {
+  Reset
+  Low
+  Medium
+  High
+} derive(Eq)
 
 type RootOptions
 pub fn RootOptions::new(identifier_prefix? : String, on_caught_error? : (ReactError, ReactErrorInfo) -> Unit, on_uncaught_error? : (ReactError, ReactErrorInfo) -> Unit, on_recoverable_error? : (ReactError, ReactErrorInfo) -> Unit) -> Self

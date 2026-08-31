@@ -327,6 +327,8 @@ extern "js" fn install_test_react_dom() -> Unit =
   #|   let hydrateRootOptions = null;
   #|   let portalCall = null;
   #|   let serverRenderPrefix = null;
+  #|   let flushSyncCalls = 0;
+  #|   const operationCalls = [];
   #|   globalThis.ReactDOMClient = {
   #|     createRoot: (_parent, options) => {
   #|       createRootCalls += 1;
@@ -350,6 +352,16 @@ extern "js" fn install_test_react_dom() -> Unit =
   #|       portalCall = { child, parent, key };
   #|       return { portal: true, child, parent, key };
   #|     },
+  #|     flushSync: (callback) => {
+  #|       flushSyncCalls += 1;
+  #|       callback();
+  #|     },
+  #|     prefetchDNS: (href) => operationCalls.push({ name: "prefetchDNS", href }),
+  #|     preconnect: (href, options) => operationCalls.push({ name: "preconnect", href, options }),
+  #|     preload: (href, options) => operationCalls.push({ name: "preload", href, options }),
+  #|     preloadModule: (href, options) => operationCalls.push({ name: "preloadModule", href, options }),
+  #|     preinit: (href, options) => operationCalls.push({ name: "preinit", href, options }),
+  #|     preinitModule: (href, options) => operationCalls.push({ name: "preinitModule", href, options }),
   #|   };
   #|   globalThis.ReactDOMServer = {
   #|     renderToString: (_vdom, options) => {
@@ -366,7 +378,36 @@ extern "js" fn install_test_react_dom() -> Unit =
   #|     portalCall,
   #|     serverRenderPrefix,
   #|   });
+  #|   globalThis.__moonbitReactDomOperationTest = {
+  #|     flushSyncCalls: () => flushSyncCalls,
+  #|     calls: operationCalls,
+  #|   };
   #| }
+
+///|
+extern "js" fn test_flush_sync_count() -> Int =
+  #| () => globalThis.__moonbitReactDomOperationTest.flushSyncCalls()
+
+///|
+extern "js" fn test_dom_operation_count(name : String) -> Int =
+  #| (name) => globalThis.__moonbitReactDomOperationTest.calls
+  #|   .filter((call) => call.name === name).length
+
+///|
+extern "js" fn test_dom_operation_href(name : String, index : Int) -> String =
+  #| (name, index) => globalThis.__moonbitReactDomOperationTest.calls
+  #|   .filter((call) => call.name === name)[index]?.href ?? ""
+
+///|
+extern "js" fn test_dom_operation_option(
+  name : String,
+  index : Int,
+  option : String,
+) -> String =
+  #| (name, index, option) => String(
+  #|   globalThis.__moonbitReactDomOperationTest.calls
+  #|     .filter((call) => call.name === name)[index]?.options?.[option] ?? "",
+  #| )
 
 ///|
 extern "js" fn install_test_stream_renderer() -> Unit =
@@ -2054,6 +2095,111 @@ test "portal and synchronous server renderer preserve their arguments" {
     content="<main>ssr-</main>",
   )
   inspect(test_server_render_prefix(), content="ssr-")
+}
+
+///|
+test "React DOM operational APIs map callbacks and all six resource hints" {
+  install_test_react_dom()
+  inspect(
+    test_callback_throws(fn() {
+      let _ = PreloadOptions::new(PreloadDestination::Fetch)
+    }),
+    content="true",
+  )
+  inspect(
+    test_callback_throws(fn() {
+      let _ = PreloadOptions::new(
+        PreloadDestination::Fetch,
+        cross_origin=ResourceCrossOrigin::Anonymous,
+      )
+    }),
+    content="false",
+  )
+  let mut callback_calls = 0
+  flush_sync(fn() { callback_calls = callback_calls + 1 })
+  prefetch_dns("https://dns.example")
+  preconnect(
+    "https://connect.example",
+    cross_origin=ResourceCrossOrigin::Anonymous,
+  )
+  preload(
+    "/hero.png",
+    PreloadOptions::new(
+      PreloadDestination::Image,
+      cross_origin=ResourceCrossOrigin::UseCredentials,
+      referrer_policy=ResourceReferrerPolicy::OriginWhenCrossOrigin,
+      integrity="sha256-image",
+      mime_type="image/png",
+      nonce="preload-nonce",
+      fetch_priority=ResourceFetchPriority::High,
+      image_src_set="/hero.png 1x, /hero@2x.png 2x",
+      image_sizes="100vw",
+    ),
+  )
+  preload_module(
+    "/module.js",
+    options=ModuleHintOptions::new(
+      cross_origin=ResourceCrossOrigin::Anonymous,
+      integrity="sha256-module",
+      nonce="module-nonce",
+    ),
+  )
+  preinit(
+    "/classic.js",
+    PreinitOptions::script(fetch_priority=ResourceFetchPriority::Low),
+  )
+  preinit(
+    "/style.css",
+    PreinitOptions::style(ResourceStylePrecedence::High, nonce="style-nonce"),
+  )
+  preinit_module("/entry.js")
+
+  inspect(callback_calls, content="1")
+  inspect(test_flush_sync_count(), content="1")
+  inspect(test_dom_operation_count("prefetchDNS"), content="1")
+  inspect(test_dom_operation_count("preconnect"), content="1")
+  inspect(test_dom_operation_count("preload"), content="1")
+  inspect(test_dom_operation_count("preloadModule"), content="1")
+  inspect(test_dom_operation_count("preinit"), content="2")
+  inspect(test_dom_operation_count("preinitModule"), content="1")
+  inspect(
+    test_dom_operation_href("preconnect", 0),
+    content="https://connect.example",
+  )
+  inspect(
+    test_dom_operation_option("preconnect", 0, "crossOrigin"),
+    content="anonymous",
+  )
+  inspect(test_dom_operation_option("preload", 0, "as"), content="image")
+  inspect(
+    test_dom_operation_option("preload", 0, "crossOrigin"),
+    content="use-credentials",
+  )
+  inspect(
+    test_dom_operation_option("preload", 0, "referrerPolicy"),
+    content="origin-when-cross-origin",
+  )
+  inspect(
+    test_dom_operation_option("preload", 0, "fetchPriority"),
+    content="high",
+  )
+  inspect(
+    test_dom_operation_option("preload", 0, "imageSrcSet"),
+    content="/hero.png 1x, /hero@2x.png 2x",
+  )
+  inspect(test_dom_operation_option("preloadModule", 0, "as"), content="script")
+  inspect(
+    test_dom_operation_option("preloadModule", 0, "integrity"),
+    content="sha256-module",
+  )
+  inspect(test_dom_operation_option("preinit", 0, "as"), content="script")
+  inspect(
+    test_dom_operation_option("preinit", 0, "fetchPriority"),
+    content="low",
+  )
+  inspect(test_dom_operation_option("preinit", 1, "as"), content="style")
+  inspect(test_dom_operation_option("preinit", 1, "precedence"), content="high")
+  inspect(test_dom_operation_option("preinitModule", 0, "as"), content="script")
 }
 
 ///|

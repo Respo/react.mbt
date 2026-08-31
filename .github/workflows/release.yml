@@ -73,6 +73,7 @@ jobs:
       - name: Verify generated sources and release metadata
         run: |
           yarn check:generated
+          yarn check:docs
           yarn check:release
 
       - name: Install Chromium for browser tests

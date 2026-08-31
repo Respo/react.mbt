@@ -161,6 +161,128 @@ test("Web Stream HTML hydrates by reusing DOM with matching identifiers", async 
   expect(consoleProblems).toEqual([]);
 });
 
+test("flushSync is observable before return and resource hints deduplicate", async ({ page }) => {
+  const pageErrors = [];
+  const consoleProblems = [];
+  const externalRequests = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  page.on("request", (request) => {
+    const url = new URL(request.url());
+    if (!["127.0.0.1", "localhost"].includes(url.hostname)) {
+      externalRequests.push(request.url());
+    }
+  });
+  page.on("console", (message) => {
+    if (["warning", "error"].includes(message.type())) {
+      consoleProblems.push(`${message.type()}: ${message.text()}`);
+    }
+  });
+
+  await page.goto("/");
+  await expect(page.locator("#flush-sync-value")).toHaveText("Flush value: 0");
+  await page.locator("#flush-sync-button").click();
+  await expect(page.locator("#flush-sync-value")).toHaveText("Flush value: 1");
+
+  const evidence = await page.evaluate(() => {
+    const resourceNodes = [...document.head.querySelectorAll("link, script")]
+      .filter((node) => {
+        const url = node.getAttribute("href") ?? node.getAttribute("src") ?? "";
+        return url.includes("resource-hints.invalid") || url.startsWith("data:text/");
+      })
+      .map((node) => ({
+        kind: node.tagName === "SCRIPT" ? "module-script" : node.getAttribute("rel"),
+        rel: node.getAttribute("rel") ?? "",
+        href: node.getAttribute("href") ?? node.getAttribute("src") ?? "",
+        as: node.getAttribute("as") ?? "",
+        hasCrossOrigin: node.hasAttribute("crossorigin"),
+        crossOrigin: node.getAttribute("crossorigin") ?? "",
+        fetchPriority: node.getAttribute("fetchpriority") ?? "",
+        precedence: node.getAttribute("data-precedence") ?? "",
+        type: node.getAttribute("type") ?? "",
+      }))
+      .sort((left, right) => left.kind.localeCompare(right.kind));
+    return {
+      flush: globalThis.__moonbitDomOperations,
+      resourceNodes,
+    };
+  });
+  expect(evidence.flush).toEqual({
+    flushBefore: "Flush value: 0",
+    flushAfter: "Flush value: 1",
+  });
+  expect(evidence.resourceNodes).toEqual([
+    {
+      kind: "dns-prefetch",
+      rel: "dns-prefetch",
+      href: "https://resource-hints.invalid",
+      as: "",
+      hasCrossOrigin: false,
+      crossOrigin: "",
+      fetchPriority: "",
+      precedence: "",
+      type: "",
+    },
+    {
+      kind: "module-script",
+      rel: "",
+      href: "data:text/javascript,",
+      as: "",
+      hasCrossOrigin: false,
+      crossOrigin: "",
+      fetchPriority: "",
+      precedence: "",
+      type: "module",
+    },
+    {
+      kind: "modulepreload",
+      rel: "modulepreload",
+      href: "data:text/javascript,export%20default%201",
+      as: "",
+      hasCrossOrigin: true,
+      crossOrigin: "",
+      fetchPriority: "",
+      precedence: "",
+      type: "",
+    },
+    {
+      kind: "preconnect",
+      rel: "preconnect",
+      href: "https://resource-hints.invalid",
+      as: "",
+      hasCrossOrigin: true,
+      crossOrigin: "",
+      fetchPriority: "",
+      precedence: "",
+      type: "",
+    },
+    {
+      kind: "preload",
+      rel: "preload",
+      href: "data:text/css,%2Emoonbit-preload%7B%7D",
+      as: "style",
+      hasCrossOrigin: false,
+      crossOrigin: "",
+      fetchPriority: "high",
+      precedence: "",
+      type: "text/css",
+    },
+    {
+      kind: "stylesheet",
+      rel: "stylesheet",
+      href: "data:text/css,%2Emoonbit-preinit%7B%7D",
+      as: "",
+      hasCrossOrigin: false,
+      crossOrigin: "",
+      fetchPriority: "",
+      precedence: "low",
+      type: "",
+    },
+  ]);
+  expect(externalRequests).toEqual([]);
+  expect(pageErrors).toEqual([]);
+  expect(consoleProblems).toEqual([]);
+});
+
 test("root options report caught, uncaught, and recoverable errors exactly once", async ({ page }) => {
   const pageErrors = [];
   const consoleProblems = [];
