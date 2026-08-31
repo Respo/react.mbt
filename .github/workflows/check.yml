@@ -45,7 +45,7 @@ jobs:
       - name: Check generated interfaces
         run: |
           moon info
-          git diff --exit-code -- src/pkg.generated.mbti src/main/pkg.generated.mbti
+          git diff --exit-code -- src/pkg.generated.mbti src/main/pkg.generated.mbti src/main/streaming-test/pkg.generated.mbti
 
       - name: moon test
         run: moon test
