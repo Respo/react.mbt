@@ -37,7 +37,9 @@ if (unreleasedIndex !== 0) {
 
 const unreleasedStart = sections[0].index + sections[0][0].length;
 const unreleasedEnd = sections[1]?.index ?? changelog.length;
-if (changelog.slice(unreleasedStart, unreleasedEnd).trim() !== "") {
+const unreleasedBody = changelog.slice(unreleasedStart, unreleasedEnd).trim();
+const unreleasedEntries = [...unreleasedBody.matchAll(/^- /gm)].length;
+if (process.env.RELEASE_TAG && unreleasedBody !== "") {
   fail("Unreleased must be empty when preparing a release");
 }
 
@@ -128,7 +130,7 @@ console.log(
       changelogReleaseSections: releaseHeadings.length,
       historicalTagsCovered: taggedVersions.length,
       publicTagManifestChecked: process.env.VERIFY_GIT_TAGS === "1",
-      unreleasedEntries: 0,
+      unreleasedEntries,
       bilingualReleaseNotes: true,
     },
     null,
