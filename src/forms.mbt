@@ -1,27 +1,26 @@
 ///|
 /// The browser `FormData` payload supplied to React form Actions.
+///
+/// Convert it with `to_dom_form_data` when the complete file-aware dom-ffi
+/// `FormData` API is needed.
 #external
 pub type ReactFormData
 
 ///|
-extern "js" fn ReactFormData::get_string_raw(
-  self : ReactFormData,
-  key : String,
-) -> JsObscure =
-  #| (data, key) => {
-  #|   const value = data.get(key);
-  #|   return typeof value === "string" ? value : null;
-  #| }
+/// Returns the same browser object as dom-ffi `FormData`, without copying its
+/// entries. This preserves the React Action callback API while exposing
+/// file-aware `FormData` operations.
+///
+/// [FormData](https://developer.mozilla.org/en-US/docs/Web/API/FormData)
+pub fn ReactFormData::to_dom_form_data(self : ReactFormData) -> @dom.FormData = "%identity"
 
 ///|
 /// Returns a string form field, or `None` when the field is absent or is a
 /// non-string value such as a File.
 pub fn ReactFormData::get_string(self : ReactFormData, key : String) -> String? {
-  let value = self.get_string_raw(key)
-  if value.is_nil() {
-    None
-  } else {
-    Some(@dom.js_obscure_to_v(value))
+  match self.to_dom_form_data().get(key) {
+    Some(@dom.FormDataValue::Text(value)) => Some(value)
+    _ => None
   }
 }
 

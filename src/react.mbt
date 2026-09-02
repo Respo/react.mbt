@@ -171,13 +171,9 @@ pub fn ElementAttrs::set_js_value(
 }
 
 ///|
-extern "js" fn js_value_is_array(value : JsObscure) -> Bool =
-  #| (value) => Array.isArray(value)
-
-///|
 fn ElementAttrs::prop_is_array(self : ElementAttrs, key : String) -> Bool {
   match self.0.get(key) {
-    Some(JsProp(value)) => js_value_is_array(value)
+    Some(JsProp(value)) => value.is_array()
     _ => false
   }
 }
@@ -223,6 +219,82 @@ pub type DOMEvent
 /// Returns the underlying React synthetic event for advanced JavaScript
 /// interop.
 pub fn DOMEvent::to_js_obscure(self : DOMEvent) -> JsObscure = "%identity"
+
+///|
+/// Returns an explicit view of the browser event wrapped by this React
+/// SyntheticEvent. This view is intentionally distinct from `DOMEvent`: use
+/// `native_pointer_event` or `native_wheel_event` to obtain a checked
+/// dom-ffi event-family value.
+///
+/// [React SyntheticEvent](https://react.dev/reference/react-dom/components/common#react-event-object)
+extern "js" fn DOMEvent::native_event(self : DOMEvent) -> NativeEvent =
+  #| (event) => ({ value: event.nativeEvent ?? event })
+
+///|
+/// An opaque view of the browser event associated with a React SyntheticEvent.
+///
+/// It is not a React SyntheticEvent and only exposes checked conversions to
+/// specific dom-ffi event families.
+#external
+pub type NativeEvent
+
+///|
+extern "js" fn NativeEvent::pointer_event_raw(self : NativeEvent) -> JsObscure =
+  #| (nativeEvent) =>
+  #|   typeof nativeEvent.value?.pointerId === "number" ? nativeEvent.value : null
+
+///|
+/// Returns a dom-ffi `PointerEvent` when this native event has the required
+/// pointer payload. The structural check keeps non-pointer React handlers
+/// from being reinterpreted as pointer events.
+///
+/// [PointerEvent](https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent)
+pub fn NativeEvent::pointer_event(self : NativeEvent) -> @dom.PointerEvent? {
+  let value = self.pointer_event_raw()
+  if value.is_nullish() {
+    None
+  } else {
+    Some(@dom.js_obscure_to_v(value))
+  }
+}
+
+///|
+extern "js" fn NativeEvent::wheel_event_raw(self : NativeEvent) -> JsObscure =
+  #| (nativeEvent) =>
+  #|   typeof nativeEvent.value?.deltaX === "number" &&
+  #|   typeof nativeEvent.value?.deltaY === "number" &&
+  #|   typeof nativeEvent.value?.deltaMode === "number"
+  #|     ? nativeEvent.value
+  #|     : null
+
+///|
+/// Returns a dom-ffi `WheelEvent` when this native event has the required
+/// wheel payload. Non-wheel React handlers receive `None` instead of an
+/// unchecked cast.
+///
+/// [WheelEvent](https://developer.mozilla.org/en-US/docs/Web/API/WheelEvent)
+pub fn NativeEvent::wheel_event(self : NativeEvent) -> @dom.WheelEvent? {
+  let value = self.wheel_event_raw()
+  if value.is_nullish() {
+    None
+  } else {
+    Some(@dom.js_obscure_to_v(value))
+  }
+}
+
+///|
+/// Returns the checked dom-ffi `PointerEvent` carried by this React event, or
+/// `None` when the handler received another event family.
+pub fn DOMEvent::native_pointer_event(self : DOMEvent) -> @dom.PointerEvent? {
+  self.native_event().pointer_event()
+}
+
+///|
+/// Returns the checked dom-ffi `WheelEvent` carried by this React event, or
+/// `None` when the handler received another event family.
+pub fn DOMEvent::native_wheel_event(self : DOMEvent) -> @dom.WheelEvent? {
+  self.native_event().wheel_event()
+}
 
 ///|
 /// 获取事件目标元素的值（通常用于 input、textarea 等表单元素）
