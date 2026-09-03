@@ -296,9 +296,31 @@ extern "js" fn test_dom_event() -> DOMEvent =
   #|   shiftKey: true,
   #|   altKey: true,
   #|   metaKey: true,
+  #|   nativeEvent: {
+  #|     pointerId: 17,
+  #|     button: 1,
+  #|     buttons: 3,
+  #|     pressure: 0.5,
+  #|     clientX: 24.5,
+  #|     clientY: 48.5,
+  #|   },
   #|   preventDefault() { this.defaultPrevented = true; },
   #|   stopPropagation() { this.propagationStopped = true; },
   #| })
+
+///|
+extern "js" fn test_wheel_dom_event() -> DOMEvent =
+  #| () => ({
+  #|   nativeEvent: { deltaX: 1.5, deltaY: -2.5, deltaMode: 1 },
+  #| })
+
+///|
+extern "js" fn test_generic_dom_event() -> DOMEvent =
+  #| () => ({ nativeEvent: { type: "submit" } })
+
+///|
+extern "js" fn test_partial_pointer_dom_event() -> DOMEvent =
+  #| () => ({ nativeEvent: { pointerId: 17 } })
 
 ///|
 extern "js" fn test_dom_event_default_prevented(event : DOMEvent) -> Bool =
@@ -631,6 +653,7 @@ extern "js" fn test_form_data() -> ReactFormData =
   #| () => {
   #|   const data = new FormData();
   #|   data.append("field", "value");
+  #|   data.append("attachment", new File(["fixture"], "fixture.txt"));
   #|   return data;
   #| }
 
@@ -1471,6 +1494,71 @@ test "DOMEvent exposes keyboard, pointer, modifier, and control APIs" {
 }
 
 ///|
+test "DOMEvent exposes checked dom-ffi native event views" {
+  let pointer = test_dom_event()
+  match pointer.native_pointer_event() {
+    Some(native) => {
+      inspect(native.pointer_id(), content="17")
+      inspect(native.button(), content="1")
+      inspect(native.buttons(), content="3")
+      inspect(native.pressure(), content="0.5")
+      inspect(native.client_x(), content="24.5")
+      inspect(native.client_y(), content="48.5")
+    }
+    None => fail("expected a pointer native event")
+  }
+  inspect(
+    match pointer.native_wheel_event() {
+      None => true
+      Some(_) => false
+    },
+    content="true",
+  )
+
+  let wheel = test_wheel_dom_event()
+  match wheel.native_wheel_event() {
+    Some(native) => {
+      inspect(native.delta_x(), content="1.5")
+      inspect(native.delta_y(), content="-2.5")
+      inspect(native.delta_mode(), content="1")
+    }
+    None => fail("expected a wheel native event")
+  }
+  inspect(
+    match wheel.native_pointer_event() {
+      None => true
+      Some(_) => false
+    },
+    content="true",
+  )
+
+  let generic = test_generic_dom_event()
+  inspect(
+    match generic.native_pointer_event() {
+      None => true
+      Some(_) => false
+    },
+    content="true",
+  )
+  inspect(
+    match generic.native_wheel_event() {
+      None => true
+      Some(_) => false
+    },
+    content="true",
+  )
+
+  let partial_pointer = test_partial_pointer_dom_event()
+  inspect(
+    match partial_pointer.native_pointer_event() {
+      None => true
+      Some(_) => false
+    },
+    content="true",
+  )
+}
+
+///|
 test "innerHTML uses React's required object prop" {
   install_test_react()
   let node = div(innerHTML="<strong>trusted</strong>", []).to_js_obscure()
@@ -1686,6 +1774,14 @@ test "form Actions preserve typed payloads and valid submit controls" {
   let data = test_form_data()
   inspect(data.get_string("field") == Some("value"), content="true")
   inspect(data.get_string("missing") is None, content="true")
+  inspect(data.get_string("attachment") is None, content="true")
+  inspect(
+    match data.to_dom_form_data().get("attachment") {
+      Some(@dom.FormDataValue::File(file)) => file.name() == "fixture.txt"
+      _ => false
+    },
+    content="true",
+  )
   let action = form_action(fn(_data) {  })
   let form_node = form(
     id="action-form",

@@ -42,6 +42,7 @@ extern "js" fn conformance_reset_observations() -> Unit =
   #|     setups: 0,
   #|     cleanups: 0,
   #|     ref: null,
+  #|     nativeEvents: { pointer: null, wheel: null },
   #|   };
   #| }
 
@@ -60,6 +61,33 @@ extern "js" fn conformance_record_setup() -> Unit =
 ///|
 extern "js" fn conformance_record_cleanup() -> Unit =
   #| () => globalThis.__moonbitReactConformance.cleanups += 1
+
+///|
+extern "js" fn conformance_record_native_pointer(
+  pointer_id : Int,
+  button : Int,
+  buttons : Int,
+  pressure : Float,
+  client_x : Float,
+  client_y : Float,
+) -> Unit =
+  #| (pointerId, button, buttons, pressure, clientX, clientY) => {
+  #|   globalThis.__moonbitReactConformance.nativeEvents.pointer = {
+  #|     pointerId, button, buttons, pressure, clientX, clientY,
+  #|   };
+  #| }
+
+///|
+extern "js" fn conformance_record_native_wheel(
+  delta_x : Float,
+  delta_y : Float,
+  delta_mode : Int,
+) -> Unit =
+  #| (deltaX, deltaY, deltaMode) => {
+  #|   globalThis.__moonbitReactConformance.nativeEvents.wheel = {
+  #|     deltaX, deltaY, deltaMode,
+  #|   };
+  #| }
 
 ///|
 extern "js" fn conformance_reset_activity_observations() -> Unit =
@@ -473,6 +501,33 @@ fn comp_conformance_probe(props : ConformanceProbeProps) -> VirtualNode {
   })
   let input_attrs = @react.ElementAttrs::new()
   input_attrs.set_js_value("ref", input_ref.to_js_obscure())
+  let pointer_events = @react.ElementEvents::new()
+  pointer_events.set(@react.DOMEventType::PointerMove, fn(event) {
+    match event.native_pointer_event() {
+      Some(native) =>
+        conformance_record_native_pointer(
+          native.pointer_id(),
+          native.button(),
+          native.buttons(),
+          native.pressure(),
+          native.client_x(),
+          native.client_y(),
+        )
+      None => ()
+    }
+  })
+  let wheel_events = @react.ElementEvents::new()
+  wheel_events.set(@react.DOMEventType::Wheel, fn(event) {
+    match event.native_wheel_event() {
+      Some(native) =>
+        conformance_record_native_wheel(
+          native.delta_x(),
+          native.delta_y(),
+          native.delta_mode(),
+        )
+      None => ()
+    }
+  })
   @react.section(
     id="react-conformance-probe",
     style=@css.respo_style(
@@ -517,6 +572,12 @@ fn comp_conformance_probe(props : ConformanceProbeProps) -> VirtualNode {
         on_click=fn(_) { conformance_focus_ref(input_ref.to_js_obscure()) },
         [Text("Focus DOM ref")],
       ),
+      @react.div(id="conformance-native-pointer", event=pointer_events, [
+        Text("Native pointer payload probe"),
+      ]),
+      @react.div(id="conformance-native-wheel", event=wheel_events, [
+        Text("Native wheel payload probe"),
+      ]),
     ],
   )
 }

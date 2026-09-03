@@ -32,6 +32,33 @@ test("React runtime preserves lifecycle, batching, root, and ref semantics", asy
     refCleared: false,
   });
 
+  await page.locator("#conformance-native-pointer").dispatchEvent("pointermove", {
+    pointerId: 17,
+    button: 1,
+    buttons: 3,
+    pressure: 0.5,
+    clientX: 24.5,
+    clientY: 48.5,
+  });
+  await page.locator("#conformance-native-wheel").dispatchEvent("wheel", {
+    deltaX: 1.5,
+    deltaY: -2.5,
+    deltaMode: 1,
+  });
+  expect(
+    await page.evaluate(() => globalThis.__moonbitReactConformance.nativeEvents),
+  ).toEqual({
+    pointer: {
+      pointerId: 17,
+      button: 1,
+      buttons: 3,
+      pressure: 0.5,
+      clientX: 24.5,
+      clientY: 48.5,
+    },
+    wheel: { deltaX: 1.5, deltaY: -2.5, deltaMode: 1 },
+  });
+
   await page.locator("#conformance-functional-update").click();
   await expect(page.locator("#conformance-functional-count")).toHaveText("Functional state: 2");
   expect((await observations()).renders).toBe(4);

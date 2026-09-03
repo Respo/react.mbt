@@ -331,6 +331,9 @@ pub fn DOMEvent::ctrl_key(Self) -> Bool
 pub fn DOMEvent::key(Self) -> String
 pub fn DOMEvent::key_code(Self) -> Int
 pub fn DOMEvent::meta_key(Self) -> Bool
+pub fn DOMEvent::native_event(Self) -> NativeEvent
+pub fn DOMEvent::native_pointer_event(Self) -> @dom-ffi.PointerEvent?
+pub fn DOMEvent::native_wheel_event(Self) -> @dom-ffi.WheelEvent?
 pub fn DOMEvent::prevent_default(Self) -> Unit
 pub fn DOMEvent::shift_key(Self) -> Bool
 pub fn DOMEvent::stop_propagation(Self) -> Unit
@@ -483,6 +486,11 @@ pub fn InputType::to_string(Self) -> String
 type ModuleHintOptions
 pub fn ModuleHintOptions::new(cross_origin? : ResourceCrossOrigin, integrity? : String, nonce? : String) -> Self
 
+#external
+pub type NativeEvent
+pub fn NativeEvent::pointer_event(Self) -> @dom-ffi.PointerEvent?
+pub fn NativeEvent::wheel_event(Self) -> @dom-ffi.WheelEvent?
+
 type PreinitOptions
 pub fn PreinitOptions::script(cross_origin? : ResourceCrossOrigin, integrity? : String, nonce? : String, fetch_priority? : ResourceFetchPriority) -> Self
 pub fn PreinitOptions::style(ResourceStylePrecedence, cross_origin? : ResourceCrossOrigin, integrity? : String, nonce? : String, fetch_priority? : ResourceFetchPriority) -> Self
@@ -529,6 +537,7 @@ pub fn ReactErrorInfo::component_stack(Self) -> String
 #external
 pub type ReactFormData
 pub fn ReactFormData::get_string(Self, String) -> String?
+pub fn ReactFormData::to_dom_form_data(Self) -> @dom-ffi.FormData
 
 type ReactReadableStream
 pub fn ReactReadableStream::abort(Self, reason? : String) -> Unit
