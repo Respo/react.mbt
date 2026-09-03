@@ -15,6 +15,9 @@ const changelog = readFileSync("CHANGELOG.md", "utf8");
 const moonVersions = [...moonMod.matchAll(/^version = "([^"]+)"$/gm)].map(
   (match) => match[1],
 );
+const domFfiVersions = [
+  ...moonMod.matchAll(/^\s*"tiye\/dom-ffi@([^"]+)",?$/gm),
+].map((match) => match[1]);
 
 if (moonVersions.length !== 1) {
   fail(`expected one moon.mod version, found ${moonVersions.length}`);
@@ -23,6 +26,13 @@ if (moonVersions.length !== 1) {
 const version = moonVersions[0];
 if (!semverPattern.test(version)) {
   fail(`moon.mod version is not semantic: ${version}`);
+}
+if (domFfiVersions.length !== 1) {
+  fail(`expected one tiye/dom-ffi dependency, found ${domFfiVersions.length}`);
+}
+const domFfiVersion = domFfiVersions[0];
+if (!semverPattern.test(domFfiVersion)) {
+  fail(`tiye/dom-ffi dependency is not an exact semantic version: ${domFfiVersion}`);
 }
 if (packageJson.version !== version) {
   fail(`package.json ${packageJson.version} != moon.mod ${version}`);
@@ -132,6 +142,7 @@ console.log(
   JSON.stringify(
     {
       version,
+      domFfiVersion,
       releaseTag: `v${version}`,
       metadataVersionsMatched: 2,
       changelogReleaseSections: releaseHeadings.length,

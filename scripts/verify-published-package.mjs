@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import {
   mkdirSync,
   mkdtempSync,
+  readFileSync,
   rmSync,
   symlinkSync,
   writeFileSync,
@@ -11,11 +12,23 @@ import { join, resolve } from "node:path";
 import { chromium } from "@playwright/test";
 import { createServer } from "vite";
 
+const semverPattern = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 const version = process.argv[2];
-if (!version || !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(version)) {
+if (!version || !semverPattern.test(version)) {
   console.error("usage: yarn verify:published <exact-version>");
   process.exit(2);
 }
+
+const moonMod = readFileSync("moon.mod", "utf8");
+const domFfiVersions = [
+  ...moonMod.matchAll(/^\s*"tiye\/dom-ffi@([^"]+)",?$/gm),
+].map((match) => match[1]);
+if (domFfiVersions.length !== 1 || !semverPattern.test(domFfiVersions[0])) {
+  throw new Error(
+    `expected one exact tiye/dom-ffi dependency in moon.mod, found ${JSON.stringify(domFfiVersions)}`,
+  );
+}
+const domFfiVersion = domFfiVersions[0];
 
 const directory = mkdtempSync(join(tmpdir(), "react-mbt-published-"));
 const results = [];
@@ -118,7 +131,7 @@ async function verifyBrowserRuntime() {
 try {
   writeFileSync(
     join(directory, "moon.mod"),
-    `name = "release-check/react-downstream"\n\nversion = "0.0.0"\n\nimport {\n  "tiye/react@${version}",\n  "tiye/dom-ffi@0.2.3",\n}\n\npreferred_target = "js"\n`,
+    `name = "release-check/react-downstream"\n\nversion = "0.0.0"\n\nimport {\n  "tiye/react@${version}",\n  "tiye/dom-ffi@${domFfiVersion}",\n}\n\npreferred_target = "js"\n`,
   );
   writeFileSync(
     join(directory, "moon.pkg"),
@@ -225,6 +238,11 @@ fn main {
   if (!tree.includes(`tiye/react@${version}`)) {
     throw new Error(`resolved dependency tree does not contain tiye/react@${version}`);
   }
+  if (!tree.includes(`tiye/dom-ffi@${domFfiVersion}`)) {
+    throw new Error(
+      `resolved dependency tree does not contain tiye/dom-ffi@${domFfiVersion}`,
+    );
+  }
   run("moon", ["check", "--target", "js"]);
   run("moon", ["build", "--target", "js"]);
   run("moon", ["run", "server", "--target", "js"], {
@@ -239,6 +257,7 @@ fn main {
       {
         module: "tiye/react",
         exactVersion: version,
+        exactDomFfiVersion: domFfiVersion,
         downstreamCommandsPassed: results.length,
         generatedSmokeNodes: ["table", "div", "button"],
         serverRuntimeScenarios: 1,
