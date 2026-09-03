@@ -319,6 +319,10 @@ extern "js" fn test_generic_dom_event() -> DOMEvent =
   #| () => ({ nativeEvent: { type: "submit" } })
 
 ///|
+extern "js" fn test_partial_pointer_dom_event() -> DOMEvent =
+  #| () => ({ nativeEvent: { pointerId: 17 } })
+
+///|
 extern "js" fn test_dom_event_default_prevented(event : DOMEvent) -> Bool =
   #| (event) => event.defaultPrevented === true
 
@@ -1538,6 +1542,15 @@ test "DOMEvent exposes checked dom-ffi native event views" {
   )
   inspect(
     match generic.native_wheel_event() {
+      None => true
+      Some(_) => false
+    },
+    content="true",
+  )
+
+  let partial_pointer = test_partial_pointer_dom_event()
+  inspect(
+    match partial_pointer.native_pointer_event() {
       None => true
       Some(_) => false
     },

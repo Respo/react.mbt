@@ -227,7 +227,7 @@ pub fn DOMEvent::to_js_obscure(self : DOMEvent) -> JsObscure = "%identity"
 /// dom-ffi event-family value.
 ///
 /// [React SyntheticEvent](https://react.dev/reference/react-dom/components/common#react-event-object)
-extern "js" fn DOMEvent::native_event(self : DOMEvent) -> NativeEvent =
+pub extern "js" fn DOMEvent::native_event(self : DOMEvent) -> NativeEvent =
   #| (event) => ({ value: event.nativeEvent ?? event })
 
 ///|
@@ -241,7 +241,14 @@ pub type NativeEvent
 ///|
 extern "js" fn NativeEvent::pointer_event_raw(self : NativeEvent) -> JsObscure =
   #| (nativeEvent) =>
-  #|   typeof nativeEvent.value?.pointerId === "number" ? nativeEvent.value : null
+  #|   typeof nativeEvent.value?.pointerId === "number" &&
+  #|   typeof nativeEvent.value?.button === "number" &&
+  #|   typeof nativeEvent.value?.buttons === "number" &&
+  #|   typeof nativeEvent.value?.pressure === "number" &&
+  #|   typeof nativeEvent.value?.clientX === "number" &&
+  #|   typeof nativeEvent.value?.clientY === "number"
+  #|     ? nativeEvent.value
+  #|     : null
 
 ///|
 /// Returns a dom-ffi `PointerEvent` when this native event has the required

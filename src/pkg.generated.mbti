@@ -331,6 +331,7 @@ pub fn DOMEvent::ctrl_key(Self) -> Bool
 pub fn DOMEvent::key(Self) -> String
 pub fn DOMEvent::key_code(Self) -> Int
 pub fn DOMEvent::meta_key(Self) -> Bool
+pub fn DOMEvent::native_event(Self) -> NativeEvent
 pub fn DOMEvent::native_pointer_event(Self) -> @dom-ffi.PointerEvent?
 pub fn DOMEvent::native_wheel_event(Self) -> @dom-ffi.WheelEvent?
 pub fn DOMEvent::prevent_default(Self) -> Unit
