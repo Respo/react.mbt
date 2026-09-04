@@ -16,8 +16,9 @@
   JavaScript `FormData.get` accessor. Local array detection now reuses the
   tested `JsObscure::is_array` predicate.
 - Updated downstream release verification to derive the exact dom-ffi version
-  from `moon.mod`, validate it in the resolved dependency tree, and report it
-  alongside the exact published React version.
+  from `moon.mod`, validate both versions with strict Semantic Versioning 2.0.0
+  rules, match complete package/version tokens in the resolved dependency tree,
+  and report it alongside the exact published React version.
 
 ## 0.3.0 - 2026-08-31
 

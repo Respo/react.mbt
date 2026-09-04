@@ -11,10 +11,13 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { chromium } from "@playwright/test";
 import { createServer } from "vite";
+import {
+  hasResolvedPackageVersion,
+  isExactSemVer,
+} from "./release-verification.mjs";
 
-const semverPattern = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 const version = process.argv[2];
-if (!version || !semverPattern.test(version)) {
+if (!isExactSemVer(version)) {
   console.error("usage: yarn verify:published <exact-version>");
   process.exit(2);
 }
@@ -23,7 +26,7 @@ const moonMod = readFileSync("moon.mod", "utf8");
 const domFfiVersions = [
   ...moonMod.matchAll(/^\s*"tiye\/dom-ffi@([^"]+)",?$/gm),
 ].map((match) => match[1]);
-if (domFfiVersions.length !== 1 || !semverPattern.test(domFfiVersions[0])) {
+if (domFfiVersions.length !== 1 || !isExactSemVer(domFfiVersions[0])) {
   throw new Error(
     `expected one exact tiye/dom-ffi dependency in moon.mod, found ${JSON.stringify(domFfiVersions)}`,
   );
@@ -235,10 +238,10 @@ fn main {
 
   run("moon", ["update"]);
   const tree = run("moon", ["tree"]);
-  if (!tree.includes(`tiye/react@${version}`)) {
+  if (!hasResolvedPackageVersion(tree, "tiye/react", version)) {
     throw new Error(`resolved dependency tree does not contain tiye/react@${version}`);
   }
-  if (!tree.includes(`tiye/dom-ffi@${domFfiVersion}`)) {
+  if (!hasResolvedPackageVersion(tree, "tiye/dom-ffi", domFfiVersion)) {
     throw new Error(
       `resolved dependency tree does not contain tiye/dom-ffi@${domFfiVersion}`,
     );
