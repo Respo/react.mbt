@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+## 0.4.0 - 2026-09-04
+
+- Upgraded the public dependency to `tiye/dom-ffi@0.4.0` and added an explicit,
+  opaque native-event view for React SyntheticEvents. Checked Pointer and Wheel
+  conversions validate their complete consumed payload before exposing
+  dom-ffi event types; mismatched and partial event families return `None`.
+- Added real Chromium coverage for exact Pointer and Wheel payloads and unit
+  coverage for valid, mismatched, and partial event shapes while preserving
+  React SyntheticEvent `preventDefault` and propagation behavior.
+- Added a zero-copy `ReactFormData::to_dom_form_data` bridge and reused
+  dom-ffi's text/file-aware `FormDataValue` instead of a duplicate direct
+  JavaScript `FormData.get` accessor. Local array detection now reuses the
+  tested `JsObscure::is_array` predicate.
+- Updated downstream release verification to derive the exact dom-ffi version
+  from `moon.mod`, validate both versions with strict Semantic Versioning 2.0.0
+  rules, match complete package/version tokens in the resolved dependency tree,
+  and report it alongside the exact published React version.
+
 ## 0.3.0 - 2026-08-31
 
 - Expanded the public API documentation gate from a 19-declaration allowlist to

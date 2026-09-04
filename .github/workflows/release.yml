@@ -111,7 +111,9 @@ jobs:
         with:
           ref: ${{ github.workflow_sha }}
           path: .release-verifier
-          sparse-checkout: scripts/verify-published-package.mjs
+          sparse-checkout: |
+            scripts/verify-published-package.mjs
+            scripts/release-verification.mjs
           sparse-checkout-cone-mode: false
 
       - name: Check whether the exact registry version already passes
