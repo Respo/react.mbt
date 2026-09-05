@@ -8,6 +8,7 @@
     "generate:dom": "node scripts/generate-dom-helpers.mjs",
     "check:generated": "node scripts/generate-dom-helpers.mjs --check",
     "check:docs": "node scripts/verify-public-doc-comments.mjs",
+    "check:quick-start": "node scripts/verify-quick-start.mjs",
     "test:release-verification": "node --test scripts/release-verification.test.mjs",
     "check:release": "yarn test:release-verification && node scripts/verify-release-metadata.mjs && node scripts/verify-package-contents.mjs",
     "verify:published": "node scripts/verify-published-package.mjs",

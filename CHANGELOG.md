@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Replaced the Quick Start with a complete independent counter project and a
+  CI gate that extracts the README files, installs their dependencies, compiles
+  the app, and verifies production-browser updates and missing-root behavior.
+
 ## 0.4.0 - 2026-09-04
 
 - Upgraded the public dependency to `tiye/dom-ffi@0.4.0` and added an explicit,

@@ -138,10 +138,17 @@ to React's camel-cased `onXxx` property automatically.
 - `DOMEvent` type and its methods:
   - `target_value() -> String` - Get form element value
   - `target_checked() -> Bool` - Get checkbox or radio checked state
+  - `native_pointer_event() -> @dom.PointerEvent?`, `native_wheel_event() -> @dom.WheelEvent?` - Read checked native payloads; mismatched or incomplete payloads return `None`
   - `key() -> String`, `key_code() -> Int` - Keyboard events
   - `client_x() -> Int`, `client_y() -> Int` - Mouse coordinates
   - `prevent_default()`, `stop_propagation()` - Event control
   - `ctrl_key()`, `shift_key()`, `alt_key()`, `meta_key() -> Bool` - Modifier key detection
+
+Use `native_event()` for the opaque native-event view. Keep calling
+`prevent_default()` and `stop_propagation()` on the React `DOMEvent` so React's
+SyntheticEvent semantics are preserved. For React form Actions,
+`ReactFormData::to_dom_form_data()` exposes dom-ffi's text/file-aware `FormData`
+without copying the underlying object.
 
 ### Styles and Attributes
 
@@ -324,8 +331,88 @@ React 会用 `display: none` 隐藏 DOM、清理 Effects，并降低隐藏更新
 
 ## Quick Start
 
-Before writing any MoonBit code, make sure to include the React bindings in your project.
+Create an empty directory and add the six files below. This example consumes
+the published `tiye/react@0.4.0` with `tiye/dom-ffi@0.4.0`. Use Node 22.12 or
+newer in the Node 22 series and the MoonBit toolchain pinned in CI
+(`0.10.4+2cc641edf`, including its matching core).
 
+新建空目录，添加下面六个文件，再执行末尾的命令即可运行计数器。示例显式处理
+挂载节点缺失，并在 React globals 初始化后加载 MoonBit 生成代码。CI 会直接提取
+这些代码块，安装依赖、编译并验证真实浏览器中的点击更新。
+
+### `moon.mod`
+
+<!-- quick-start:file moon.mod -->
+```toml
+name = "example/react-counter"
+
+version = "0.0.0"
+
+import {
+  "tiye/react@0.4.0",
+  "tiye/dom-ffi@0.4.0",
+}
+
+preferred_target = "js"
+```
+
+### `moon.pkg`
+
+<!-- quick-start:file moon.pkg -->
+```toml
+import {
+  "tiye/react" @react,
+  "tiye/dom-ffi" @dom,
+}
+
+pkgtype(kind: "executable")
+```
+
+### `package.json`
+
+<!-- quick-start:file package.json -->
+```json
+{
+  "name": "react-counter",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:moon": "moon build --target js --debug",
+    "dev": "npm run build:moon && vite",
+    "build": "npm run build:moon && vite build"
+  },
+  "dependencies": {
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "vite": "8.2.2"
+  }
+}
+```
+
+### `index.html`
+
+<!-- quick-start:file index.html -->
+```html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MoonBit React counter</title>
+    <link rel="icon" href="data:," />
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/main.mjs"></script>
+  </body>
+</html>
+```
+
+### `main.mjs`
+
+<!-- quick-start:file main.mjs -->
 ```js
 import * as React from "react";
 import * as ReactDOM from "react-dom";
@@ -334,50 +421,62 @@ import * as ReactDOMClient from "react-dom/client";
 globalThis.React = React;
 globalThis.ReactDOM = ReactDOM;
 globalThis.ReactDOMClient = ReactDOMClient;
+
+// Dynamic import guarantees that React globals exist before MoonBit starts.
+await import("./_build/js/debug/build/react-counter.js");
 ```
 
-Here's a simple example of how to use this library:
+### `main.mbt`
 
+<!-- quick-start:file main.mbt -->
 ```moonbit
-// Define your component props
-struct ContainerProps {} derive(Default)
+///|
+priv struct CounterProps {}
 
-// Create a functional component
-fn comp_container(_v : ContainerProps) -> @react.VirtualNode {
-  let (counter, set_counter) = @react.use_state(Float::from_double(0.0))
-
-  @react.div(
-    id="container",
-    style=@css.respo_style(
-      color=@css.CssColor::Blue,
-      font_family="Arial",
-      padding=@css.CssSize::Px(10.0),
-    ),
+///|
+fn comp_counter(_props : CounterProps) -> @react.VirtualNode {
+  let (count, set_count) = @react.use_state_with_updater(0)
+  @react.button(
+    id="counter",
     on_click=fn(_) {
-      println("clicked \{counter}")
-      set_counter(counter + 1.0)
+      set_count(@react.Update(fn(previous) { previous + 1 }))
     },
-    [
-      @react.Fragment([@react.Text("Demo: ")]),
-      @react.Text("Counter \{counter}")
-    ],
+    [@react.Text("Count: \{count}")],
   )
 }
 
-// Render to DOM
+///|
 fn main {
-  let window = @dom.window()
-  let doc = window.document()
-  let body = doc.body()
-  let props : ContainerProps = Default::default()
-
-  @react.render(
-    @react.component(comp_container, props, []),
-    body,
-  )
-  println("loaded")
+  match @dom.window().document().get_element_by_id("app") {
+    Some(root) =>
+      @react.render(
+        @react.component(comp_counter, CounterProps::{}, []),
+        root,
+      )
+    None => @dom.error_log("Missing #app mount element; rendering skipped")
+  }
 }
 ```
+
+From that directory, run:
+
+```sh
+moon update
+npm install
+moon check --target js
+npm run dev
+```
+
+Open the local URL printed by Vite. The button starts at `Count: 0` and
+increments on each click. After editing MoonBit, rerun `npm run build:moon`
+(or run `moon build --target js --debug --watch` in a second terminal).
+`npm run build` creates the production site in `dist/`.
+
+Repository maintainers can run `yarn check:quick-start` to extract these exact
+six files and verify dependency resolution, compilation, production build,
+three click updates, and the explicit missing-root error. This checks the
+published versions in the example; the library's own tests cover the current
+branch. The check needs registry access and an installed Playwright Chromium.
 
 ## Features
 
@@ -408,7 +507,9 @@ corepack yarn test:browser
 CI pins MoonBit compiler `0.10.4+2cc641edf` and validates Node 22 with Yarn
 1.22.22. `check:docs` automatically discovers explicit public declarations in
 the library package instead of relying on an API allowlist; the current gate
-requires all 228 declarations to carry doc comments. `test:server` covers
+requires every discovered declaration to carry doc comments (currently
+235/235). `check:quick-start` also compiles and exercises the README example
+as an independent consumer. `test:server` covers
 progressive Suspense chunks, all-ready static
 output, abort/error behavior, bootstrap metadata, and identifier prefixes
 against the real React server renderer. `test:browser` runs deterministic
@@ -423,8 +524,8 @@ local Error Boundary retry paths, and generated
 HTML/SVG/metadata DOM behavior; install it
 once locally with `yarn playwright install chromium`.
 Update the toolchain pin only through the full check, unit-test, interface,
-browser-test, and browser-build matrix. This revision was verified with MoonBit
-`0.1.20260713`, React 19.2.8, and Vite 8.2.x.
+browser-test, and browser-build matrix. CI verifies this revision with the
+pinned MoonBit toolchain, React 19.2.8, and Vite 8.2.x.
 
 The browser entry point loads React, ReactDOM, ReactDOMClient, and the demo-only
 server renderer before the generated MoonBit application. `render` can be
