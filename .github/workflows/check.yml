@@ -65,6 +65,9 @@ jobs:
       - name: Browser smoke test
         run: yarn test:browser
 
+      - name: Verify README Quick Start as an independent consumer
+        run: yarn check:quick-start
+
       - name: Check formatting
         run: |
           moon fmt
