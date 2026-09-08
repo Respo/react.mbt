@@ -26,6 +26,8 @@ pub fn blockquote(id? : String, class_name? : String, class_list? : Array[String
 
 pub fn button(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, button_type? : String, name? : String, value? : String, disabled? : Bool, form_action? : FormAction, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
+pub fn canvas(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], role? : String, title? : String, tab_index? : Int, hidden? : Bool, aria_label? : String, data_testid? : String, width? : Int, height? : Int, on_click? : (DOMEvent) -> Unit) -> VirtualNode
+
 pub fn caption(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], role? : String, title? : String, tab_index? : Int, hidden? : Bool, aria_label? : String, data_testid? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
 pub fn circle(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], role? : String, title? : String, tab_index? : Int, hidden? : Bool, aria_label? : String, data_testid? : String, cx? : String, cy? : String, r? : String, fill? : String, stroke? : String, stroke_width? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
@@ -63,6 +65,8 @@ pub fn css_prop_to_camel_case(String) -> String
 
 pub fn datalist(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], role? : String, title? : String, tab_index? : Int, hidden? : Bool, aria_label? : String, data_testid? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
+pub fn dd(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], role? : String, title? : String, tab_index? : Int, hidden? : Bool, aria_label? : String, data_testid? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
+
 #deprecated
 #callsite(autofill(loc))
 pub fn[U : Show] declare_contained_style(Array[(String?, U, @respo_css.RespoStyle)], loc~ : SourceLoc) -> String
@@ -77,9 +81,13 @@ pub fn dialog(id? : String, class_name? : String, class_list? : Array[String], a
 
 pub fn div(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
+pub fn dl(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], role? : String, title? : String, tab_index? : Int, hidden? : Bool, aria_label? : String, data_testid? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
+
 pub fn dom_attr_to_react_prop(String) -> String
 
 pub fn dom_event_to_react_handler(DOMEventType) -> String
+
+pub fn dt(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], role? : String, title? : String, tab_index? : Int, hidden? : Bool, aria_label? : String, data_testid? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
 pub fn ellipse(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], role? : String, title? : String, tab_index? : Int, hidden? : Bool, aria_label? : String, data_testid? : String, cx? : String, cy? : String, rx? : String, ry? : String, fill? : String, stroke? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
@@ -118,6 +126,8 @@ pub fn h6(id? : String, class_name? : String, class_list? : Array[String], attrs
 pub fn header(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
 pub fn hydrate_root(VirtualNode, @dom-ffi.Element, options? : RootOptions) -> Unit
+
+pub fn iframe(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], role? : String, title? : String, tab_index? : Int, hidden? : Bool, aria_label? : String, data_testid? : String, src? : String, src_doc? : String, name? : String, sandbox? : String, allow? : String, allow_full_screen? : Bool, loading? : String, referrer_policy? : String, width? : Int, height? : Int, on_click? : (DOMEvent) -> Unit, on_load? : (DOMEvent) -> Unit) -> VirtualNode
 
 pub fn img(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, src? : String, alt? : String, width? : String, height? : String, on_click? : (DOMEvent) -> Unit, on_load? : (DOMEvent) -> Unit, on_error? : (DOMEvent) -> Unit) -> VirtualNode
 
@@ -163,6 +173,8 @@ pub fn p(id? : String, class_name? : String, class_list? : Array[String], attrs?
 
 pub fn path(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], role? : String, title? : String, tab_index? : Int, hidden? : Bool, aria_label? : String, data_testid? : String, d? : String, fill? : String, stroke? : String, stroke_width? : String, path_length? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
+pub fn picture(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], role? : String, title? : String, tab_index? : Int, hidden? : Bool, aria_label? : String, data_testid? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
+
 pub fn polygon(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], role? : String, title? : String, tab_index? : Int, hidden? : Bool, aria_label? : String, data_testid? : String, points? : String, fill? : String, stroke? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
 pub fn polyline(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], role? : String, title? : String, tab_index? : Int, hidden? : Bool, aria_label? : String, data_testid? : String, points? : String, fill? : String, stroke? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
@@ -204,6 +216,8 @@ pub fn script_tag(id? : String, class_name? : String, class_list? : Array[String
 pub fn section(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
 pub fn select(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], value? : String, values? : Array[String], default_value? : String, default_values? : Array[String], disabled? : Bool, multiple? : Bool, on_change? : (DOMEvent) -> Unit) -> VirtualNode
+
+pub fn source(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, role? : String, title? : String, tab_index? : Int, hidden? : Bool, aria_label? : String, data_testid? : String, src? : String, src_set? : String, sizes? : String, type_? : String, media? : String, width? : Int, height? : Int, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 
 pub fn span(id? : String, class_name? : String, class_list? : Array[String], attrs? : ElementAttrs, event? : ElementEvents, style? : @respo_css.RespoStyle, Array[VirtualNode], innerHTML? : String, on_click? : (DOMEvent) -> Unit) -> VirtualNode
 

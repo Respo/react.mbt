@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Added generated iframe, canvas, picture/source, and dl/dt/dd helpers with
+  19 tag-specific property mappings and element-specific doc comments.
+  Tests cover typed React props, void-source children, iframe srcDoc/load,
+  canvas bitmap dimensions, and actual responsive image selection in Chromium.
+
 - Added checked `DOMEvent::target_files` and `DOMEvent::submitter`, reusing
   dom-ffi FileList and SubmitEvent accessors. Browser coverage verifies native
   identity, empty/multiple selections, submitter identity, React event control,
