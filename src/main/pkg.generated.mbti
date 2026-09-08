@@ -22,6 +22,8 @@ type ContextReaderProps
 
 type DomOperationsProps
 
+type DragPayloadProps
+
 type EditingState derive(Default)
 
 type ExternalStoreControllerProps

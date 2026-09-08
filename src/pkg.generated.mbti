@@ -342,6 +342,7 @@ pub fn DOMEvent::alt_key(Self) -> Bool
 pub fn DOMEvent::client_x(Self) -> Int
 pub fn DOMEvent::client_y(Self) -> Int
 pub fn DOMEvent::ctrl_key(Self) -> Bool
+pub fn DOMEvent::data_transfer(Self) -> @dom-ffi.DataTransfer?
 pub fn DOMEvent::key(Self) -> String
 pub fn DOMEvent::key_code(Self) -> Int
 pub fn DOMEvent::meta_key(Self) -> Bool

@@ -152,6 +152,7 @@ to React's camel-cased `onXxx` property automatically.
   - `target_checked() -> Bool` - Get checkbox or radio checked state
   - `target_files() -> @dom.FileList?` - Original file-input selection; an empty selection is `Some` with length 0, a non-file target is `None`
   - `submitter() -> @dom.Element?` - Initiating element of a native `SubmitEvent`; null submitters and other event types return `None`
+  - `data_transfer() -> @dom.DataTransfer?` - Original drag/drop payload, reusing dom-ffi text and file APIs; null payloads and other event families return `None`
   - `native_pointer_event() -> @dom.PointerEvent?`, `native_wheel_event() -> @dom.WheelEvent?` - Read checked native payloads; mismatched or incomplete payloads return `None`
   - `key() -> String`, `key_code() -> Int` - Keyboard events
   - `client_x() -> Int`, `client_y() -> Int` - Mouse coordinates
@@ -187,6 +188,31 @@ match event.submitter() {
   None => ()
 }
 ```
+
+For drag-and-drop, register `DragStart`, `DragOver`, and `Drop` through
+`ElementEvents::new().add(...)`. Write text with `transfer.set_data("text/plain",
+text)` during dragstart, and call `event.prevent_default()` during dragover to
+allow dropping. In the drop handler:
+
+```moonbit
+event.prevent_default()
+match event.data_transfer() {
+  Some(transfer) => {
+    println(transfer.get_data("text/plain"))
+    for file in transfer.files().to_array() {
+      println(file.name())
+    }
+  }
+  None => ()
+}
+```
+
+Read the payload synchronously: browser drag stores restrict access outside
+permitted phases. An empty DataTransfer is still `Some`; a null payload is
+`None`. The accessor checks native DragEvent identity and standard drag event
+names using the target window (including same-origin iframes); undispatched
+events without a target window return `None`. Clipboard events are not drag
+events and are not supported by this accessor.
 
 ### Styles and Attributes
 
@@ -546,7 +572,7 @@ CI pins MoonBit compiler `0.10.4+2cc641edf` and validates Node 22 with Yarn
 1.22.22. `check:docs` automatically discovers explicit public declarations in
 the library package instead of relying on an API allowlist; the current gate
 requires every discovered declaration to carry doc comments (currently
-244/244). `check:quick-start` also compiles and exercises the README example
+245/245). `check:quick-start` also compiles and exercises the README example
 as an independent consumer. `test:server` covers
 progressive Suspense chunks, all-ready static
 output, abort/error behavior, bootstrap metadata, and identifier prefixes
