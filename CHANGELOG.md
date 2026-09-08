@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Added checked `DOMEvent::data_transfer`, reusing dom-ffi drag text and file
+  accessors without a dependency upgrade. Tests distinguish trusted Chromium
+  text dragging from constructed file drops, and cover null/empty payloads,
+  wrong-event rejection, same-origin iframes, and React event control.
+
 - Added generated iframe, canvas, picture/source, and dl/dt/dd helpers with
   19 tag-specific property mappings and element-specific doc comments.
   Tests cover typed React props, void-source children, iframe srcDoc/load,

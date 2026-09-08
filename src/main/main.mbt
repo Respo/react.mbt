@@ -52,6 +52,7 @@ fn main {
   run_store_component_conformance()
   run_generated_dom_conformance()
   run_form_payload_conformance()
+  run_drag_payload_conformance()
 }
 
 ///|

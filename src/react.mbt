@@ -361,6 +361,39 @@ pub fn DOMEvent::submitter(self : DOMEvent) -> @dom.Element? {
 }
 
 ///|
+extern "js" fn DOMEvent::drag_event_raw(self : DOMEvent) -> JsObscure =
+  #| (event) => {
+  #|   const native = event?.nativeEvent ?? event;
+  #|   const view = native?.target?.ownerDocument?.defaultView;
+  #|   const Drag = view?.DragEvent;
+  #|   return typeof Drag === "function" && native instanceof Drag &&
+  #|     ["drag", "dragstart", "dragend", "dragenter", "dragleave", "dragover", "drop"].includes(native.type)
+  #|     ? native : null;
+  #| }
+
+///|
+/// Returns the original dom-ffi DataTransfer of a browser drag/drop event.
+/// A null payload, other event families, plain objects, undispatched events
+/// without a target window, and browsers without DragEvent return `None`.
+/// Uses the target document's constructor, including same-origin iframes.
+/// Read text and files synchronously during drop; the browser protects the
+/// drag data store outside permitted phases. Use FileList::to_array to retain
+/// file references. Write text during dragstart with DataTransfer::set_data.
+/// Call `prevent_default` on dragover to allow drop, and keep event control on
+/// this React DOMEvent. This accessor does not read clipboard events.
+///
+/// [DragEvent.dataTransfer](https://developer.mozilla.org/en-US/docs/Web/API/DragEvent/dataTransfer)
+pub fn DOMEvent::data_transfer(self : DOMEvent) -> @dom.DataTransfer? {
+  let value = self.drag_event_raw()
+  if value.is_nullish() {
+    None
+  } else {
+    let event : @dom.DragEvent = @dom.js_obscure_to_v(value)
+    event.data_transfer()
+  }
+}
+
+///|
 /// 获取事件目标元素的值（通常用于 input、textarea 等表单元素）
 pub extern "js" fn DOMEvent::target_value(self : DOMEvent) -> String =
   #| (event) => event.target ? event.target.value || "" : ""

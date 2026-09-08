@@ -96,6 +96,21 @@ test "form payload accessors reject missing and unbranded objects" {
 }
 
 ///|
+test "drag payload accessor rejects missing and unbranded objects" {
+  for event in invalid_form_payloads() {
+    assert_true(event.data_transfer() is None)
+  }
+  for event in invalid_drag_payloads() {
+    assert_true(event.data_transfer() is None)
+  }
+}
+
+///|
+extern "js" fn invalid_drag_payloads() -> Array[DOMEvent] =
+  #| () => [{dataTransfer: {}}, {nativeEvent: {type: "drop", dataTransfer: {getData: () => "fake"}}},
+  #|   {nativeEvent: {type: "drop", target: {ownerDocument: {defaultView: {DragEvent: 1}}}}}]
+
+///|
 extern "js" fn install_test_react() -> Unit =
   #| () => {
   #|   globalThis.window = {
