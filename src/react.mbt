@@ -304,6 +304,63 @@ pub fn DOMEvent::native_wheel_event(self : DOMEvent) -> @dom.WheelEvent? {
 }
 
 ///|
+extern "js" fn DOMEvent::file_input_raw(self : DOMEvent) -> JsObscure =
+  #| (event) => {
+  #|   const target = event?.target;
+  #|   const Input = target?.ownerDocument?.defaultView?.HTMLInputElement;
+  #|   return typeof Input === "function" && target instanceof Input && target.type === "file"
+  #|     ? target : null;
+  #| }
+
+///|
+/// Returns the original file list of a browser file-input event target.
+/// An empty selection is `Some` with length zero; non-file inputs, missing
+/// targets, and targets without a browser window return `None`.
+/// Reads `target`, not the bubbling handler's `currentTarget`. Read during the
+/// handler and use `FileList::to_array` to retain a snapshot of the selection.
+/// Uses the target document's constructor, including same-origin iframes.
+///
+/// [HTMLInputElement.files](https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement/files)
+pub fn DOMEvent::target_files(self : DOMEvent) -> @dom.FileList? {
+  let target = self.file_input_raw()
+  if target.is_nullish() {
+    None
+  } else {
+    let input : @dom.HtmlInputElement = @dom.js_obscure_to_v(target)
+    input.files()
+  }
+}
+
+///|
+extern "js" fn DOMEvent::submit_event_raw(self : DOMEvent) -> JsObscure =
+  #| (event) => {
+  #|   const native = event?.nativeEvent ?? event;
+  #|   const view = native?.target?.ownerDocument?.defaultView;
+  #|   const Submit = view?.SubmitEvent;
+  #|   return typeof Submit === "function" && native instanceof Submit && native.type === "submit"
+  #|     ? native : null;
+  #| }
+
+///|
+/// Returns the element that initiated the native submit event wrapped by React.
+/// Returns `None` for a null submitter, other event families, plain objects,
+/// undispatched events without a target window, or browsers without SubmitEvent.
+/// A generic Event named "submit" is not a SubmitEvent and returns `None`.
+/// Uses the target document's constructor, including same-origin iframes.
+/// Continue calling `prevent_default` and `stop_propagation` on this DOMEvent.
+///
+/// [SubmitEvent.submitter](https://developer.mozilla.org/en-US/docs/Web/API/SubmitEvent/submitter)
+pub fn DOMEvent::submitter(self : DOMEvent) -> @dom.Element? {
+  let value = self.submit_event_raw()
+  if value.is_nullish() {
+    None
+  } else {
+    let event : @dom.SubmitEvent = @dom.js_obscure_to_v(value)
+    event.submitter()
+  }
+}
+
+///|
 /// 获取事件目标元素的值（通常用于 input、textarea 等表单元素）
 pub extern "js" fn DOMEvent::target_value(self : DOMEvent) -> String =
   #| (event) => event.target ? event.target.value || "" : ""

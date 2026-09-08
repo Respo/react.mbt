@@ -138,6 +138,8 @@ to React's camel-cased `onXxx` property automatically.
 - `DOMEvent` type and its methods:
   - `target_value() -> String` - Get form element value
   - `target_checked() -> Bool` - Get checkbox or radio checked state
+  - `target_files() -> @dom.FileList?` - Original file-input selection; an empty selection is `Some` with length 0, a non-file target is `None`
+  - `submitter() -> @dom.Element?` - Initiating element of a native `SubmitEvent`; null submitters and other event types return `None`
   - `native_pointer_event() -> @dom.PointerEvent?`, `native_wheel_event() -> @dom.WheelEvent?` - Read checked native payloads; mismatched or incomplete payloads return `None`
   - `key() -> String`, `key_code() -> Int` - Keyboard events
   - `client_x() -> Int`, `client_y() -> Int` - Mouse coordinates
@@ -149,6 +151,30 @@ Use `native_event()` for the opaque native-event view. Keep calling
 SyntheticEvent semantics are preserved. For React form Actions,
 `ReactFormData::to_dom_form_data()` exposes dom-ffi's text/file-aware `FormData`
 without copying the underlying object.
+
+Read file selections inside the event handler; use `FileList::to_array()` if
+you need to retain the selected files. `target_files()` reads the event target,
+not the bubbling handler's `currentTarget`. Both new accessors check browser
+object types using the target document's window, including same-origin
+iframes. Plain JavaScript imitations and targets without a browser window
+return `None`; `submitter()` also rejects generic `Event("submit")` objects.
+
+```moonbit
+// Inside an on_change handler:
+match event.target_files() {
+  Some(files) =>
+    for file in files.to_array() {
+      println(file.name())
+    }
+  None => ()
+}
+// Inside an on_submit handler:
+event.prevent_default()
+match event.submitter() {
+  Some(element) => println(element.get_attribute("name").unwrap_or(""))
+  None => ()
+}
+```
 
 ### Styles and Attributes
 
@@ -508,7 +534,7 @@ CI pins MoonBit compiler `0.10.4+2cc641edf` and validates Node 22 with Yarn
 1.22.22. `check:docs` automatically discovers explicit public declarations in
 the library package instead of relying on an API allowlist; the current gate
 requires every discovered declaration to carry doc comments (currently
-235/235). `check:quick-start` also compiles and exercises the README example
+237/237). `check:quick-start` also compiles and exercises the README example
 as an independent consumer. `test:server` covers
 progressive Suspense chunks, all-ready static
 output, abort/error behavior, bootstrap metadata, and identifier prefixes

@@ -32,6 +32,8 @@ type Filter derive(Eq)
 
 type FormActionDemoState
 
+type FormPayloadProps
+
 type FormStatusProps derive(Default)
 
 type GeneratedDomConformanceProps

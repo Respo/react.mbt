@@ -1,4 +1,19 @@
 ///|
+extern "js" fn invalid_form_payloads() -> Array[DOMEvent] =
+  #| () => [null, {}, {target: null}, {target: {type: "file", files: []}},
+  #|   {nativeEvent: {type: "submit", submitter: {nodeType: 1}}},
+  #|   {target: {ownerDocument: {defaultView: {HTMLInputElement: 1}}}},
+  #|   {nativeEvent: {type: "submit", target: {ownerDocument: {defaultView: {SubmitEvent: 1}}}}}]
+
+///|
+test "form payload accessors reject missing and unbranded objects" {
+  for event in invalid_form_payloads() {
+    assert_true(event.target_files() is None)
+    assert_true(event.submitter() is None)
+  }
+}
+
+///|
 extern "js" fn install_test_react() -> Unit =
   #| () => {
   #|   globalThis.window = {
