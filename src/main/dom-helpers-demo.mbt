@@ -8,6 +8,7 @@ extern "js" fn reset_generated_dom_observations() -> Unit =
   #|     renders: 0,
   #|     cancels: 0,
   #|     closes: 0,
+  #|     frameLoads: 0,
   #|   };
   #| }
 
@@ -27,6 +28,45 @@ fn comp_generated_dom_conformance(
   custom_attrs.set("data-state", "ready")
   custom_attrs.set("customvalue", "opaque")
   @react.div([
+    @react.iframe(
+      id="generated-frame",
+      title="Embedded fixture",
+      src="about:blank",
+      src_doc="<!doctype html><p id='frame-message'>Embedded ready</p>",
+      name="generated-frame",
+      sandbox="allow-same-origin",
+      allow="fullscreen",
+      allow_full_screen=false,
+      loading="eager",
+      referrer_policy="no-referrer",
+      width=240,
+      height=80,
+      on_load=fn(_) { record_generated_dom_observation("frameLoads") },
+      [],
+    ),
+    @react.canvas(id="generated-canvas", width=120, height=60, [
+      Text("Canvas fallback"),
+    ]),
+    @react.picture(id="generated-picture", [
+      @react.source(
+        id="generated-source",
+        src_set="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='2'%20height='1'%3E%3C/svg%3E 1x",
+        sizes="2px",
+        type_="image/svg+xml",
+        media="(min-width: 1px)",
+        width=2,
+        height=1,
+      ),
+      @react.img(
+        id="generated-picture-img",
+        src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='1'%20height='1'%3E%3C/svg%3E",
+        alt="Responsive fixture",
+      ),
+    ]),
+    @react.dl(id="generated-description", [
+      @react.dt([Text("Language")]),
+      @react.dd([Text("MoonBit")]),
+    ]),
     @react.meta(name="react-mbt-generated-helper", content="metadata-ready"),
     @react.table(
       id="generated-table",

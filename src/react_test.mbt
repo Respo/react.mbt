@@ -1,4 +1,86 @@
 ///|
+extern "js" fn media_prop_json(node : @dom.JsObscure, key : String) -> String =
+  #| (node, key) => JSON.stringify(node.props[key]) ?? "missing"
+
+///|
+test "embedded helpers preserve React property names and value types" {
+  install_test_react()
+  let frame = iframe(
+    src="about:blank",
+    src_doc="<p>ok</p>",
+    name="preview",
+    sandbox="",
+    allow="fullscreen",
+    allow_full_screen=false,
+    loading="lazy",
+    referrer_policy="no-referrer",
+    width=240,
+    height=80,
+    [],
+  ).to_js_obscure()
+  for
+    pair in [
+      ("src", "\"about:blank\""),
+      ("srcDoc", "\"<p>ok</p>\""),
+      ("name", "\"preview\""),
+      ("sandbox", "\"\""),
+      ("allow", "\"fullscreen\""),
+      ("allowFullScreen", "false"),
+      ("loading", "\"lazy\""),
+      ("referrerPolicy", "\"no-referrer\""),
+      ("width", "240"),
+      ("height", "80"),
+    ] {
+    assert_eq(media_prop_json(frame, pair.0), pair.1)
+  }
+  assert_eq(
+    media_prop_json(
+      iframe(allow_full_screen=true, []).to_js_obscure(),
+      "allowFullScreen",
+    ),
+    "true",
+  )
+  assert_eq(
+    media_prop_json(iframe([]).to_js_obscure(), "allowFullScreen"),
+    "missing",
+  )
+  let drawing = canvas(width=120, height=60, []).to_js_obscure()
+  assert_eq(media_prop_json(drawing, "width"), "120")
+  assert_eq(media_prop_json(drawing, "height"), "60")
+}
+
+///|
+test "source helper maps picture and media props without children" {
+  install_test_react()
+  let node = source(
+    src="movie.webm",
+    src_set="image.png 1x",
+    sizes="2px",
+    type_="image/png",
+    media="screen",
+    width=2,
+    height=1,
+  ).to_js_obscure()
+  for
+    pair in [
+      ("src", "\"movie.webm\""),
+      ("srcSet", "\"image.png 1x\""),
+      ("sizes", "\"2px\""),
+      ("type", "\"image/png\""),
+      ("media", "\"screen\""),
+      ("width", "2"),
+      ("height", "1"),
+    ] {
+    assert_eq(media_prop_json(node, pair.0), pair.1)
+  }
+  assert_eq(source_child_count(node), 0)
+}
+
+///|
+extern "js" fn source_child_count(node : @dom.JsObscure) -> Int =
+  #| (node) => node.children.length
+
+///|
 extern "js" fn invalid_form_payloads() -> Array[DOMEvent] =
   #| () => [null, {}, {target: null}, {target: {type: "file", files: []}},
   #|   {nativeEvent: {type: "submit", submitter: {nodeType: 1}}},

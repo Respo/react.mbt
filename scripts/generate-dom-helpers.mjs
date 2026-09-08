@@ -63,7 +63,7 @@ function renderHelper(element) {
   const children = element.void ? "[]" : "children";
   return `///|
 /// Generated typed helper for the \`${element.tag}\` ${element.category} element.
-pub fn ${element.name}(
+${(element.doc ?? []).map((line) => `/// ${line}\n`).join("")}pub fn ${element.name}(
 ${parameters.join("\n")}
 ) -> VirtualNode {
   generated_dom_element(

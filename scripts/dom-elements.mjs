@@ -18,6 +18,35 @@ const float = (param, react = param) => ({ param, react, type: "Float" });
 const event = (param, variant) => ({ param, variant });
 
 export const elements = [
+  // Embedded documents, drawing surfaces, and responsive image sources.
+  {
+    name: "iframe", tag: "iframe", category: "media",
+    doc: [
+      "Use title to describe the embedded document for accessibility.",
+      "src_doc contains HTML and takes precedence over src; only pass trusted or sanitized HTML.",
+      "sandbox is a space-separated token list; an empty string enables all sandbox restrictions.",
+      "Avoid combining allow-scripts and allow-same-origin for untrusted same-origin content.",
+    ],
+    props: [string("src"), string("src_doc", "srcDoc"), string("name"), string("sandbox"), string("allow"), bool("allow_full_screen", "allowFullScreen"), string("loading"), string("referrer_policy", "referrerPolicy"), int("width"), int("height")],
+    events: [event("on_load", "Load")],
+  },
+  {
+    name: "canvas", tag: "canvas", category: "media",
+    doc: ["width and height set bitmap dimensions in pixels, not CSS size.", "Changing either dimension resets the drawing context; children provide fallback content."],
+    props: [int("width"), int("height")],
+  },
+  {
+    name: "picture", tag: "picture", category: "media",
+    doc: ["Place source children before a final img fallback; the browser selects the image source."],
+  },
+  {
+    name: "source", tag: "source", category: "media", void: true,
+    doc: ["A void element: use src_set/sizes in picture, or src in audio/video.", "width and height describe image dimensions when this is a picture source."],
+    props: [string("src"), string("src_set", "srcSet"), string("sizes"), string("type_", "type"), string("media"), int("width"), int("height")],
+  },
+  { name: "dl", tag: "dl", category: "semantic", doc: ["Groups terms (dt) with descriptions (dd)."] },
+  { name: "dt", tag: "dt", category: "semantic", doc: ["A term or name within a dl description list."] },
+  { name: "dd", tag: "dd", category: "semantic", doc: ["A description for the preceding dt term within a dl."] },
   // Tables
   { name: "table", tag: "table", category: "table" },
   { name: "caption", tag: "caption", category: "table" },

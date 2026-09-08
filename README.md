@@ -119,15 +119,27 @@ For example, use `component(my_component, props, [])`, never
   `optgroup`, `output`, `progress`, `meter`, `dialog`, `details`, and `summary`
 - Generated React 19 metadata helpers: `title`, `meta`, `link`, `style_tag`, and
   `script_tag`
+- Generated embedded/media helpers: `iframe`, `canvas`, `picture`, and `source`;
+  description-list helpers: `dl`, `dt`, and `dd`
 - Generated core SVG helpers include `svg`, `g`, `defs`, `symbol`, `path`,
   `circle`, `ellipse`, `rect`, `line`, gradients, clipping/masking, text, and
   `use_`
 
-The generated set contains 54 helpers across six categories. Every generated
+The generated set contains 61 helpers across seven categories, with 142
+tag-specific property mappings plus six shared properties. Every generated
 helper includes typed common `role`, `title`, `tab_index`, `hidden`,
 `aria_label`, and `data_testid` props plus the applicable tag-specific props.
 SVG and metadata names use React camel case at the JavaScript boundary, such as
 `viewBox`, `strokeWidth`, `httpEquiv`, and `xlinkHref`.
+
+Use `canvas(width=120, height=60, [])` for bitmap dimensions; CSS dimensions
+only change its displayed size. Place `source(src_set=..., type_=...)` before
+the fallback `img` in `picture`; `source` is void and takes no children.
+For `iframe`, give the embedded document a descriptive `title`. `src_doc`
+maps to React `srcDoc` and contains HTML, so pass only trusted or sanitized
+content and choose `sandbox` tokens deliberately. The empty sandbox string
+enables all restrictions. `allow_full_screen` maps to the boolean
+`allowFullScreen`; `on_load` receives the React load event.
 
 ### Event Handling
 
@@ -534,7 +546,7 @@ CI pins MoonBit compiler `0.10.4+2cc641edf` and validates Node 22 with Yarn
 1.22.22. `check:docs` automatically discovers explicit public declarations in
 the library package instead of relying on an API allowlist; the current gate
 requires every discovered declaration to carry doc comments (currently
-237/237). `check:quick-start` also compiles and exercises the README example
+244/244). `check:quick-start` also compiles and exercises the README example
 as an independent consumer. `test:server` covers
 progressive Suspense chunks, all-ready static
 output, abort/error behavior, bootstrap metadata, and identifier prefixes

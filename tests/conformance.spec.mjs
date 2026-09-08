@@ -671,10 +671,12 @@ test("generated HTML SVG metadata and escape-hatch props match the browser DOM",
   await expect(custom).toHaveAttribute("data-state", "ready");
   await expect(custom).toHaveAttribute("customvalue", "opaque");
 
+  await expect.poll(() => page.evaluate(() => globalThis.__moonbitGeneratedDomConformance.frameLoads)).toBe(1);
   expect(await page.evaluate(() => globalThis.__moonbitGeneratedDomConformance)).toEqual({
     renders: 1,
     cancels: 1,
     closes: 1,
+    frameLoads: 1,
   });
   expect(pageErrors).toEqual([]);
   expect(consoleProblems).toEqual([]);

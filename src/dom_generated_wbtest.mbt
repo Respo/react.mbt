@@ -14,9 +14,16 @@ extern "js" fn generated_helper_test_tag(node : @dom.JsObscure) -> String =
   #| (node) => node.tag
 
 ///|
-test "all 54 generated DOM helpers construct their declared tags" {
+test "all 61 generated DOM helpers construct their declared tags" {
   install_generated_helper_test_react()
   let cases = [
+    ("iframe", iframe([]).to_js_obscure()),
+    ("canvas", canvas([]).to_js_obscure()),
+    ("picture", picture([]).to_js_obscure()),
+    ("source", source().to_js_obscure()),
+    ("dl", dl([]).to_js_obscure()),
+    ("dt", dt([]).to_js_obscure()),
+    ("dd", dd([]).to_js_obscure()),
     ("table", table([]).to_js_obscure()),
     ("caption", caption([]).to_js_obscure()),
     ("colgroup", colgroup([]).to_js_obscure()),
