@@ -337,7 +337,9 @@ pub fn DOMEvent::native_wheel_event(Self) -> @dom-ffi.WheelEvent?
 pub fn DOMEvent::prevent_default(Self) -> Unit
 pub fn DOMEvent::shift_key(Self) -> Bool
 pub fn DOMEvent::stop_propagation(Self) -> Unit
+pub fn DOMEvent::submitter(Self) -> @dom-ffi.Element?
 pub fn DOMEvent::target_checked(Self) -> Bool
+pub fn DOMEvent::target_files(Self) -> @dom-ffi.FileList?
 pub fn DOMEvent::target_value(Self) -> String
 pub fn DOMEvent::to_js_obscure(Self) -> @dom-ffi.JsObscure
 

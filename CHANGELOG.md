@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Added checked `DOMEvent::target_files` and `DOMEvent::submitter`, reusing
+  dom-ffi FileList and SubmitEvent accessors. Browser coverage verifies native
+  identity, empty/multiple selections, submitter identity, React event control,
+  invalid payload rejection, and same-origin iframe objects.
+
 - Replaced the Quick Start with a complete independent counter project and a
   CI gate that extracts the README files, installs their dependencies, compiles
   the app, and verifies production-browser updates and missing-root behavior.
