@@ -81,11 +81,15 @@ extern "js" fn source_child_count(node : @dom.JsObscure) -> Int =
   #| (node) => node.children.length
 
 ///|
-extern "js" fn invalid_form_payloads() -> Array[DOMEvent] =
+extern "js" fn invalid_form_payloads_ffi() -> FixedArray[DOMEvent] =
   #| () => [null, {}, {target: null}, {target: {type: "file", files: []}},
   #|   {nativeEvent: {type: "submit", submitter: {nodeType: 1}}},
   #|   {target: {ownerDocument: {defaultView: {HTMLInputElement: 1}}}},
   #|   {nativeEvent: {type: "submit", target: {ownerDocument: {defaultView: {SubmitEvent: 1}}}}}]
+
+fn invalid_form_payloads() -> Array[DOMEvent] {
+  Array::from_fixed_array(invalid_form_payloads_ffi())
+}
 
 ///|
 test "form payload accessors reject missing and unbranded objects" {
@@ -106,9 +110,13 @@ test "drag payload accessor rejects missing and unbranded objects" {
 }
 
 ///|
-extern "js" fn invalid_drag_payloads() -> Array[DOMEvent] =
+extern "js" fn invalid_drag_payloads_ffi() -> FixedArray[DOMEvent] =
   #| () => [{dataTransfer: {}}, {nativeEvent: {type: "drop", dataTransfer: {getData: () => "fake"}}},
   #|   {nativeEvent: {type: "drop", target: {ownerDocument: {defaultView: {DragEvent: 1}}}}}]
+
+fn invalid_drag_payloads() -> Array[DOMEvent] {
+  Array::from_fixed_array(invalid_drag_payloads_ffi())
+}
 
 ///|
 extern "js" fn install_test_react() -> Unit =

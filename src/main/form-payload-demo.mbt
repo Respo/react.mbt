@@ -2,9 +2,9 @@
 struct FormPayloadProps {}
 
 ///|
-extern "js" fn form_payload_record_files(
+extern "js" fn form_payload_record_files_ffi(
   files : @dom.JsObscure,
-  names : Array[String],
+  names : FixedArray[String],
 ) -> Unit =
   #| (files, names) => {
   #|   globalThis.__formPayload.files.push({
@@ -12,6 +12,13 @@ extern "js" fn form_payload_record_files(
   #|     same: files === document.getElementById("payload-files").files,
   #|   });
   #| }
+
+fn form_payload_record_files(
+  files : @dom.JsObscure,
+  names : Array[String],
+) -> Unit {
+  form_payload_record_files_ffi(files, FixedArray::from_array(names))
+}
 
 ///|
 extern "js" fn form_payload_record_submit(

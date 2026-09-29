@@ -2,11 +2,11 @@
 struct DragPayloadProps {}
 
 ///|
-extern "js" fn record_drag_payload(
+extern "js" fn record_drag_payload_ffi(
   event : @react.DOMEvent,
   transfer : @dom.JsObscure,
   text : String,
-  names : Array[String],
+  names : FixedArray[String],
 ) -> Unit =
   #| (event, transfer, text, names) => {
   #|   globalThis.__dragPayload.drops.push({text, names, present: transfer != null,
@@ -14,6 +14,15 @@ extern "js" fn record_drag_payload(
   #|     prevented: event.isDefaultPrevented(), stopped: event.isPropagationStopped(),
   #|     trusted: event.nativeEvent.isTrusted});
   #| }
+
+fn record_drag_payload(
+  event : @react.DOMEvent,
+  transfer : @dom.JsObscure,
+  text : String,
+  names : Array[String],
+) -> Unit {
+  record_drag_payload_ffi(event, transfer, text, FixedArray::from_array(names))
+}
 
 ///|
 extern "js" fn record_drag_start() -> Unit =
